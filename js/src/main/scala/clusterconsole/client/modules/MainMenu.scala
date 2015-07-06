@@ -4,10 +4,13 @@ import clusterconsole.client.ClusterConsoleApp.{ClusterMapLoc, DashboardLoc, Loc
 import clusterconsole.client.style.{Icon, GlobalStyles}
 import Icon.Icon
 import clusterconsole.client.style.{Icon, GlobalStyles}
+import clusterconsole.client.style.Bootstrap.CommonStyle
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.extra.OnUnmount
 import japgolly.scalajs.react.extra.router2.RouterCtl
 import japgolly.scalajs.react.vdom.all._
+import japgolly.scalajs.react.vdom._
+import scalacss.ScalaCssReact._
 import rx._
 import rx.ops._
 
@@ -34,14 +37,14 @@ object MainMenu {
 
   private val menuItems = Seq(
     MenuItem(_ => "Dashboard", Icon.dashboard, DashboardLoc),
-    MenuItem(_ => "Dashboard", Icon.check, ClusterMapLoc)
+    MenuItem(_ => "ClusterMap", Icon.circle, ClusterMapLoc)
   )
 
   private val MainMenu = ReactComponentB[Props]("MainMenu")
     .stateless
     .backend(new Backend(_))
     .render((P, _, B) => {
-    ul(
+    ul(bss.navbar)(
       // build a list of menu items
       for (item <- menuItems) yield {
         li((P.currentLoc == item.location) ?= (className := "active"),

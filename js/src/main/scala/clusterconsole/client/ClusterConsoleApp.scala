@@ -1,6 +1,6 @@
 package clusterconsole.client
 
-import clusterconsole.client.modules.{ClusterMap, Dashboard}
+import clusterconsole.client.modules.{MainMenu, ClusterMap, Dashboard}
 import clusterconsole.client.services.ClusterMemberStore
 import clusterconsole.client.style.GlobalStyles
 import japgolly.scalajs.react.React
@@ -42,7 +42,7 @@ object ClusterConsoleApp extends js.JSApp{
         div(className := "container")(
           div(className := "navbar-header")(span(className := "navbar-brand")("Cluster Console")),
           div(className := "collapse navbar-collapse")(
-            "menu"
+            MainMenu(MainMenu.Props(c, r.page))
           )
         )
       ),
