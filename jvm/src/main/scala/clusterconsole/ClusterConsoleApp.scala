@@ -11,26 +11,25 @@ object ClusterConsoleApp extends App with LogF {
 
   args.logDebug("ClusterConsoleApp starting with args:" + _.toList.toString)
 
-  val argumentsError = """
-   Please run the service with the required arguments:  <hostIpAddress> <akka-port> <http-port>"""
-
-  assert(args.length == 3, argumentsError)
-
-  val hostname = args(0)
-  val akkaPort = args(1).toInt
-  val httpPort = args(2).toInt
+  //  val argumentsError = """
+  //   Please run the service with the required arguments:  <hostIpAddress> <akka-port> <http-port>"""
+  //
+  //  assert(args.length == 3, argumentsError)
+  //
+  //  val hostname = args(0)
+  //  val akkaPort = args(1).toInt
+  //  val httpPort = args(2).toInt
 
   val akkaConf =
-    """akka.remote.netty.tcp.hostname="%hostname%"
-      |akka.remote.netty.tcp.port=%port%
-      |akka.cluster.roles = [loginhttp]
+    """akka.remote.netty.tcp.hostname="127.0.0.1"
+      |akka.remote.netty.tcp.port=2771
+      |akka.cluster.roles = [clusterconsole]
       |""".stripMargin
 
-  val config = ConfigFactory.parseString(akkaConf.replaceAll("%hostname%", hostname)
-    .replaceAll("%port%", akkaPort.toString)).withFallback(ConfigFactory.load())
+  val config = ConfigFactory.parseString(akkaConf).withFallback(ConfigFactory.load())
 
   val system = ActorSystem("ClusterConsoleSystem", config)
 
-  system.actorOf(HttpServiceActor.props(hostname, httpPort, Timeout(30 seconds)), "http")
+  system.actorOf(HttpServiceActor.props("127.0.0.1", 8080, Timeout(30 seconds)), "clusterconsolehttp")
 
 }

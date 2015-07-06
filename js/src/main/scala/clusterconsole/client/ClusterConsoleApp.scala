@@ -7,6 +7,7 @@ import japgolly.scalajs.react.React
 import japgolly.scalajs.react.extra.router2._
 import japgolly.scalajs.react.vdom.all._
 import org.scalajs.dom
+import org.scalajs.dom.raw._
 import scala.scalajs.js
 import scala.scalajs.js.annotation.JSExport
 import scalacss.Defaults._
@@ -62,7 +63,34 @@ object ClusterConsoleApp extends js.JSApp{
     val router = Router(BaseUrl(dom.window.location.href.takeWhile(_ != '#')), routerConfig)
     // tell React to render the router in the document body
     React.render(router(), dom.document.body)
+
+
+    val websocket = new WebSocket(getWebsocketUri(dom.document))
+
+    websocket.onopen = { (event: Event) =>
+      websocket.send("Hello Katrin!!!")
+      event
+    }
+    websocket.onerror = { (event: ErrorEvent) =>
+    }
+    websocket.onmessage = { (event: MessageEvent) =>
+    }
+    websocket.onclose = { (event: Event) =>
+    }
+
+
+
+
+    websocket.send("HELLO")
+
   }
+
+  def getWebsocketUri(document: Document): String = {
+    val wsProtocol = if (dom.document.location.protocol == "https:") "wss" else "ws"
+
+    s"$wsProtocol://${dom.document.location.host}/api"
+  }
+
 
 
 }
