@@ -10,10 +10,12 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.marshalling.{ PredefinedToEntityMarshallers, ToEntityMarshaller }
 import akka.http.scaladsl.model.MediaTypes
-import akka.stream.scaladsl.Flow
+import akka.stream.scaladsl.{ Source, Merge, FlowGraph, Flow }
 import akka.stream.stage.{ TerminationDirective, SyncDirective, Context, PushStage }
 import clusterconsole.core.LogF
 import clusterconsole.shared.Protocol.TestMessage
+
+import scala.util.Random
 
 trait ClusterConsoleRoutes extends LogF {
 
@@ -33,7 +35,7 @@ trait ClusterConsoleRoutes extends LogF {
       } ~ {
         getFromResourceDirectory("web")
       } ~ path("api") {
-        handleWebsocketMessages(websocketChatFlow)
+        handleWebsocketMessages(graphFlowWithExtraSource)
       }
     }
 
@@ -64,5 +66,34 @@ trait ClusterConsoleRoutes extends LogF {
   //        super.onUpstreamFailure(cause, ctx)
   //      }
   //    })
+
+  def graphFlowWithExtraSource: Flow[Message, Message, Unit] = {
+    Flow() { implicit b =>
+      import FlowGraph.Implicits._
+
+      // Graph elements we'll use
+      val merge = b.add(Merge[Int](2))
+      val filter = b.add(Flow[Int].filter(_ => false))
+
+      // convert to int so we can connect to merge
+      val mapMsgToInt = b.add(Flow[Message].map[Int] { msg => -1 })
+      val mapIntToMsg = b.add(Flow[Int].map[Message](x => TextMessage.Strict(":" + randomPrintableString(200) + ":" + x.toString)))
+      val log = b.add(Flow[Int].map[Int](x => { println(x); x }))
+
+      // source we want to use to send message to the connected websocket sink
+      val rangeSource = b.add(Source(1 to 2000))
+
+      // connect the graph
+      mapMsgToInt ~> filter ~> merge // this part of the merge will never provide msgs
+      rangeSource ~> log ~> merge ~> mapIntToMsg
+
+      // expose ports
+      (mapMsgToInt.inlet, mapIntToMsg.outlet)
+    }
+  }
+
+  def randomPrintableString(length: Int, start: String = ""): String = {
+    if (length == 0) start else randomPrintableString(length - 1, start + Random.nextPrintableChar())
+  }
 
 }

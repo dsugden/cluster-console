@@ -68,12 +68,16 @@ object ClusterConsoleApp extends js.JSApp{
     val websocket = new WebSocket(getWebsocketUri(dom.document))
 
     websocket.onopen = { (event: Event) =>
-      websocket.send("Hello Katrin!!!")
+      websocket.send("1")
       event
     }
     websocket.onerror = { (event: ErrorEvent) =>
     }
     websocket.onmessage = { (event: MessageEvent) =>
+
+
+      log.debug("***************  on message " + event.data.toString)
+
     }
     websocket.onclose = { (event: Event) =>
     }

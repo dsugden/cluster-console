@@ -61,6 +61,7 @@ object Settings {
     "com.typesafe.akka" %% "akka-contrib" % versions.akka,
     "com.typesafe.akka" %% "akka-http-experimental" % versions.akkaHttp,
     "com.typesafe.akka" %% "akka-http-testkit-experimental" % versions.akkaHttp,
+    "com.typesafe.akka" % "akka-stream-experimental_2.11" % versions.akkaHttp,
     "com.typesafe.akka" %% "akka-slf4j" % versions.akka,
     "com.typesafe.akka" %% "akka-multi-node-testkit" % versions.akka,
     "com.typesafe.akka" %% "akka-testkit" % versions.akka,
