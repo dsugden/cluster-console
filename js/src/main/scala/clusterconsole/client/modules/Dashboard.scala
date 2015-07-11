@@ -9,6 +9,6 @@ object Dashboard {
   // create the React component for Dashboard
   val component = ReactComponentB[RouterCtl[Loc]]("Dashboard")
     .render(router => {
-        div(cls := "container", paddingTop := "6px")( "Hey Katrin! This is the Dashboard Module." )
+        div(cls := "container", paddingTop := "6px")( "Hey Katrin!$$$$$$$$ This is the Dashboard Module." )
   }).build
 }

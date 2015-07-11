@@ -78,11 +78,6 @@ object ClusterConsoleApp extends js.JSApp{
     websocket.onclose = { (event: Event) =>
     }
 
-
-
-
-    websocket.send("HELLO")
-
   }
 
   def getWebsocketUri(document: Document): String = {
