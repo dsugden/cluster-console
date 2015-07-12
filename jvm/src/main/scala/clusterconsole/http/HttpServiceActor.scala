@@ -15,9 +15,12 @@ import clusterconsole.core.LogF
 import scala.concurrent.Future
 import scala.util.{ Failure, Success }
 
-class HttpServiceActor(host: String,
+class HttpServiceActor(
+  host: String,
   port: Int,
-  selfTimeout: Timeout)
+  selfTimeout: Timeout,
+  val router: ActorRef,
+  val clusterAwareActor: ActorRef)
     extends Actor with ClusterConsoleRoutes with ImplicitMaterializer with LogF {
 
   import context.dispatcher
@@ -43,8 +46,10 @@ class HttpServiceActor(host: String,
 object HttpServiceActor {
   def props(host: String,
     port: Int,
-    selfTimeout: Timeout): Props =
-    Props(new HttpServiceActor(host, port, selfTimeout))
+    selfTimeout: Timeout,
+    router: ActorRef,
+    clusterAwareActor: ActorRef): Props =
+    Props(new HttpServiceActor(host, port, selfTimeout, router, clusterAwareActor))
 
 }
 

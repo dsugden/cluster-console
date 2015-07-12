@@ -1,7 +1,7 @@
 package clusterconsole.client.services
 
 import clusterconsole.client.ukko.Actor
-import clusterconsole.shared.ClusterMember
+import clusterconsole.http.ClusterMember
 import rx._
 
 case object RefreshClusterMembers

@@ -2,7 +2,7 @@ package clusterconsole.client.modules
 
 import clusterconsole.client.ClusterConsoleApp.Loc
 import clusterconsole.client.services.{ClusterMemberStore, RefreshClusterMembers, MainDispatcher}
-import clusterconsole.shared.ClusterMember
+import clusterconsole.http.ClusterMember
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.extra.OnUnmount
 import japgolly.scalajs.react.extra.router2.RouterCtl

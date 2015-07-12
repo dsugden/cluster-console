@@ -1,24 +1,18 @@
 package clusterconsole
 
-import akka.actor.ActorSystem
+import akka.actor.{ Props, ActorRef, ActorSystem }
 import akka.util.Timeout
+import clusterconsole.cluster.{ ClusterAwareActor }
 import clusterconsole.core.LogF
-import clusterconsole.http.HttpServiceActor
+import clusterconsole.http.{ RouterActor, HttpServiceActor }
+import clusterconsole.http.ClusterMemberUp
 import com.typesafe.config.ConfigFactory
 import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext.Implicits.global
 
 object ClusterConsoleApp extends App with LogF {
 
   args.logDebug("ClusterConsoleApp starting with args:" + _.toList.toString)
-
-  //  val argumentsError = """
-  //   Please run the service with the required arguments:  <hostIpAddress> <akka-port> <http-port>"""
-  //
-  //  assert(args.length == 3, argumentsError)
-  //
-  //  val hostname = args(0)
-  //  val akkaPort = args(1).toInt
-  //  val httpPort = args(2).toInt
 
   val akkaConf =
     """akka.remote.netty.tcp.hostname="127.0.0.1"
@@ -30,6 +24,11 @@ object ClusterConsoleApp extends App with LogF {
 
   val system = ActorSystem("ClusterConsoleSystem", config)
 
-  system.actorOf(HttpServiceActor.props("127.0.0.1", 8080, Timeout(30 seconds)), "clusterconsolehttp")
+  val router: ActorRef = system.actorOf(Props[RouterActor], "router")
+  val clusterAwareActor: ActorRef = system.actorOf(Props(classOf[ClusterAwareActor], router))
+
+  system.scheduler.schedule(3 seconds, 3 seconds, clusterAwareActor, ClusterMemberUp("cluster1", "name: " + System.currentTimeMillis()))
+
+  system.actorOf(HttpServiceActor.props("127.0.0.1", 8080, Timeout(30 seconds), router, clusterAwareActor), "clusterconsolehttp")
 
 }

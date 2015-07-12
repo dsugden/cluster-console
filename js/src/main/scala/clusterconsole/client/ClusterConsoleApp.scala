@@ -3,6 +3,7 @@ package clusterconsole.client
 import clusterconsole.client.modules.{MainMenu, ClusterMap, Dashboard}
 import clusterconsole.client.services.ClusterMemberStore
 import clusterconsole.client.style.GlobalStyles
+import clusterconsole.http.TestMessage
 import japgolly.scalajs.react.React
 import japgolly.scalajs.react.extra.router2._
 import japgolly.scalajs.react.vdom.all._
@@ -68,7 +69,9 @@ object ClusterConsoleApp extends js.JSApp{
     val websocket = new WebSocket(getWebsocketUri(dom.document))
 
     websocket.onopen = { (event: Event) =>
-      websocket.send("1")
+      websocket.send(upickle.write(TestMessage("EE")))
+      websocket.send(upickle.write(TestMessage("FF")))
+      websocket.send(upickle.write(TestMessage("GG")))
       event
     }
     websocket.onerror = { (event: ErrorEvent) =>
