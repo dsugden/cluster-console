@@ -1,22 +1,23 @@
 package clusterconsole.client.modules
 
 import clusterconsole.client.ClusterConsoleApp.Loc
-import clusterconsole.client.services.{ClusterMemberStore, RefreshClusterMembers, MainDispatcher}
-import clusterconsole.http.ClusterMember
+import clusterconsole.client.components.ClusterForm
+import clusterconsole.client.services.{ClusterStore, RefreshClusterMembers, MainDispatcher}
+import clusterconsole.http.{Cluster, ClusterMember}
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.extra.OnUnmount
 import japgolly.scalajs.react.extra.router2.RouterCtl
 import japgolly.scalajs.react.vdom.all._
-
+import clusterconsole.client.services.Logger._
 import rx._
 import rx.ops._
 
 
 object ClusterMap {
 
-  case class Props(todos: Rx[Seq[ClusterMember]], router: RouterCtl[Loc])
+  case class Props(clusters: Rx[Map[String,Cluster]], router: RouterCtl[Loc])
 
-  case class State(selectedItem: Option[ClusterMember] = None, showTodoForm: Boolean = false)
+  case class State(selectedItem: Option[Cluster] = None)
 
   abstract class RxObserver[BS <: BackendScope[_, _]](scope: BS) extends OnUnmount {
     protected def observe[T](rx: Rx[T]): Unit = {
@@ -29,31 +30,17 @@ object ClusterMap {
   class Backend(t: BackendScope[Props, State]) extends RxObserver(t) {
     def mounted(): Unit = {
       // hook up to TodoStore changes
-      observe(t.props.todos)
+      observe(t.props.clusters)
       // dispatch a message to refresh the todos, which will cause TodoStore to fetch todos from the server
-      MainDispatcher.dispatch(RefreshClusterMembers)
+//      MainDispatcher.dispatch(RefreshClusterMembers)
     }
 
-//    def editTodo(item: Option[ClusterMember]): Unit = {
-//      // activate the todo dialog
-//      t.modState(s => s.copy(selectedItem = item, showTodoForm = true))
-//    }
-//
-//    def deleteTodo(item: TodoItem): Unit = {
-//      TodoActions.deleteTodo(item)
-//    }
-//
-//    def todoEdited(item: TodoItem, cancelled: Boolean): Unit = {
-//      if (cancelled) {
-//        // nothing to do here
-//        log.debug("Todo editing cancelled")
-//      } else {
-//        log.debug(s"Todo edited: $item")
-//        TodoActions.updateTodo(item)
-//      }
-//      // hide the todo dialog
-//      t.modState(s => s.copy(showTodoForm = false))
-//    }
+    def editCluster(item: Option[Cluster]):Unit = {
+
+      log.debug("item " + item)
+
+    }
+
   }
 
   // create the React component for ToDo management
@@ -61,20 +48,21 @@ object ClusterMap {
     .initialState(State()) // initial state from TodoStore
     .backend(new Backend(_))
     .render((P, S, B) => {
-    div("Cluster members")
-//    Panel(Panel.Props("What needs to be done"), TodoList(TodoListProps(P.todos(), TodoActions.updateTodo, item => B.editTodo(Some(item)), B.deleteTodo)),
-//      Button(Button.Props(() => B.editTodo(None)), Icon.plusSquare, " New"),
-//      // if the dialog is open, add it to the panel
-//      if (S.showTodoForm) TodoForm(TodoForm.Props(S.selectedItem, B.todoEdited))
-//      else // otherwise add an empty placeholder
-//        Seq.empty[ReactElement])
+    div(cls := "row")(
+      div(cls := "col-md-4")(
+        ClusterForm(None,B.editCluster)
+      ),
+      div(cls := "col-md-8")(
+        h3("Cluster map")
+      )
+    )
   })
     .componentDidMount(_.backend.mounted())
     .configure(OnUnmount.install)
     .build
 
   /** Returns a function with router location system while using our own props */
-  def apply(store: ClusterMemberStore) = (router: RouterCtl[Loc]) => {
+  def apply(store: ClusterStore) = (router: RouterCtl[Loc]) => {
     component(Props(store.clusterMembers, router))
   }
 

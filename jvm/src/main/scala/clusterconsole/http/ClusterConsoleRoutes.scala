@@ -2,18 +2,14 @@ package clusterconsole.http
 
 import akka.actor.{ Actor, Props, ActorRef }
 import akka.http.scaladsl.model.ws.{ TextMessage, Message }
-import akka.routing.{ RemoveRoutee, AddRoutee, Routee }
 import akka.http.scaladsl.server.Route
-import akka.http.scaladsl.model.{ MediaTypes, StatusCodes }
 import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.marshalling.{ PredefinedToEntityMarshallers, ToEntityMarshaller }
 import akka.http.scaladsl.model.MediaTypes
 import akka.stream.scaladsl.{ Source, Merge, FlowGraph, Flow }
-import akka.stream.stage.{ TerminationDirective, SyncDirective, Context, PushStage }
 import clusterconsole.core.LogF
-import clusterconsole.http.{ TestResponse, TestMessage, ClusterEvent }
 
 import scala.util.Random
 

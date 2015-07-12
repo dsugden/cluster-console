@@ -1,16 +1,11 @@
 package clusterconsole.http
 
-import java.io.File
-
 import akka.actor._
-import akka.cluster.ClusterEvent
 import akka.routing.{ ActorRefRoutee, AddRoutee, RemoveRoutee, Routee }
 import akka.stream.actor.ActorPublisher
 import clusterconsole.core.LogF
-import clusterconsole.http.ClusterEvent
 
 import scala.annotation.tailrec
-import scala.concurrent.duration._
 
 class ClusterPublisher(router: ActorRef) extends ActorPublisher[String] with LogF {
 

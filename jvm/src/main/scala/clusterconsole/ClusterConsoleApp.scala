@@ -2,10 +2,8 @@ package clusterconsole
 
 import akka.actor.{ Props, ActorRef, ActorSystem }
 import akka.util.Timeout
-import clusterconsole.cluster.{ ClusterAwareActor }
 import clusterconsole.core.LogF
-import clusterconsole.http.{ RouterActor, HttpServiceActor }
-import clusterconsole.http.ClusterMemberUp
+import clusterconsole.http.{ ClusterAwareActor, RouterActor, HttpServiceActor, ClusterMemberUp }
 import com.typesafe.config.ConfigFactory
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -27,7 +25,7 @@ object ClusterConsoleApp extends App with LogF {
   val router: ActorRef = system.actorOf(Props[RouterActor], "router")
   val clusterAwareActor: ActorRef = system.actorOf(Props(classOf[ClusterAwareActor], router))
 
-  system.scheduler.schedule(3 seconds, 3 seconds, clusterAwareActor, ClusterMemberUp("cluster1", "name: " + System.currentTimeMillis()))
+  system.scheduler.schedule(3 seconds, 10 seconds, clusterAwareActor, ClusterMemberUp("cluster1", "name: " + System.currentTimeMillis()))
 
   system.actorOf(HttpServiceActor.props("127.0.0.1", 8080, Timeout(30 seconds), router, clusterAwareActor), "clusterconsolehttp")
 

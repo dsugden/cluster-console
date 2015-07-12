@@ -1,7 +1,7 @@
 package clusterconsole.client
 
 import clusterconsole.client.modules.{MainMenu, ClusterMap, Dashboard}
-import clusterconsole.client.services.ClusterMemberStore
+import clusterconsole.client.services.ClusterStore
 import clusterconsole.client.style.GlobalStyles
 import clusterconsole.http.TestMessage
 import japgolly.scalajs.react.React
@@ -32,7 +32,7 @@ object ClusterConsoleApp extends js.JSApp{
     import dsl._
 
     (staticRoute(root, DashboardLoc) ~> renderR(ctl => Dashboard.component(ctl))
-      | staticRoute("#clustermap", ClusterMapLoc) ~> renderR(ctl => ClusterMap(ClusterMemberStore)(ctl))
+      | staticRoute("#clustermap", ClusterMapLoc) ~> renderR(ctl => ClusterMap(ClusterStore)(ctl))
       ).notFound(redirectToPage(DashboardLoc)(Redirect.Replace))
   }.renderWith(layout)
 
@@ -65,33 +65,8 @@ object ClusterConsoleApp extends js.JSApp{
     // tell React to render the router in the document body
     React.render(router(), dom.document.body)
 
-
-    val websocket = new WebSocket(getWebsocketUri(dom.document))
-
-    websocket.onopen = { (event: Event) =>
-      websocket.send(upickle.write(TestMessage("EE")))
-      websocket.send(upickle.write(TestMessage("FF")))
-      websocket.send(upickle.write(TestMessage("GG")))
-      event
-    }
-    websocket.onerror = { (event: ErrorEvent) =>
-    }
-    websocket.onmessage = { (event: MessageEvent) =>
-
-
-      log.debug("***************  on message " + event.data.toString)
-
-    }
-    websocket.onclose = { (event: Event) =>
-    }
-
   }
 
-  def getWebsocketUri(document: Document): String = {
-    val wsProtocol = if (dom.document.location.protocol == "https:") "wss" else "ws"
-
-    s"$wsProtocol://${dom.document.location.host}/api"
-  }
 
 
 

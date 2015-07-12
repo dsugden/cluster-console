@@ -9,4 +9,16 @@ This code is heavily influenced and owed it's existence to: https://github.com/o
 
 to run in dev:
 
-     sbt fastOptJS "project sharedProjectJVM" "run 127.0.0.1 2771 8080"
+
+1) open 2 terminals.
+2) in first terminal:
+
+     sbt
+     re-start
+     
+3) in second terminal:
+
+    sbt
+    ~fastOptJS
+    
+    
