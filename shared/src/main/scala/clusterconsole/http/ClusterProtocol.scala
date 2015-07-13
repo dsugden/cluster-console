@@ -15,6 +15,6 @@ case class TestResponse(v: String) extends ClusterProtocol
 
 
 
-case class Cluster(name:String, seeds:List[String], members:Seq[ClusterMember] = Nil)
+case class DiscoveredCluster(name:String, seeds:List[String], members:Seq[ClusterMember] = Nil)
 
 

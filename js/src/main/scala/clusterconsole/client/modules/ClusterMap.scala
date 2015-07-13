@@ -3,7 +3,7 @@ package clusterconsole.client.modules
 import clusterconsole.client.ClusterConsoleApp.Loc
 import clusterconsole.client.components.ClusterForm
 import clusterconsole.client.services.{ClusterStore, RefreshClusterMembers, MainDispatcher}
-import clusterconsole.http.{Cluster, ClusterMember}
+import clusterconsole.http.{DiscoveredCluster, ClusterMember}
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.extra.OnUnmount
 import japgolly.scalajs.react.extra.router2.RouterCtl
@@ -15,9 +15,9 @@ import rx.ops._
 
 object ClusterMap {
 
-  case class Props(clusters: Rx[Map[String,Cluster]], router: RouterCtl[Loc])
+  case class Props(clusters: Rx[Map[String,DiscoveredCluster]], router: RouterCtl[Loc])
 
-  case class State(selectedItem: Option[Cluster] = None)
+  case class State(selectedItem: Option[DiscoveredCluster] = None)
 
   abstract class RxObserver[BS <: BackendScope[_, _]](scope: BS) extends OnUnmount {
     protected def observe[T](rx: Rx[T]): Unit = {
@@ -35,7 +35,7 @@ object ClusterMap {
 //      MainDispatcher.dispatch(RefreshClusterMembers)
     }
 
-    def editCluster(item: Option[Cluster]):Unit = {
+    def editCluster(item: Option[DiscoveredCluster]):Unit = {
 
       log.debug("item " + item)
 

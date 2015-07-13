@@ -1,7 +1,7 @@
 package clusterconsole.client.services
 
 import clusterconsole.client.ukko.Actor
-import clusterconsole.http.{ClusterMemberUp, Cluster, ClusterMember}
+import clusterconsole.http.{ClusterMemberUp, DiscoveredCluster, ClusterMember}
 import org.scalajs.dom.raw.WebSocket
 import rx._
 import clusterconsole.client.services.Logger._
@@ -16,12 +16,12 @@ trait ClusterStore extends Actor{
 
 
   // refine a reactive variable
-  private val items = Var(Map.empty[String,Cluster])
+  private val items = Var(Map.empty[String,DiscoveredCluster])
 
   private val events = Var(Seq.empty[ClusterMemberUp])
 
 
-  def clusterMembers:Rx[Map[String,Cluster]] = items
+  def clusterMembers:Rx[Map[String,DiscoveredCluster]] = items
 
   def clusterEvents:Rx[Seq[ClusterMemberUp]] = events
 

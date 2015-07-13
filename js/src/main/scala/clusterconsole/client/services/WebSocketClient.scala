@@ -19,8 +19,6 @@ object WebSocketClient {
 
   websocket.onopen = { (event: Event) =>
     websocket.send(upickle.write(ClusterSubscribe("EE")))
-    websocket.send(upickle.write(ClusterSubscribe("FF")))
-    websocket.send(upickle.write(ClusterSubscribe("GG")))
     event
   }
   websocket.onerror = { (event: ErrorEvent) =>
@@ -50,7 +48,7 @@ object WebSocketClient {
   def getWebsocketUri(document: Document): String = {
     val wsProtocol = if (dom.document.location.protocol == "https:") "wss" else "ws"
 
-    s"$wsProtocol://${dom.document.location.host}/api"
+    s"$wsProtocol://${dom.document.location.host}/events"
   }
 
 

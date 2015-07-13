@@ -33,13 +33,14 @@ trait ClusterConsoleRoutes extends LogF {
         getFromDirectory("../")
       } ~ {
         getFromResourceDirectory("web")
-      } ~ path("api" / "events") {
-        handleWebsocketMessages(clusterSocketFlow(router))
-      } ~ path("api" / "clusters") {
+      } ~ path("api") {
+
+        complete("")
+
+      } ~ path("events") {
         handleWebsocketMessages(clusterSocketFlow(router))
       }
     }
-
 
   def handleCommand: Flow[Message, Message, Unit] = {
     Flow[Message].map {
@@ -47,15 +48,12 @@ trait ClusterConsoleRoutes extends LogF {
 
         import Json._
 
-
-        println("-------------- "+txt)
-
+        println("-------------- " + txt)
 
         TextMessage.Strict(txt.reverse)
       case _ => TextMessage.Strict("Not supported message type")
     }
   }
-
 
   def clusterSocketFlow(router: ActorRef): Flow[Message, Message, Unit] = {
     Flow() { implicit builder =>
