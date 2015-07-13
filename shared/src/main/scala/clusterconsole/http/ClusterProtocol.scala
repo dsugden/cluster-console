@@ -8,7 +8,7 @@ case class ClusterMemberUp(clusterName: String, member: String) extends ClusterP
 case class ClusterMember(name: String)
 
 
-case class TestMessage(v: String) extends ClusterProtocol
+case class ClusterSubscribe(name: String) extends ClusterProtocol
 
 case class TestResponse(v: String) extends ClusterProtocol
 

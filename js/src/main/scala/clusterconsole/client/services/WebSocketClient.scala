@@ -2,7 +2,7 @@ package clusterconsole.client.services
 
 import clusterconsole.client.services.Logger._
 import clusterconsole.client.ukko.Actor
-import clusterconsole.http.{ClusterProtocol, TestMessage}
+import clusterconsole.http.{ClusterProtocol, ClusterSubscribe}
 import org.scalajs.dom
 import org.scalajs.dom.raw._
 import clusterconsole.http.Json._
@@ -18,9 +18,9 @@ object WebSocketClient {
   lazy val websocket = new WebSocket(getWebsocketUri(dom.document))
 
   websocket.onopen = { (event: Event) =>
-    websocket.send(upickle.write(TestMessage("EE")))
-    websocket.send(upickle.write(TestMessage("FF")))
-    websocket.send(upickle.write(TestMessage("GG")))
+    websocket.send(upickle.write(ClusterSubscribe("EE")))
+    websocket.send(upickle.write(ClusterSubscribe("FF")))
+    websocket.send(upickle.write(ClusterSubscribe("GG")))
     event
   }
   websocket.onerror = { (event: ErrorEvent) =>
@@ -56,16 +56,7 @@ object WebSocketClient {
 
 
   def subscribe(actor:Actor) = {
-
     clients = clients :+ actor
-
-
-//    if(websocket.readyState == 1){
-//
-//    }else{
-//      log.debug("*****************  websocket not open")
-//    }
-
   }
 
 

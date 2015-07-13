@@ -53,7 +53,7 @@ object ClusterMap {
         ClusterForm(None,B.editCluster)
       ),
       div(cls := "col-md-8")(
-        h3("Cluster map")
+        h3("Cluster map KATRIN")
       )
     )
   })

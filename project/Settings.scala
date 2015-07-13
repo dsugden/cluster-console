@@ -9,7 +9,7 @@ import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport._
 object Settings {
 
   object versions {
-    val akka = "2.3.11"
+    val akka = "2.3.12"
     val akkaHttp = "1.0-RC4"
     val akkaLog4j = "0.2.0"
     val bootstrap = "3.3.2"
@@ -58,6 +58,7 @@ object Settings {
   /** Dependencies only used by the JVM project */
   val jvmDependencies = Def.setting(Seq(
     "com.typesafe.akka" %% "akka-actor" % versions.akka,
+    "com.typesafe.akka" %% "akka-cluster" % versions.akka,
     "com.typesafe.akka" %% "akka-contrib" % versions.akka,
     "com.typesafe.akka" %% "akka-http-experimental" % versions.akkaHttp,
     "com.typesafe.akka" %% "akka-http-testkit-experimental" % versions.akkaHttp,

@@ -33,37 +33,29 @@ trait ClusterConsoleRoutes extends LogF {
         getFromDirectory("../")
       } ~ {
         getFromResourceDirectory("web")
-      } ~ path("api") {
+      } ~ path("api" / "events") {
+        handleWebsocketMessages(clusterSocketFlow(router))
+      } ~ path("api" / "clusters") {
         handleWebsocketMessages(clusterSocketFlow(router))
       }
     }
 
-  def graphFlowWithExtraSource: Flow[Message, Message, Unit] = {
-    Flow() { implicit b =>
-      import FlowGraph.Implicits._
 
-      // Graph elements we'll use
-      val merge = b.add(Merge[Int](2))
-      val filter = b.add(Flow[Int].filter(_ => false))
+  def handleCommand: Flow[Message, Message, Unit] = {
+    Flow[Message].map {
+      case TextMessage.Strict(txt) =>
 
-      // convert to int so we can connect to merge
-      val mapMsgToInt = b.add(Flow[Message].map[Int] { msg => -1 })
-      val mapIntToMsg = b.add(Flow[Int].map[Message](x => TextMessage.Strict(":" + randomPrintableString(200) + ":" + x.toString)))
-      val log = b.add(Flow[Int].map[Int](x => {
-        println(x); x
-      }))
+        import Json._
 
-      // source we want to use to send message to the connected websocket sink
-      val rangeSource = b.add(Source(1 to 2000))
 
-      // connect the graph
-      mapMsgToInt ~> filter ~> merge // this part of the merge will never provide msgs
-      rangeSource ~> log ~> merge ~> mapIntToMsg
+        println("-------------- "+txt)
 
-      // expose ports
-      (mapMsgToInt.inlet, mapIntToMsg.outlet)
+
+        TextMessage.Strict(txt.reverse)
+      case _ => TextMessage.Strict("Not supported message type")
     }
   }
+
 
   def clusterSocketFlow(router: ActorRef): Flow[Message, Message, Unit] = {
     Flow() { implicit builder =>
@@ -71,27 +63,21 @@ trait ClusterConsoleRoutes extends LogF {
 
       // create an actor source
       val source = Source.actorPublisher[String](Props(classOf[ClusterPublisher], router))
-
+      val filter = builder.add(Flow[String].filter(_ => false))
       val merge = builder.add(Merge[String](2))
 
-      val mapMsgToResponse = builder.add(Flow[Message].map[String] {
-
-        case TextMessage.Strict(text) =>
-          text.logDebug("+++++++++++++++++++++++++++  clusterSocketFlow mapMsgToResponse =   " + _)
-          val msg = upickle.read[TestMessage](text)
-          upickle.write(TestResponse(msg.v + "  lol"))
-      })
+      val mapMsgToString = builder.add(Flow[Message].map[String] { msg => "" })
       val mapStringToMsg = builder.add(Flow[String].map[Message](x => TextMessage.Strict(x)))
 
-      val statsSource = builder.add(source)
+      val clusterEventsSource = builder.add(source)
 
       // connect the graph
       //      mapMsgToResponse ~> filter ~> merge
-      mapMsgToResponse ~> merge
-      statsSource ~> merge ~> mapStringToMsg
+      mapMsgToString ~> filter ~> merge
+      clusterEventsSource ~> merge ~> mapStringToMsg
 
       // expose ports
-      (mapMsgToResponse.inlet, mapStringToMsg.outlet)
+      (mapMsgToString.inlet, mapStringToMsg.outlet)
 
     }
   }

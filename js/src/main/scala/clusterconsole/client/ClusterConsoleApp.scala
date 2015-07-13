@@ -3,7 +3,7 @@ package clusterconsole.client
 import clusterconsole.client.modules.{MainMenu, ClusterMap, Dashboard}
 import clusterconsole.client.services.ClusterStore
 import clusterconsole.client.style.GlobalStyles
-import clusterconsole.http.TestMessage
+import clusterconsole.http.ClusterSubscribe
 import japgolly.scalajs.react.React
 import japgolly.scalajs.react.extra.router2._
 import japgolly.scalajs.react.vdom.all._

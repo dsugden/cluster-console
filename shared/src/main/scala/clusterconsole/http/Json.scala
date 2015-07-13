@@ -8,28 +8,26 @@ object Json {
 
     case r: TestResponse =>
       Js.Arr(
-        Js.Str("1"),
+        Js.Num(1),
         Js.Str(upickle.write[TestResponse](r))
       )
 
     case r: ClusterMemberUp =>
       Js.Arr(
-        Js.Str("2"),
+        Js.Num(2),
         Js.Str(upickle.write[ClusterMemberUp](r))
       )
-
-
-    case _ =>  Js.Str("BAD")
+    case other =>  Js.Str("Json error " + other)
   }
 
 
   implicit  val clusterProtocolReader = upickle.Reader[ClusterProtocol] {
 
-    case Js.Arr(Js.Str("1"), Js.Str(v)) =>
+    case Js.Arr(Js.Num(1), Js.Str(v)) =>
       upickle.read[TestResponse](v)
 
 
-    case Js.Arr(Js.Str("2"), Js.Str(v)) =>
+    case Js.Arr(Js.Num(2), Js.Str(v)) =>
       upickle.read[ClusterMemberUp](v)
 
 

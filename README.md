@@ -22,3 +22,11 @@ to run in dev:
     ~fastOptJS
     
     
+    
+#### Sample Cluster
+    
+    
+To start the sample cluster:
+    
+    sbt "project sampleCluster" "runMain samplecluster.SampleClusterApp 127.0.0.1 2551"
+    

@@ -167,3 +167,13 @@ lazy val jvm: Project = sharedProject.jvm.settings(js2jvmSettings: _*)
   // reStart depends on running fastOptJS on the JS project
   Revolver.reStart <<= Revolver.reStart dependsOn (fastOptJS in(js, Compile))
 ).enablePlugins(SbtWeb).enablePlugins(JavaAppPackaging)
+
+
+lazy val sampleCluster = (project in file("sampleCluster"))
+  .settings(scalariformSettings)
+  .settings(
+    name := "samplecluster",
+    version  := "1.0.0",
+    scalaVersion := "2.11.7",
+    libraryDependencies ++= Settings.jvmDependencies.value
+  )
