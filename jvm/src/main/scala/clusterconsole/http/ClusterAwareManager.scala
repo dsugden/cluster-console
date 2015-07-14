@@ -6,10 +6,6 @@ import akka.cluster.Cluster
 
 import scala.collection.immutable
 
-case class HostPort(host: String, port: Int)
-
-case class Discover(system: String, seedNodes: List[HostPort])
-
 class ClusterAwareManager extends Actor {
 
   def receive: Receive = {

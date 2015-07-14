@@ -12,6 +12,9 @@ case class ClusterSubscribe(name: String) extends ClusterProtocol
 
 case class TestResponse(v: String) extends ClusterProtocol
 
+case class HostPort(host: String, port: Int)
+
+case class Discover(system: String, seedNodes: List[HostPort])
 
 
 

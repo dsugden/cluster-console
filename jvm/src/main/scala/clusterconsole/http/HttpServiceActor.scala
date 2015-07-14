@@ -41,6 +41,7 @@ class HttpServiceActor(
   def receive: Receive = {
     case _ =>
   }
+
 }
 
 object HttpServiceActor {

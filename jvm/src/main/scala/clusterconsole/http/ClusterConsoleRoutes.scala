@@ -1,16 +1,23 @@
 package clusterconsole.http
 
+import java.nio.ByteBuffer
+
 import akka.actor.{ Actor, Props, ActorRef }
 import akka.http.scaladsl.model.ws.{ TextMessage, Message }
-import akka.http.scaladsl.server.Route
+import akka.http.scaladsl.server.{ RequestContext, Route }
 import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.marshalling.{ PredefinedToEntityMarshallers, ToEntityMarshaller }
-import akka.http.scaladsl.model.MediaTypes
+import akka.http.scaladsl.model.{ HttpEntity, ContentTypes, MediaTypes }
 import akka.stream.scaladsl.{ Source, Merge, FlowGraph, Flow }
+import akka.util.ByteString
 import clusterconsole.core.LogF
+import com.google.common.net.HostAndPort
+import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext.Implicits.global
 
+import scala.concurrent.Future
 import scala.util.Random
 
 trait ClusterConsoleRoutes extends LogF {
@@ -18,10 +25,19 @@ trait ClusterConsoleRoutes extends LogF {
   val router: ActorRef
   val clusterAwareActor: ActorRef
 
+  val clusterAwareManager: ActorRef
+
+
+  lazy val clusterDiscoveryService = new ClusterDiscoveryService(clusterAwareManager)
+
+
   implicit def marshaller: ToEntityMarshaller[String] =
     PredefinedToEntityMarshallers.stringMarshaller(MediaTypes.`text/html`)
 
   def routes(implicit mat: ActorMaterializer): Route = initialPageRoute
+
+  def httpRequest2String(req: RequestContext)(implicit mat: ActorMaterializer): Future[String] =
+    req.request.entity.withContentType(ContentTypes.`application/json`).toStrict(1 second).map(b => new String(b.data.toArray))
 
   def initialPageRoute(implicit mat: ActorMaterializer): Route =
     get {
@@ -40,20 +56,20 @@ trait ClusterConsoleRoutes extends LogF {
       } ~ path("events") {
         handleWebsocketMessages(clusterSocketFlow(router))
       }
+    } ~ post {
+      path("api" / Segments) { segments =>
+        extract(httpRequest2String) { dataExtractor =>
+          complete {
+            for {
+              data <- dataExtractor
+              response <- AutowireServer.route[Api](clusterDiscoveryService)(autowire.Core.Request(
+                segments, upickle.read[Map[String, String]](data.logDebug("***********  data: " + _)))
+              )
+            } yield HttpEntity(response)
+          }
+        }
+      }
     }
-
-  def handleCommand: Flow[Message, Message, Unit] = {
-    Flow[Message].map {
-      case TextMessage.Strict(txt) =>
-
-        import Json._
-
-        println("-------------- " + txt)
-
-        TextMessage.Strict(txt.reverse)
-      case _ => TextMessage.Strict("Not supported message type")
-    }
-  }
 
   def clusterSocketFlow(router: ActorRef): Flow[Message, Message, Unit] = {
     Flow() { implicit builder =>
@@ -80,9 +96,23 @@ trait ClusterConsoleRoutes extends LogF {
     }
   }
 
-  def randomPrintableString(length: Int, start: String = ""): String = {
-    if (length == 0) start else randomPrintableString(length - 1, start + Random.nextPrintableChar())
+}
+
+class ClusterDiscoveryService(clusterAwareManager:ActorRef) extends Api with LogF {
+  def discover(system: String, seedNodes: List[HostPort]) ={
+
+
+    clusterAwareManager !
+
+    "discovered".logDebug("************   " + _)
+
   }
 
+}
+
+object AutowireServer extends autowire.Server[String, upickle.Reader, upickle.Writer] {
+  import Json._
+  def read[Result: upickle.Reader](p: String) = upickle.read[Result](p)
+  def write[Result: upickle.Writer](r: Result) = upickle.write(r)
 }
 

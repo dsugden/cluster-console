@@ -1,9 +1,9 @@
 package clusterconsole.client
 
 import clusterconsole.client.modules.{MainMenu, ClusterMap, Dashboard}
-import clusterconsole.client.services.ClusterStore
+import clusterconsole.client.services.{AjaxClient, ClusterStore}
 import clusterconsole.client.style.GlobalStyles
-import clusterconsole.http.ClusterSubscribe
+import clusterconsole.http.{HostPort, Api, ClusterSubscribe}
 import japgolly.scalajs.react.React
 import japgolly.scalajs.react.extra.router2._
 import japgolly.scalajs.react.vdom.all._
@@ -14,6 +14,8 @@ import scala.scalajs.js.annotation.JSExport
 import scalacss.Defaults._
 import scalacss.ScalaCssReact._
 import clusterconsole.client.services.Logger._
+import scala.concurrent.ExecutionContext.Implicits.global
+import autowire._
 
 
 @JSExport("ClusterConsoleApp")
@@ -64,6 +66,15 @@ object ClusterConsoleApp extends js.JSApp{
     val router = Router(BaseUrl(dom.window.location.href.takeWhile(_ != '#')), routerConfig)
     // tell React to render the router in the document body
     React.render(router(), dom.document.body)
+
+
+    AjaxClient[Api].discover("testclusterName", List(HostPort("host",9000))).call().foreach( s =>
+      log.debug("$$$$$$$$$$$$$  result " + s)
+    )
+
+
+
+
 
   }
 
