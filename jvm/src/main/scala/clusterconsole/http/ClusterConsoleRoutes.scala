@@ -2,7 +2,7 @@ package clusterconsole.http
 
 import java.nio.ByteBuffer
 
-import akka.actor.{ Actor, Props, ActorRef }
+import akka.actor.{ ActorSystem, Actor, Props, ActorRef }
 import akka.http.scaladsl.model.ws.{ TextMessage, Message }
 import akka.http.scaladsl.server.{ RequestContext, Route }
 import akka.http.scaladsl.server.Directives._
@@ -14,6 +14,7 @@ import akka.stream.scaladsl.{ Source, Merge, FlowGraph, Flow }
 import akka.util.ByteString
 import clusterconsole.core.LogF
 import com.google.common.net.HostAndPort
+import com.typesafe.config.ConfigFactory
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -27,9 +28,7 @@ trait ClusterConsoleRoutes extends LogF {
 
   val clusterAwareManager: ActorRef
 
-
   lazy val clusterDiscoveryService = new ClusterDiscoveryService(clusterAwareManager)
-
 
   implicit def marshaller: ToEntityMarshaller[String] =
     PredefinedToEntityMarshallers.stringMarshaller(MediaTypes.`text/html`)
@@ -75,6 +74,8 @@ trait ClusterConsoleRoutes extends LogF {
     Flow() { implicit builder =>
       import FlowGraph.Implicits._
 
+      "clusterSocketFlow".logDebug("here in " + _)
+
       // create an actor source
       val source = Source.actorPublisher[String](Props(classOf[ClusterPublisher], router))
       val filter = builder.add(Flow[String].filter(_ => false))
@@ -98,11 +99,22 @@ trait ClusterConsoleRoutes extends LogF {
 
 }
 
-class ClusterDiscoveryService(clusterAwareManager:ActorRef) extends Api with LogF {
-  def discover(system: String, seedNodes: List[HostPort]) ={
+class ClusterDiscoveryService(clusterAwareManager: ActorRef) extends Api with LogF {
+  def discover(system: String, seedNodes: List[HostPort]) = {
 
+    val akkaConf =
+      """akka.remote.netty.tcp.hostname="127.0.0.1"
+        |akka.remote.netty.tcp.port=2881
+        |akka.cluster.roles = [clusterconsole]
+        |""".stripMargin
 
-    clusterAwareManager !
+    val config = ConfigFactory.parseString(akkaConf).withFallback(ConfigFactory.load())
+
+    val newSystem = ActorSystem(system, config)
+
+    val ca: ActorRef = newSystem.actorOf(Props(classOf[ClusterAwareManager]))
+
+    ca ! Discover(system, seedNodes)
 
     "discovered".logDebug("************   " + _)
 

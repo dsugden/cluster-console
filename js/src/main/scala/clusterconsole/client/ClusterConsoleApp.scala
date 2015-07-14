@@ -68,7 +68,7 @@ object ClusterConsoleApp extends js.JSApp{
     React.render(router(), dom.document.body)
 
 
-    AjaxClient[Api].discover("testclusterName", List(HostPort("host",9000))).call().foreach( s =>
+    AjaxClient[Api].discover("SampleClusterSystem", List(HostPort("127.0.0.1",2551))).call().foreach( s =>
       log.debug("$$$$$$$$$$$$$  result " + s)
     )
 
