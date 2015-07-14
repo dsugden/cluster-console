@@ -1,7 +1,7 @@
 package clusterconsole.client
 
 import clusterconsole.client.modules.{MainMenu, ClusterMap, Dashboard}
-import clusterconsole.client.services.{AjaxClient, ClusterStore}
+import clusterconsole.client.services.{WebSocketClient, AjaxClient, ClusterStore}
 import clusterconsole.client.style.GlobalStyles
 import clusterconsole.http.{HostPort, Api, ClusterSubscribe}
 import japgolly.scalajs.react.React
@@ -67,14 +67,7 @@ object ClusterConsoleApp extends js.JSApp{
     // tell React to render the router in the document body
     React.render(router(), dom.document.body)
 
-
-    AjaxClient[Api].discover("SampleClusterSystem", List(HostPort("127.0.0.1",2551))).call().foreach( s =>
-      log.debug("$$$$$$$$$$$$$  result " + s)
-    )
-
-
-
-
+    WebSocketClient.websocket
 
   }
 

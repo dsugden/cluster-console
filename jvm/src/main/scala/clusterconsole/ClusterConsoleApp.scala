@@ -25,7 +25,7 @@ object ClusterConsoleApp extends App with LogF {
   val router: ActorRef = clusterConsoleSystem.actorOf(Props[RouterActor], "router")
   val clusterAwareActor: ActorRef = clusterConsoleSystem.actorOf(Props(classOf[ClusterAwareActor], router))
 
-  clusterConsoleSystem.scheduler.schedule(3 seconds, 10 seconds, clusterAwareActor, ClusterMemberUp("cluster1", "name: " + System.currentTimeMillis()))
+  //  clusterConsoleSystem.scheduler.schedule(3 seconds, 10 seconds, clusterAwareActor, ClusterMemberUp("cluster1", "name: " + System.currentTimeMillis()))
 
   clusterConsoleSystem.actorOf(HttpServiceActor.props("127.0.0.1", 8080, Timeout(30 seconds), router, clusterAwareActor), "clusterconsolehttp")
 

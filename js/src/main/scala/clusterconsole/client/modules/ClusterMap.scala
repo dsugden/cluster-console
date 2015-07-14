@@ -2,7 +2,7 @@ package clusterconsole.client.modules
 
 import clusterconsole.client.ClusterConsoleApp.Loc
 import clusterconsole.client.components.ClusterForm
-import clusterconsole.client.services.{ClusterStore, RefreshClusterMembers, MainDispatcher}
+import clusterconsole.client.services.{ClusterStoreActions, ClusterStore, RefreshClusterMembers, MainDispatcher}
 import clusterconsole.http.{DiscoveredCluster, ClusterMember}
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.extra.OnUnmount
@@ -36,15 +36,15 @@ object ClusterMap {
     }
 
     def editCluster(item: Option[DiscoveredCluster]):Unit = {
-
       log.debug("item " + item)
-
+      item.foreach{ c =>
+        ClusterStoreActions.subscribeToCluster(ClusterStore, c.name,c.seeds)
+      }
     }
-
   }
 
-  // create the React component for ToDo management
-  val component = ReactComponentB[Props]("TODO")
+  // create the React component for Clusters mgmt
+  val component = ReactComponentB[Props]("Clusters")
     .initialState(State()) // initial state from TodoStore
     .backend(new Backend(_))
     .render((P, S, B) => {
@@ -53,7 +53,14 @@ object ClusterMap {
         ClusterForm(None,B.editCluster)
       ),
       div(cls := "col-md-8")(
-        h3("Cluster map KATRIN")
+        h3("Cluster map"),
+        div{
+          P.clusters().map(e =>
+            div(
+              span(e._1),span(e._2.toString)
+            )
+          )
+        }
       )
     )
   })

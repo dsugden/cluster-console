@@ -101,13 +101,14 @@ class ClusterDiscoveryService(context: ActorSystem) extends Api with LogF {
 
   var systems: List[ActorRef] = List()
 
-  def discover(system: String, seedNodes: List[HostPort]) = {
+  def discover(system: String, seedNodes: List[HostPort]): DiscoveryBegun = {
 
     val newSystemActor = context.actorOf(ActorSystemManager.props(system))
 
     newSystemActor ! Discover(system, seedNodes)
 
     "discovered".logDebug("************   " + _)
+    DiscoveryBegun(system, seedNodes)
 
   }
 

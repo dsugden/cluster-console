@@ -16,8 +16,11 @@ case class HostPort(host: String, port: Int)
 
 case class Discover(system: String, seedNodes: List[HostPort])
 
+case class Discovered(system: String)
+case class DiscoveryBegun(system: String, seedNodes: List[HostPort])
 
 
-case class DiscoveredCluster(name:String, seeds:List[String], members:Seq[ClusterMember] = Nil)
+
+case class DiscoveredCluster(name:String, seeds:List[HostPort], members:Seq[ClusterMember] = Nil)
 
 
