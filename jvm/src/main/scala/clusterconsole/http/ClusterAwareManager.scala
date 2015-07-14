@@ -26,7 +26,7 @@ class ClusterAwareManager extends Actor {
 
     case Discover(system, seedNodes) =>
 
-      println("ClusterAwareManager Discover")
+      println("%%%%%%%%%%%%%%    ClusterAwareManager Discover")
 
       val addresses: immutable.Seq[Address] = seedNodes.map(e => Address("akka.tcp", system, e.host, e.port))
 

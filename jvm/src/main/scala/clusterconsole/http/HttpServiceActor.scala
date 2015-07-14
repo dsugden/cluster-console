@@ -20,8 +20,7 @@ class HttpServiceActor(
   port: Int,
   selfTimeout: Timeout,
   val router: ActorRef,
-  val clusterAwareActor: ActorRef,
-  val clusterAwareManager: ActorRef)
+  val clusterAwareActor: ActorRef)
     extends Actor with ClusterConsoleRoutes with ImplicitMaterializer with LogF {
 
   import context.dispatcher
@@ -50,9 +49,8 @@ object HttpServiceActor {
     port: Int,
     selfTimeout: Timeout,
     router: ActorRef,
-    clusterAwareActor: ActorRef,
-    clusterAwareManager: ActorRef): Props =
-    Props(new HttpServiceActor(host, port, selfTimeout, router, clusterAwareActor, clusterAwareManager))
+    clusterAwareActor: ActorRef): Props =
+    Props(new HttpServiceActor(host, port, selfTimeout, router, clusterAwareActor))
 
 }
 

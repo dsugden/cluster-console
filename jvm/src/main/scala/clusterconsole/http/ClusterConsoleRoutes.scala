@@ -21,14 +21,12 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.Random
 
-trait ClusterConsoleRoutes extends LogF {
+trait ClusterConsoleRoutes extends LogF { this: Actor =>
 
   val router: ActorRef
   val clusterAwareActor: ActorRef
 
-  val clusterAwareManager: ActorRef
-
-  lazy val clusterDiscoveryService = new ClusterDiscoveryService(clusterAwareManager)
+  lazy val clusterDiscoveryService = new ClusterDiscoveryService(context.system)
 
   implicit def marshaller: ToEntityMarshaller[String] =
     PredefinedToEntityMarshallers.stringMarshaller(MediaTypes.`text/html`)
@@ -99,22 +97,15 @@ trait ClusterConsoleRoutes extends LogF {
 
 }
 
-class ClusterDiscoveryService(clusterAwareManager: ActorRef) extends Api with LogF {
+class ClusterDiscoveryService(context: ActorSystem) extends Api with LogF {
+
+  var systems: List[ActorRef] = List()
+
   def discover(system: String, seedNodes: List[HostPort]) = {
 
-    val akkaConf =
-      """akka.remote.netty.tcp.hostname="127.0.0.1"
-        |akka.remote.netty.tcp.port=2881
-        |akka.cluster.roles = [clusterconsole]
-        |""".stripMargin
+    val newSystemActor = context.actorOf(ActorSystemManager.props(system))
 
-    val config = ConfigFactory.parseString(akkaConf).withFallback(ConfigFactory.load())
-
-    val newSystem = ActorSystem(system, config)
-
-    val ca: ActorRef = newSystem.actorOf(Props(classOf[ClusterAwareManager]))
-
-    ca ! Discover(system, seedNodes)
+    newSystemActor ! Discover(system, seedNodes)
 
     "discovered".logDebug("************   " + _)
 
