@@ -92,7 +92,8 @@ trait ClusterConsoleRoutes extends LogF { this: Actor =>
     case Terminated(ref) =>
       logger.logDebug(s"Died: $ref" + _)
       //TODO: refactor
-      clusterDiscoveryService.systems.get(ref).map(d => socketPublisherRouter ! upickle.write(ClusterUnjoin(d.systemName, d.seedNodes)))
+      import Json._
+      clusterDiscoveryService.systems.get(ref).foreach(d => socketPublisherRouter ! upickle.write[ClusterProtocol](ClusterUnjoin(d.systemName, d.seedNodes)))
       clusterDiscoveryService.systems -= ref
   }
 

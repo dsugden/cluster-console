@@ -68,6 +68,7 @@ object ClusterStoreActions {
 
 
   def subscribeToCluster(actor:Actor, name:String, seedNodes:List[HostPort] ) = {
+    log.debug("$$$$$$$$$$$$$  subscribeToCluster ")
     WebSocketClient.subscribe(actor)
     WebSocketClient.send(ClusterSubscribe(name))
     AjaxClient[Api].discover(name, seedNodes).call().foreach { discoveryBegun =>
