@@ -14,13 +14,13 @@ object ClusterFormComponent {
 
   case class EditClusterProps(cluster: ClusterForm, editHandler: ClusterForm => Unit)
 
-  case class State(cluster: ClusterForm, seeds: Int, portValid:Boolean)
+  case class State(cluster: ClusterForm, seeds: Int, portValid:Boolean, submitEnabled:Boolean)
 
   class Backend(t: BackendScope[EditClusterProps, State]) {
 
     def updateClusterName(e: ReactEventI):Unit = {
       t.modState(s =>
-        s.copy(cluster = ClusterForm(e.currentTarget.value, s.cluster.seeds)))
+        s.copy(cluster = ClusterForm(e.currentTarget.value, s.cluster.seeds), submitEnabled = getSubmitEnabled(s)))
     }
 
     def updateClusterSeedHost(index:Int)(e: ReactEventI):Unit = {
@@ -34,7 +34,7 @@ object ClusterFormComponent {
               (seed,i)
             }
           }.map(_._1)
-        })))
+        }), submitEnabled = getSubmitEnabled(s)))
     }
 
     def updateClusterSeedPort(index:Int)(e: ReactEventI):Unit = {
@@ -52,18 +52,16 @@ object ClusterFormComponent {
                   (seed,i)
                 }
               }.map(_._1)
-            })))
+            }), submitEnabled = getSubmitEnabled(s)))
 
         }catch {
-          case e:Throwable => t.modState(s => s.copy(portValid = false))
+          case e:Throwable => t.modState(s => s.copy(portValid = false, submitEnabled = getSubmitEnabled(s)))
         }
       }else{
-        t.modState(s => s.copy(portValid = true))
+        t.modState(s => s.copy(portValid = true, submitEnabled = getSubmitEnabled(s)))
 
       }
-
     }
-
 
     def addSeedNodeToForm:Unit = {
       t.modState(s => s.copy(seeds = s.seeds + 1))
@@ -71,14 +69,11 @@ object ClusterFormComponent {
     }
 
 
-    def submitEnabled:Boolean = {
-      t.state.cluster.name.length > 0 &&  t.state.cluster.seeds.forall(hp => hp.host.length > 0 && hp.port != 0)
+    def getSubmitEnabled(s:State):Boolean = {
+      s.cluster.name.length > 0 &&  t.state.cluster.seeds.forall(hp =>
+        hp.host.length > 0 && hp.port != 0 && hp.port.toString.length > 0)
     }
 
-    
-//    def canSubmit:Boolean = t.st
-    
-    
   }
 
 
@@ -87,7 +82,7 @@ object ClusterFormComponent {
 
     log.debug("---------- initialStateP")
 
-    State(P.cluster,1, true)
+    State(P.cluster,1, true,false)
 
   }) // initial state
     .backend(new Backend(_))
@@ -108,6 +103,8 @@ object ClusterFormComponent {
 
               log.debug(" length " + S.portValid)
 
+              log.debug(" submitEnabled " + S.submitEnabled)
+
               P.cluster.seeds.zipWithIndex.map{ case(eachSeed,index) =>
                 div(cls:="row", key:=s"$index")(
                   div(cls := "form-group col-md-8")(
@@ -123,7 +120,7 @@ object ClusterFormComponent {
             }
           ),
           div(cls := "form-group")(
-              button( cls := "btn btn-default", disabled:=s"${B.submitEnabled}", onClick --> P.editHandler(S.cluster))("Discover"),
+              button( cls := "btn btn-default", disabled:= !S.submitEnabled , onClick --> P.editHandler(S.cluster))("Discover"),
             span(paddingRight:=10)(""),
               button( cls := "btn btn-default", onClick --> B.addSeedNodeToForm)("Add Seed Node")
           )
