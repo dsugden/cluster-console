@@ -88,8 +88,8 @@ object Settings {
   val jsDependencies = Def.setting(Seq(
     "org.webjars" % "react" % versions.react / "react-with-addons.js" commonJSName "React",
     "org.webjars" % "jquery" % versions.jQuery / "jquery.js",
-    "org.webjars" % "bootstrap" % versions.bootstrap / "bootstrap.js" dependsOn "jquery.js"
-//    "org.webjars" % "d3js" % versions.d3
+    "org.webjars" % "bootstrap" % versions.bootstrap / "bootstrap.js" dependsOn "jquery.js",
+    "org.webjars" % "d3js" % versions.d3
   ))
   /** Same dependecies, but for production build, using minified versions */
   val jsDependenciesProduction = Def.setting(Seq(
