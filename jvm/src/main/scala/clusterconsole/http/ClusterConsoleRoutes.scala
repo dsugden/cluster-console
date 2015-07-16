@@ -1,32 +1,25 @@
 package clusterconsole.http
 
-import java.nio.ByteBuffer
-
-import akka.actor.{ ActorSystem, Actor, Props, ActorRef }
-import akka.http.scaladsl.model.ws.{ TextMessage, Message }
-import akka.http.scaladsl.server.{ RequestContext, Route }
-import akka.http.scaladsl.server.Directives._
-import akka.stream.ActorMaterializer
-import akka.http.scaladsl.server.Directives._
+import akka.actor._
 import akka.http.scaladsl.marshalling.{ PredefinedToEntityMarshallers, ToEntityMarshaller }
-import akka.http.scaladsl.model.{ HttpEntity, ContentTypes, MediaTypes }
-import akka.stream.scaladsl.{ Source, Merge, FlowGraph, Flow }
-import akka.util.ByteString
+import akka.http.scaladsl.model.ws.{ Message, TextMessage }
+import akka.http.scaladsl.model.{ ContentTypes, HttpEntity, MediaTypes }
+import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.{ RequestContext, Route }
+import akka.stream.ActorMaterializer
+import akka.stream.scaladsl.{ Flow, FlowGraph, Merge, Source }
 import clusterconsole.core.LogF
-import com.google.common.net.HostAndPort
-import com.typesafe.config.ConfigFactory
-import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext.Implicits.global
 
+import scala.collection.mutable.{ Map => MutableMap }
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import scala.util.Random
+import scala.concurrent.duration._
 
 trait ClusterConsoleRoutes extends LogF { this: Actor =>
 
-  val router: ActorRef
-  val clusterAwareActor: ActorRef
+  def socketPublisherRouter: ActorRef
 
-  lazy val clusterDiscoveryService = new ClusterDiscoveryService(context.system)
+  lazy val clusterDiscoveryService = new ClusterDiscoveryService(context)
 
   implicit def marshaller: ToEntityMarshaller[String] =
     PredefinedToEntityMarshallers.stringMarshaller(MediaTypes.`text/html`)
@@ -51,7 +44,7 @@ trait ClusterConsoleRoutes extends LogF { this: Actor =>
         complete("")
 
       } ~ path("events") {
-        handleWebsocketMessages(clusterSocketFlow(router))
+        handleWebsocketMessages(clusterSocketFlow(socketPublisherRouter))
       }
     } ~ post {
       path("api" / Segments) { segments =>
@@ -95,27 +88,40 @@ trait ClusterConsoleRoutes extends LogF { this: Actor =>
     }
   }
 
+  override def receive: Receive = {
+    case Terminated(ref) =>
+      logger.logDebug(s"Died: $ref" + _)
+      //TODO: refactor
+      clusterDiscoveryService.systems.get(ref).map(d => socketPublisherRouter ! upickle.write(ClusterUnjoin(d.systemName, d.seedNodes)))
+      clusterDiscoveryService.systems -= ref
+  }
+
 }
 
-class ClusterDiscoveryService(context: ActorSystem) extends Api with LogF {
+class ClusterDiscoveryService(context: ActorContext) extends Api with LogF {
 
-  var systems: List[ActorRef] = List()
+  case class SystemDetails(systemName: String, seedNodes: List[HostPort])
 
-  def discover(system: String, seedNodes: List[HostPort]): DiscoveryBegun = {
+  val systems: MutableMap[ActorRef, SystemDetails] = MutableMap.empty
 
-    val newSystemActor = context.actorOf(ActorSystemManager.props(system))
+  def discover(systemName: String, seedNodes: List[HostPort]): DiscoveryBegun = {
 
-    newSystemActor ! Discover(system, seedNodes)
+    val newSystemActor = context.system.actorOf(ActorSystemManager.props(systemName, seedNodes))
 
-    "discovered".logDebug("************   " + _)
-    DiscoveryBegun(system, seedNodes)
+    systems += newSystemActor -> SystemDetails(systemName, seedNodes)
+
+    context.watch(newSystemActor)
+
+    //newSystemActor ! Discover(system, seedNodes)
+
+    "discover begun".logDebug("************   " + _)
+    DiscoveryBegun(systemName, seedNodes)
 
   }
 
 }
 
 object AutowireServer extends autowire.Server[String, upickle.Reader, upickle.Writer] {
-  import Json._
   def read[Result: upickle.Reader](p: String) = upickle.read[Result](p)
   def write[Result: upickle.Writer](r: Result) = upickle.write(r)
 }

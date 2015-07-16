@@ -2,6 +2,8 @@ package clusterconsole.http
 
 sealed trait ClusterProtocol
 
+case class ClusterUnjoin(system: String, seedNodes: List[HostPort]) extends ClusterProtocol
+
 case class ClusterMemberUp(clusterName: String, member: String) extends ClusterProtocol
 
 
@@ -25,6 +27,6 @@ object ClusterForm {
   def initial:ClusterForm = ClusterForm("",List(HostPort("",0)))
 }
 
-case class DiscoveredCluster(name:String, seeds:List[HostPort], members:Seq[ClusterMember] = Nil)
+case class DiscoveredCluster(name:String, seeds:List[HostPort], status: String, members:Seq[ClusterMember] = Nil)
 
 

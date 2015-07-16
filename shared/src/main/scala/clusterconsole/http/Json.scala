@@ -17,6 +17,13 @@ object Json {
         Js.Num(2),
         Js.Str(upickle.write[ClusterMemberUp](r))
       )
+
+    case r: ClusterUnjoin =>
+      Js.Arr(
+        Js.Num(3),
+        Js.Str(upickle.write[ClusterUnjoin](r))
+      )
+
     case other =>  Js.Str("Json error " + other)
   }
 
@@ -30,6 +37,8 @@ object Json {
     case Js.Arr(Js.Num(2), Js.Str(v)) =>
       upickle.read[ClusterMemberUp](v)
 
+    case Js.Arr(Js.Num(3), Js.Str(v)) =>
+      upickle.read[ClusterUnjoin](v)
 
     case _ => TestResponse("BAD")
 

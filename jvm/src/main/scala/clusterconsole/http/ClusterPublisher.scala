@@ -1,7 +1,7 @@
 package clusterconsole.http
 
 import akka.actor._
-import akka.routing.{ ActorRefRoutee, AddRoutee, RemoveRoutee, Routee }
+import akka.routing.{ ActorRefRoutee, AddRoutee, RemoveRoutee }
 import akka.stream.actor.ActorPublisher
 import clusterconsole.core.LogF
 
@@ -38,7 +38,7 @@ class ClusterPublisher(router: ActorRef) extends ActorPublisher[String] with Log
     // exit.
     case clusterEvent: String =>
 
-      clusterEvent.logDebug("---------- ClusterPublisher received ClusterMemberUp" + _)
+      clusterEvent.logDebug(s"---------- ClusterPublisher received $clusterEvent" + _)
 
       // remove the oldest one from the queue and add a new one
       if (queue.size == MaxBufferSize) queue.dequeue()
