@@ -1,13 +1,10 @@
 package clusterconsole.http
 
-import akka.http.scaladsl.server.RoutingSetup._
-import akka.pattern.{ ask, pipe }
-import akka.stream.scaladsl.ImplicitMaterializer
-
-import akka.actor.{ Props, ActorRef, Actor }
-import akka.actor.Actor.Receive
+import akka.actor.{ Actor, ActorRef, Props }
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.Http.ServerBinding
+import akka.http.scaladsl.server.RoutingSetup._
+import akka.pattern.pipe
 import akka.stream.scaladsl.ImplicitMaterializer
 import akka.util.Timeout
 import clusterconsole.core.LogF
@@ -19,8 +16,7 @@ class HttpServiceActor(
   host: String,
   port: Int,
   selfTimeout: Timeout,
-  val router: ActorRef,
-  val clusterAwareActor: ActorRef)
+  val socketPublisherRouter: ActorRef)
     extends Actor with ClusterConsoleRoutes with ImplicitMaterializer with LogF {
 
   import context.dispatcher
@@ -38,19 +34,14 @@ class HttpServiceActor(
       sys.exit(1)
   }
 
-  def receive: Receive = {
-    case _ =>
-  }
-
 }
 
 object HttpServiceActor {
   def props(host: String,
     port: Int,
     selfTimeout: Timeout,
-    router: ActorRef,
-    clusterAwareActor: ActorRef): Props =
-    Props(new HttpServiceActor(host, port, selfTimeout, router, clusterAwareActor))
+    socketPublisherRouter: ActorRef): Props =
+    Props(new HttpServiceActor(host, port, selfTimeout, socketPublisherRouter))
 
 }
 

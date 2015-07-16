@@ -1,11 +1,11 @@
 package clusterconsole.client.services
 
-import clusterconsole.client.ukko.Actor
-import clusterconsole.http._
-import org.scalajs.dom.raw.WebSocket
-import rx._
 import autowire._
 import clusterconsole.client.services.Logger._
+import clusterconsole.client.ukko.Actor
+import clusterconsole.http._
+import rx._
+
 import scala.scalajs.concurrent.JSExecutionContext.Implicits.runNow
 
 case object RefreshClusterMembers
@@ -14,7 +14,7 @@ case object RefreshClusterMembers
 trait ClusterStore extends Actor{
 
 
-//  WebSocketClient.subscribe(this)
+  WebSocketClient.subscribe(this)
 
 
   // refine a reactive variable
@@ -42,8 +42,13 @@ trait ClusterStore extends Actor{
 
 
     case DiscoveryBegun(name, seeds) =>
-      log.debug("+++++++++++ receive DiscoveryBegun" + DiscoveryBegun(name,seeds))
-      items() = items() + (name -> DiscoveredCluster(name, seeds) )
+      log.debug("+++++++++++ receive " + DiscoveryBegun(name,seeds))
+      items() = items() + (name -> DiscoveredCluster(name, seeds, "Discovery begun") )
+
+
+    case ClusterUnjoin(name, seeds) =>
+      log.debug("+++++++++++ receive " + DiscoveryBegun(name,seeds))
+      items() = items() + (name -> DiscoveredCluster(name, seeds, "Cluster unjoined") )
 
 
     case other => log.debug("other " + other)

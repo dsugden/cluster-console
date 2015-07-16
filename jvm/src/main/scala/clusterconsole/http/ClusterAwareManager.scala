@@ -1,15 +1,12 @@
 package clusterconsole.http
 
-import akka.actor.{ Address, Actor }
-import akka.actor.Actor.Receive
+import akka.actor.{ Actor, Address }
 import akka.cluster.Cluster
-import akka.cluster.ClusterEvent.{ MemberRemoved, MemberExited, MemberUp }
+import akka.cluster.ClusterEvent.{ MemberExited, MemberRemoved, MemberUp }
 
 import scala.collection.immutable
 
 class ClusterAwareManager extends Actor {
-
-  import context.dispatcher
 
   val cluster = Cluster(context.system)
 
@@ -20,7 +17,7 @@ class ClusterAwareManager extends Actor {
   cluster.subscribe(self, classOf[MemberExited])
   cluster.subscribe(self, classOf[MemberRemoved])
 
-  override def postStop(): Unit = cluster.unsubscribe(self)
+  override def postStop() = cluster.unsubscribe(self)
 
   def receive: Receive = {
 

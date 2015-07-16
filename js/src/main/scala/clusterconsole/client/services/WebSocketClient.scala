@@ -2,10 +2,10 @@ package clusterconsole.client.services
 
 import clusterconsole.client.services.Logger._
 import clusterconsole.client.ukko.Actor
-import clusterconsole.http.{ClusterProtocol, ClusterSubscribe}
+import clusterconsole.http.ClusterProtocol
+import clusterconsole.http.Json._
 import org.scalajs.dom
 import org.scalajs.dom.raw._
-import clusterconsole.http.Json._
 
 object WebSocketClient {
   var open:Boolean  = false
@@ -21,10 +21,10 @@ object WebSocketClient {
     log.debug("***************  websocket.onerror ")
   }
   websocket.onmessage = { (event: MessageEvent) =>
-    log.debug("***************  on message " + event.data.toString)
-
+    log.debug("***************  on raw message " + event.data.toString)
+    import clusterconsole.http.Json._
     val msg:ClusterProtocol = upickle.read[ClusterProtocol](event.data.toString)
-    log.debug("***************  on message " + msg)
+    log.debug("***************  on cluster protocol message " + msg)
     clients.foreach{ client =>
       MainDispatcher.dispatch( msg )
     }
