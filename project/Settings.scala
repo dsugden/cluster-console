@@ -13,6 +13,7 @@ object Settings {
     val akkaHttp = "1.0-RC4"
     val akkaLog4j = "0.2.0"
     val bootstrap = "3.3.2"
+    val d3 = "3.5.5-1"
     val jQuery = "1.11.1"
     val log4j = "2.3"
     val scala = "2.11.7"
@@ -88,6 +89,7 @@ object Settings {
     "org.webjars" % "react" % versions.react / "react-with-addons.js" commonJSName "React",
     "org.webjars" % "jquery" % versions.jQuery / "jquery.js",
     "org.webjars" % "bootstrap" % versions.bootstrap / "bootstrap.js" dependsOn "jquery.js"
+//    "org.webjars" % "d3js" % versions.d3
   ))
   /** Same dependecies, but for production build, using minified versions */
   val jsDependenciesProduction = Def.setting(Seq(

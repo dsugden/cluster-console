@@ -45,7 +45,6 @@ object ClusterFormComponent {
           val portValue = e.currentTarget.value.toInt
           t.modState(s =>
             s.copy(cluster = ClusterForm(s.cluster.name, seeds = {
-
               s.cluster.seeds.zipWithIndex.map{  case(seed,i) =>
                 if(index == i){
                   (seed.copy(port = portValue),i)
@@ -124,7 +123,7 @@ object ClusterFormComponent {
             }
           ),
           div(cls := "form-group")(
-              button( cls := "btn btn-default", disabled:=B.submitEnabled, onClick --> P.editHandler(S.cluster))("Discover"),
+              button( cls := "btn btn-default", disabled:=s"${B.submitEnabled}", onClick --> P.editHandler(S.cluster))("Discover"),
             span(paddingRight:=10)(""),
               button( cls := "btn btn-default", onClick --> B.addSeedNodeToForm)("Add Seed Node")
           )

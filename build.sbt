@@ -100,7 +100,8 @@ lazy val sharedProject = crossProject.in(file("."))
     scalacOptions ++= elideOptions.value,
     // scalacOptions in (Compile, fullOptJS) ++= Seq("-Xelide-below", "WARNING"),
     // select JS dependencies according to build setting
-    jsDependencies ++= {if (!productionBuild.value) Settings.jsDependencies.value else Settings.jsDependenciesProduction.value},
+//    jsDependencies ++= {if (!productionBuild.value) Settings.jsDependencies.value else Settings.jsDependenciesProduction.value},
+    jsDependencies ++= Settings.jsDependencies.value,
     // RuntimeDOM is needed for tests
     jsDependencies += RuntimeDOM % "test",
     scalacOptions ++= Seq({

@@ -1,8 +1,7 @@
 package clusterconsole.client.modules
 
 import clusterconsole.client.ClusterConsoleApp.Loc
-import clusterconsole.client.components.ClusterFormComponent
-import clusterconsole.client.components.ClusterFormComponent
+import clusterconsole.client.components.{ClusterNodeGraphComponent, ClusterFormComponent}
 import clusterconsole.client.services.{ClusterStoreActions, ClusterStore, RefreshClusterMembers, MainDispatcher}
 import clusterconsole.http.{ClusterForm, DiscoveredCluster, ClusterMember}
 import japgolly.scalajs.react._
@@ -49,17 +48,19 @@ object ClusterMap {
     .render((P, S, B) => {
     div(cls := "row")(
       div(cls := "col-md-4")(
-        ClusterFormComponent(ClusterForm.initial,B.editCluster)
-      ),
-      div(cls := "col-md-8")(
-        h3("Cluster map"),
+        ClusterFormComponent(ClusterForm.initial,B.editCluster),
         div{
           P.clusters().map(e =>
             div(key:=e._1)(
               span(e._1),span(e._2.toString)
             )
           )
+
         }
+      ),
+      div(cls := "col-md-8")(
+        h3("Cluster map"),
+       ClusterNodeGraphComponent()
       )
     )
   })
