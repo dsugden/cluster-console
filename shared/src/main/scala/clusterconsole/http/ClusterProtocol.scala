@@ -20,6 +20,10 @@ case class Discovered(system: String)
 case class DiscoveryBegun(system: String, seedNodes: List[HostPort])
 
 
+case class ClusterForm(name:String, seeds:List[HostPort])
+object ClusterForm {
+  def initial:ClusterForm = ClusterForm("",List(HostPort("",0)))
+}
 
 case class DiscoveredCluster(name:String, seeds:List[HostPort], members:Seq[ClusterMember] = Nil)
 

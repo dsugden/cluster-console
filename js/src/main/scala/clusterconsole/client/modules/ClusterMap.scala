@@ -1,9 +1,10 @@
 package clusterconsole.client.modules
 
 import clusterconsole.client.ClusterConsoleApp.Loc
-import clusterconsole.client.components.ClusterForm
+import clusterconsole.client.components.ClusterFormComponent
+import clusterconsole.client.components.ClusterFormComponent
 import clusterconsole.client.services.{ClusterStoreActions, ClusterStore, RefreshClusterMembers, MainDispatcher}
-import clusterconsole.http.{DiscoveredCluster, ClusterMember}
+import clusterconsole.http.{ClusterForm, DiscoveredCluster, ClusterMember}
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.extra.OnUnmount
 import japgolly.scalajs.react.extra.router2.RouterCtl
@@ -35,11 +36,9 @@ object ClusterMap {
 //      MainDispatcher.dispatch(RefreshClusterMembers)
     }
 
-    def editCluster(item: Option[DiscoveredCluster]):Unit = {
+    def editCluster(item: ClusterForm):Unit = {
       log.debug("item " + item)
-      item.foreach{ c =>
-        ClusterStoreActions.subscribeToCluster(ClusterStore, c.name,c.seeds)
-      }
+      ClusterStoreActions.subscribeToCluster(ClusterStore, item.name, item.seeds)
     }
   }
 
@@ -50,13 +49,13 @@ object ClusterMap {
     .render((P, S, B) => {
     div(cls := "row")(
       div(cls := "col-md-4")(
-        ClusterForm(None,B.editCluster)
+        ClusterFormComponent(ClusterForm.initial,B.editCluster)
       ),
       div(cls := "col-md-8")(
         h3("Cluster map"),
         div{
           P.clusters().map(e =>
-            div(
+            div(key:=e._1)(
               span(e._1),span(e._2.toString)
             )
           )

@@ -1,8 +1,13 @@
 package clusterconsole.http
 
+import java.net.ServerSocket
+
 import akka.actor.{ Props, ActorRef, ActorSystem, Actor }
 import akka.actor.Actor.Receive
+import clusterconsole.core.LogF
 import com.typesafe.config.ConfigFactory
+
+import scala.util.{ Success, Failure, Try }
 
 object ActorSystemManager {
 
@@ -10,11 +15,11 @@ object ActorSystemManager {
 
 }
 
-class ActorSystemManager(system: String) extends Actor {
+class ActorSystemManager(system: String) extends Actor with LogF {
 
   val akkaConf =
-    """akka.remote.netty.tcp.hostname="127.0.0.1"
-      |akka.remote.netty.tcp.port=2881
+    s"""akka.remote.netty.tcp.hostname="127.0.0.1"
+      |akka.remote.netty.tcp.port=0
       |akka.cluster.roles = [clusterconsole]
       |""".stripMargin
 
@@ -30,4 +35,5 @@ class ActorSystemManager(system: String) extends Actor {
       ca ! msg
 
   }
+
 }
