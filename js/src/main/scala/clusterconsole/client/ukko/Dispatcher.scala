@@ -41,7 +41,9 @@ trait Dispatcher {
           pendingActors = Set.empty[Actor]
           handledActors = Set.empty[Actor]
           // send message to every registered actor
+
           actors.foreach { actor =>
+
             if (!pendingActors.contains(actor)) {
               invokeActor(actor, messageQueue.front)
             }
@@ -70,6 +72,7 @@ trait Dispatcher {
 
   protected def invokeActor(actor: Actor, msg: Any): Unit = {
     pendingActors += actor
+
     actor.receiveD(this)(msg)
     handledActors += actor
   }

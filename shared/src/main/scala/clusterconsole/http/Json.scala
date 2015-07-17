@@ -18,9 +18,21 @@ object Json {
         Js.Str(upickle.write[ClusterMemberUp](r))
       )
 
-    case r: ClusterUnjoin =>
+    case r: ClusterMemberUnreachable =>
       Js.Arr(
         Js.Num(3),
+        Js.Str(upickle.write[ClusterMemberUnreachable](r))
+      )
+
+    case r: ClusterMemberRemoved =>
+      Js.Arr(
+        Js.Num(4),
+        Js.Str(upickle.write[ClusterMemberRemoved](r))
+      )
+
+    case r: ClusterUnjoin =>
+      Js.Arr(
+        Js.Num(5),
         Js.Str(upickle.write[ClusterUnjoin](r))
       )
 
@@ -38,6 +50,12 @@ object Json {
       upickle.read[ClusterMemberUp](v)
 
     case Js.Arr(Js.Num(3), Js.Str(v)) =>
+      upickle.read[ClusterMemberUnreachable](v)
+
+    case Js.Arr(Js.Num(4), Js.Str(v)) =>
+      upickle.read[ClusterMemberRemoved](v)
+
+    case Js.Arr(Js.Num(5), Js.Str(v)) =>
       upickle.read[ClusterUnjoin](v)
 
     case _ => TestResponse("BAD")

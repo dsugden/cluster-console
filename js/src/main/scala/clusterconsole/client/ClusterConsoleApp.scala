@@ -1,21 +1,18 @@
 package clusterconsole.client
 
-import clusterconsole.client.modules.{MainMenu, ClusterMap, Dashboard}
-import clusterconsole.client.services.{WebSocketClient, AjaxClient, ClusterStore}
+import clusterconsole.client.modules.{ActivityLogComponent, ClusterMap, Dashboard, MainMenu}
+import clusterconsole.client.services.Logger._
+import clusterconsole.client.services.{ActivityLogService, ClusterStore, WebSocketClient}
 import clusterconsole.client.style.GlobalStyles
-import clusterconsole.http.{HostPort, Api, ClusterSubscribe}
 import japgolly.scalajs.react.React
 import japgolly.scalajs.react.extra.router2._
 import japgolly.scalajs.react.vdom.all._
 import org.scalajs.dom
-import org.scalajs.dom.raw._
+
 import scala.scalajs.js
 import scala.scalajs.js.annotation.JSExport
 import scalacss.Defaults._
 import scalacss.ScalaCssReact._
-import clusterconsole.client.services.Logger._
-import scala.concurrent.ExecutionContext.Implicits.global
-import autowire._
 
 
 @JSExport("ClusterConsoleApp")
@@ -26,8 +23,8 @@ object ClusterConsoleApp extends js.JSApp{
   sealed trait Loc
 
   case object DashboardLoc extends Loc
-
   case object ClusterMapLoc extends Loc
+  case object ActivityLogLoc extends Loc
 
   // configure the router
   val routerConfig = RouterConfigDsl[Loc].buildConfig { dsl =>
@@ -35,6 +32,7 @@ object ClusterConsoleApp extends js.JSApp{
 
     (staticRoute(root, DashboardLoc) ~> renderR(ctl => Dashboard.component(ctl))
       | staticRoute("#clustermap", ClusterMapLoc) ~> renderR(ctl => ClusterMap(ClusterStore)(ctl))
+      | staticRoute("#activitylog", ActivityLogLoc) ~> renderR(ctl => ActivityLogComponent(ActivityLogService)(ctl))
       ).notFound(redirectToPage(DashboardLoc)(Redirect.Replace))
   }.renderWith(layout)
 
@@ -58,7 +56,10 @@ object ClusterConsoleApp extends js.JSApp{
 
   @JSExport
   def main(): Unit = {
-    log.warn("Application starting")
+
+    log.info("Application starting")
+
+    ActivityLogService.init
 
     // create stylesheet
     GlobalStyles.addToDocument()

@@ -19,7 +19,7 @@ trait ClusterConsoleRoutes extends LogF { this: Actor =>
 
   def socketPublisherRouter: ActorRef
 
-  lazy val clusterDiscoveryService = new ClusterDiscoveryService(context)
+  lazy val clusterDiscoveryService = new ClusterDiscoveryService(context, socketPublisherRouter)
 
   implicit def marshaller: ToEntityMarshaller[String] =
     PredefinedToEntityMarshallers.stringMarshaller(MediaTypes.`text/html`)
@@ -92,14 +92,13 @@ trait ClusterConsoleRoutes extends LogF { this: Actor =>
     case Terminated(ref) =>
       logger.logDebug(s"Died: $ref" + _)
       //TODO: refactor
-      import Json._
-      clusterDiscoveryService.systems.get(ref).foreach(d => socketPublisherRouter ! upickle.write[ClusterProtocol](ClusterUnjoin(d.systemName, d.seedNodes)))
+      clusterDiscoveryService.systems.get(ref).foreach(d => socketPublisherRouter ! ClusterUnjoin(d.systemName, d.seedNodes))
       clusterDiscoveryService.systems -= ref
   }
 
 }
 
-class ClusterDiscoveryService(context: ActorContext) extends Api with LogF {
+class ClusterDiscoveryService(context: ActorContext, socketPublisherRouter: ActorRef) extends Api with LogF {
 
   case class SystemDetails(systemName: String, seedNodes: List[HostPort])
 
@@ -107,7 +106,7 @@ class ClusterDiscoveryService(context: ActorContext) extends Api with LogF {
 
   def discover(systemName: String, seedNodes: List[HostPort]): DiscoveryBegun = {
 
-    val newSystemActor = context.system.actorOf(ActorSystemManager.props(systemName, seedNodes))
+    val newSystemActor = context.system.actorOf(ActorSystemManager.props(systemName, seedNodes, socketPublisherRouter))
 
     systems += newSystemActor -> SystemDetails(systemName, seedNodes)
 

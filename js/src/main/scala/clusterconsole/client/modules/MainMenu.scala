@@ -1,18 +1,14 @@
 package clusterconsole.client.modules
 
-import clusterconsole.client.ClusterConsoleApp.{ClusterMapLoc, DashboardLoc, Loc}
-import clusterconsole.client.style.{Icon, GlobalStyles}
-import Icon.Icon
-import clusterconsole.client.style.{Icon, GlobalStyles}
-import clusterconsole.client.style.Bootstrap.CommonStyle
+import clusterconsole.client.ClusterConsoleApp.{ClusterMapLoc, DashboardLoc, ActivityLogLoc, Loc}
+import clusterconsole.client.style.Icon.Icon
+import clusterconsole.client.style.{GlobalStyles, Icon}
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.extra.OnUnmount
 import japgolly.scalajs.react.extra.router2.RouterCtl
 import japgolly.scalajs.react.vdom.all._
-import japgolly.scalajs.react.vdom._
+
 import scalacss.ScalaCssReact._
-import rx._
-import rx.ops._
 
 object MainMenu {
   // shorthand for styles
@@ -37,7 +33,8 @@ object MainMenu {
 
   private val menuItems = Seq(
     MenuItem(_ => "Dashboard", Icon.dashboard, DashboardLoc),
-    MenuItem(_ => "ClusterMap", Icon.circle, ClusterMapLoc)
+    MenuItem(_ => "ClusterMap", Icon.circle, ClusterMapLoc),
+    MenuItem(_ => "ActivityLog", Icon.archive, ActivityLogLoc)
   )
 
   private val MainMenu = ReactComponentB[Props]("MainMenu")

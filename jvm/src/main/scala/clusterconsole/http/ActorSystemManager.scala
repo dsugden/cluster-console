@@ -1,26 +1,30 @@
 package clusterconsole.http
 
-import akka.actor.{ Address, Actor, ActorSystem, Props }
+import akka.actor._
 import akka.cluster.Cluster
-import akka.cluster.ClusterEvent.{ MemberRemoved, MemberExited, MemberUp }
+import akka.cluster.ClusterEvent._
 import com.typesafe.config.ConfigFactory
 
 import scala.collection.immutable
 
 object ActorSystemManager {
 
-  def props(systemName: String, seedNodes: List[HostPort]): Props = Props(new ActorSystemManager(systemName, seedNodes))
+  def props(
+    systemName: String,
+    seedNodes: List[HostPort],
+    socketPublisherRouter: ActorRef): Props = Props(new ActorSystemManager(systemName, seedNodes, socketPublisherRouter))
 
 }
 
-class ActorSystemManager(systemName: String, seedNodes: List[HostPort]) extends Actor {
+class ActorSystemManager(systemName: String, seedNodes: List[HostPort], socketPublisherRouter: ActorRef) extends Actor {
 
   val selfHost = "127.0.0.1"
-  val selfPort = 0 //2881
+  val selfPort = 0
 
   val akkaConf =
     s"""akka.remote.netty.tcp.hostname="$selfHost"
       |akka.remote.netty.tcp.port=$selfPort
+      |auto-down-unreachable-after = 5s
       |akka.cluster.roles = [clusterconsole]
       |""".stripMargin
 
@@ -37,9 +41,10 @@ class ActorSystemManager(systemName: String, seedNodes: List[HostPort]) extends 
     println("@@@@@@ lazy!!!!!!    ActorSystemManager preStart")
     val addresses: immutable.Seq[Address] = seedNodes.map(e => Address("akka.tcp", systemName, e.host, e.port))
     cluster.joinSeedNodes(addresses)
-    cluster.subscribe(self, classOf[MemberUp])
-    cluster.subscribe(self, classOf[MemberExited])
-    cluster.subscribe(self, classOf[MemberRemoved])
+
+    cluster.subscribe(self, initialStateMode = InitialStateAsEvents,
+      classOf[MemberUp], classOf[UnreachableMember], classOf[MemberRemoved])
+
   }
 
   override def postStop() = {
@@ -49,7 +54,9 @@ class ActorSystemManager(systemName: String, seedNodes: List[HostPort]) extends 
   }
 
   def receive: Receive = {
-    case _ =>
+    case msg: MemberUp => socketPublisherRouter ! ClusterMemberUp(msg.member.address.toString)
+    case msg: UnreachableMember => socketPublisherRouter ! ClusterMemberUnreachable(msg.member.address.toString)
+    case msg: MemberRemoved => socketPublisherRouter ! ClusterMemberRemoved(msg.member.address.toString)
   }
 
 }

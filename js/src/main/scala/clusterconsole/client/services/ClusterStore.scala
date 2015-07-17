@@ -13,19 +13,15 @@ case object RefreshClusterMembers
 
 trait ClusterStore extends Actor{
 
-
-  WebSocketClient.subscribe(this)
-
-
   // refine a reactive variable
   private val items = Var(Map.empty[String,DiscoveredCluster])
 
-  private val events = Var(Seq.empty[ClusterMemberUp])
+  private val events = Var(Seq.empty[ClusterEvent])
 
 
   def clusterMembers:Rx[Map[String,DiscoveredCluster]] = items
 
-  def clusterEvents:Rx[Seq[ClusterMemberUp]] = events
+  def clusterEvents:Rx[Seq[ClusterEvent]] = events
 
 
   def name: String = "ClusterStore"
@@ -46,9 +42,9 @@ trait ClusterStore extends Actor{
       items() = items() + (name -> DiscoveredCluster(name, seeds, "Discovery begun") )
 
 
-    case ClusterUnjoin(name, seeds) =>
-      log.debug("+++++++++++ receive " + DiscoveryBegun(name,seeds))
-      items() = items() + (name -> DiscoveredCluster(name, seeds, "Cluster unjoined") )
+    case clusterUnjoin: ClusterUnjoin =>
+      log.debug("+++++++++++ receive ClusterUnjoin" + clusterUnjoin)
+      events() = events() :+  clusterUnjoin
 
 
     case other => log.debug("other " + other)
@@ -69,10 +65,9 @@ object ClusterStoreActions {
 
   def subscribeToCluster(actor:Actor, name:String, seedNodes:List[HostPort] ) = {
     log.debug("$$$$$$$$$$$$$  subscribeToCluster ")
-    WebSocketClient.subscribe(actor)
-    WebSocketClient.send(ClusterSubscribe(name))
+    //WebSocketClient.subscribe(actor)
+    //WebSocketClient.send(ClusterSubscribe(name))
     AjaxClient[Api].discover(name, seedNodes).call().foreach { discoveryBegun =>
-
       MainDispatcher.dispatch(discoveryBegun)
       log.debug("$$$$$$$$$$$$$  result " + discoveryBegun)
     }

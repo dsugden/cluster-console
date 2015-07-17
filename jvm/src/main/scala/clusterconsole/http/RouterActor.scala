@@ -10,13 +10,11 @@ class RouterActor extends Actor with LogF {
   def receive = {
     case ar: AddRoutee => routees = routees + ar.routee
     case rr: RemoveRoutee => routees = routees - rr.routee
-    case msg =>
-
+    case msg: ClusterProtocol =>
       routees.foreach { r =>
-
-        r.logDebug("---------- RouterActor routee " + _)
         msg.logDebug("sending " + _)
-        r.send(msg, sender)
+        import Json._
+        r.send(upickle.write(msg), sender)
       }
   }
 }
