@@ -71,6 +71,9 @@ trait Dispatcher {
   }
 
   protected def invokeActor(actor: Actor, msg: Any): Unit = {
+
+    log.debug("invokeActor " + actor.name + " msg: " + msg)
+
     pendingActors += actor
 
     actor.receiveD(this)(msg)

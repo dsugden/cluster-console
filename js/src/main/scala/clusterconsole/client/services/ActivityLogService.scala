@@ -26,5 +26,8 @@ trait ActivityLogService extends Actor {
     case ac: ClusterProtocol =>
       log.debug(s"ActivityLogService: $ac")
       logItems() = logItems() :+ ac
+
+
+    case other =>
   }
 }

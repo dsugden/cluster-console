@@ -26,12 +26,15 @@ object ClusterConsoleApp extends js.JSApp{
   case object ClusterMapLoc extends Loc
   case object ActivityLogLoc extends Loc
 
+
+  val cs = ClusterStore
+
   // configure the router
   val routerConfig = RouterConfigDsl[Loc].buildConfig { dsl =>
     import dsl._
 
     (staticRoute(root, DashboardLoc) ~> renderR(ctl => Dashboard.component(ctl))
-      | staticRoute("#clustermap", ClusterMapLoc) ~> renderR(ctl => ClusterMap(ClusterStore)(ctl))
+      | staticRoute("#clustermap", ClusterMapLoc) ~> renderR(ctl => ClusterMap(cs)(ctl))
       | staticRoute("#activitylog", ActivityLogLoc) ~> renderR(ctl => ActivityLogComponent(ActivityLogService)(ctl))
       ).notFound(redirectToPage(DashboardLoc)(Redirect.Replace))
   }.renderWith(layout)

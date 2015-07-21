@@ -10,6 +10,7 @@ import scala.scalajs.concurrent.JSExecutionContext.Implicits.runNow
 
 case object RefreshClusterMembers
 
+case class UpdateClusterForm(clusterForm:ClusterForm)
 
 trait ClusterStore extends Actor{
 
@@ -19,9 +20,16 @@ trait ClusterStore extends Actor{
   private val events = Var(Seq.empty[ClusterEvent])
 
 
+  private val clusterForm = Var(ClusterForm.initial)
+
+
   def clusterMembers:Rx[Map[String,DiscoveredCluster]] = items
 
   def clusterEvents:Rx[Seq[ClusterEvent]] = events
+
+  def getClusterForm:Rx[ClusterForm] = clusterForm
+
+
 
 
   def name: String = "ClusterStore"
@@ -47,6 +55,12 @@ trait ClusterStore extends Actor{
       events() = events() :+  clusterUnjoin
 
 
+        case x:UpdateClusterForm =>
+          clusterForm() = x.clusterForm
+
+
+
+
     case other => log.debug("other " + other)
 
   }
@@ -65,14 +79,19 @@ object ClusterStoreActions {
 
   def subscribeToCluster(actor:Actor, name:String, seedNodes:List[HostPort] ) = {
     log.debug("$$$$$$$$$$$$$  subscribeToCluster ")
-    //WebSocketClient.subscribe(actor)
-    //WebSocketClient.send(ClusterSubscribe(name))
     AjaxClient[Api].discover(name, seedNodes).call().foreach { discoveryBegun =>
       MainDispatcher.dispatch(discoveryBegun)
       log.debug("$$$$$$$$$$$$$  result " + discoveryBegun)
     }
-
   }
+
+  def updateClusterForm(clusterForm:ClusterForm) = {
+    log.debug("$$$$$$$$$$$$$  updateClusterForm ")
+    MainDispatcher.dispatch(UpdateClusterForm(clusterForm))
+  }
+
+
+
 
 //AjaxClient[Api].discover("SampleClusterSystem", List(HostPort("127.0.0.1",2551))).call().foreach( s =>
 }
