@@ -4,7 +4,6 @@ import scalacss.Defaults._
 import scalacss.mutable
 import clusterconsole.client.style.Bootstrap.CommonStyle._
 
-
 class BootstrapStyles(implicit r: mutable.Register) extends StyleSheet.Inline()(r) {
 
   import dsl._

@@ -18,7 +18,7 @@ trait ActivityLogService extends Actor {
 
   private val logItems = Var(Seq.empty[ClusterProtocol])
 
-  def activities:Rx[Seq[ClusterProtocol]] = logItems
+  def activities: Rx[Seq[ClusterProtocol]] = logItems
 
   def name = "ActivityLogService"
 
@@ -26,7 +26,6 @@ trait ActivityLogService extends Actor {
     case ac: ClusterProtocol =>
       log.debug(s"ActivityLogService: $ac")
       logItems() = logItems() :+ ac
-
 
     case other =>
   }

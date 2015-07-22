@@ -14,13 +14,12 @@ trait ApplicationStore extends Actor {
 
   private val version = Var("")
 
-  private def updateVersion(v:String) = {
+  private def updateVersion(v: String) = {
 
     log.debug("updateVersion v " + v)
 
     version() = v
   }
-
 
   override def receive = {
     case RefreshVersion =>
@@ -31,7 +30,7 @@ trait ApplicationStore extends Actor {
   }
 
   // return as Rx to prevent mutation in dependencies
-  def getVersion:Rx[String] = version
+  def getVersion: Rx[String] = version
 
 }
 

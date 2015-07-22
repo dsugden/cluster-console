@@ -4,7 +4,7 @@ import java.nio.ByteBuffer
 
 import org.scalajs.dom
 
-import scala.concurrent.{Future, Promise}
+import scala.concurrent.{ Future, Promise }
 import scala.scalajs.concurrent.JSExecutionContext.Implicits.runNow
 import scala.scalajs.js.typedarray._
 import upickle._
@@ -14,10 +14,9 @@ object AjaxClient extends autowire.Client[String, Reader, Writer] {
 
   import org.scalajs.dom.ext.AjaxException
 
-
   def post(url: String,
-           data: String,
-           timeout: Int = 0) = {
+    data: String,
+    timeout: Int = 0) = {
 
     val req = new dom.XMLHttpRequest()
     val promise = Promise[dom.XMLHttpRequest]()

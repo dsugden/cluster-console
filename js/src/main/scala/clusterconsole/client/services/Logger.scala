@@ -2,17 +2,17 @@ package clusterconsole.client.services
 
 import scala.scalajs.js.Dynamic.global
 
-class Logger{
-  def info(s:String):Unit = {
+class Logger {
+  def info(s: String): Unit = {
     global.console.log(s"[INFO] $s")
   }
-  def debug(s:String):Unit = {
+  def debug(s: String): Unit = {
     global.console.log(s"[DEBUG] $s")
   }
-  def warn(s:String):Unit = {
+  def warn(s: String): Unit = {
     global.console.log(s"[WARN] $s")
   }
-  def error(s:String):Unit = {
+  def error(s: String): Unit = {
     global.console.log(s"[ERROR] $s")
   }
 
@@ -20,7 +20,6 @@ class Logger{
 
 object Logger {
 
-  lazy val log:Logger = new Logger()
-
+  lazy val log: Logger = new Logger()
 
 }

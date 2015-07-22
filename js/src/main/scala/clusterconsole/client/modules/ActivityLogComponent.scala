@@ -6,7 +6,7 @@ import clusterconsole.http.ClusterProtocol
 import japgolly.scalajs.react.extra.OnUnmount
 import japgolly.scalajs.react.extra.router2.RouterCtl
 import japgolly.scalajs.react.vdom.all._
-import japgolly.scalajs.react.{BackendScope, ReactComponentB}
+import japgolly.scalajs.react.{ BackendScope, ReactComponentB }
 import rx._
 
 object ActivityLogComponent {
@@ -29,9 +29,9 @@ object ActivityLogComponent {
     .initialState(State())
     .backend(new Backend(_))
     .render((P, S, B) => {
-    div(cls := "row")(
-      div(cls := "col-md-12")(
-        P.activities().map(ac => div(ac.toString))
+      div(cls := "row")(
+        div(cls := "col-md-12")(
+          P.activities().map(ac => div(ac.toString))
         //ClusterFormComponent(ClusterForm.initial,B.editCluster),
         /*div{
           P.clusters().map(e =>
@@ -41,11 +41,11 @@ object ActivityLogComponent {
           )
 
         }*/
+        )
       )
-    )
-  })
-  .componentDidMount(_.backend.mounted())
-  .configure(OnUnmount.install)
-  .build
+    })
+    .componentDidMount(_.backend.mounted())
+    .configure(OnUnmount.install)
+    .build
 
 }

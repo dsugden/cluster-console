@@ -8,7 +8,7 @@ import org.scalajs.dom.raw._
 
 object WebSocketClient {
 
-  var open:Boolean  = false
+  var open: Boolean = false
 
   lazy val websocket = new WebSocket(getWebsocketUri(dom.document))
 
@@ -21,16 +21,15 @@ object WebSocketClient {
   }
   websocket.onmessage = { (event: MessageEvent) =>
     log.debug("***************  on raw message " + event.data.toString)
-    val msg:ClusterProtocol = upickle.read[ClusterProtocol](event.data.toString)
+    val msg: ClusterProtocol = upickle.read[ClusterProtocol](event.data.toString)
     log.debug("***************  on cluster protocol message " + msg)
 
-      MainDispatcher.dispatch( msg )
+    MainDispatcher.dispatch(msg)
     event
 
   }
   websocket.onclose = { (event: Event) =>
   }
-
 
   def getWebsocketUri(document: Document): String = {
     val wsProtocol = if (dom.document.location.protocol == "https:") "wss" else "ws"
@@ -38,9 +37,8 @@ object WebSocketClient {
     s"$wsProtocol://${dom.document.location.host}/events"
   }
 
-  def send(msg:ClusterProtocol):Unit = {
+  def send(msg: ClusterProtocol): Unit = {
     websocket.send(upickle.write(msg))
   }
-
 
 }

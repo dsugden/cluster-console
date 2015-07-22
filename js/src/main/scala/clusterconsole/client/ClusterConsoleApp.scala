@@ -1,8 +1,8 @@
 package clusterconsole.client
 
-import clusterconsole.client.modules.{ActivityLogComponent, ClusterMap, Dashboard, MainMenu}
+import clusterconsole.client.modules.{ ActivityLogComponent, ClusterMap, Dashboard, MainMenu }
 import clusterconsole.client.services.Logger._
-import clusterconsole.client.services.{ActivityLogService, ClusterStore, WebSocketClient}
+import clusterconsole.client.services.{ ActivityLogService, ClusterStore, WebSocketClient }
 import clusterconsole.client.style.GlobalStyles
 import japgolly.scalajs.react.React
 import japgolly.scalajs.react.extra.router2._
@@ -14,10 +14,8 @@ import scala.scalajs.js.annotation.JSExport
 import scalacss.Defaults._
 import scalacss.ScalaCssReact._
 
-
 @JSExport("ClusterConsoleApp")
-object ClusterConsoleApp extends js.JSApp{
-
+object ClusterConsoleApp extends js.JSApp {
 
   // Define the locations (pages) used in this application
   sealed trait Loc
@@ -25,7 +23,6 @@ object ClusterConsoleApp extends js.JSApp{
   case object DashboardLoc extends Loc
   case object ClusterMapLoc extends Loc
   case object ActivityLogLoc extends Loc
-
 
   val cs = ClusterStore
 
@@ -36,7 +33,7 @@ object ClusterConsoleApp extends js.JSApp{
     (staticRoute(root, DashboardLoc) ~> renderR(ctl => Dashboard.component(ctl))
       | staticRoute("#clustermap", ClusterMapLoc) ~> renderR(ctl => ClusterMap(cs)(ctl))
       | staticRoute("#activitylog", ActivityLogLoc) ~> renderR(ctl => ActivityLogComponent(ActivityLogService)(ctl))
-      ).notFound(redirectToPage(DashboardLoc)(Redirect.Replace))
+    ).notFound(redirectToPage(DashboardLoc)(Redirect.Replace))
   }.renderWith(layout)
 
   // base layout for all pages
@@ -56,7 +53,6 @@ object ClusterConsoleApp extends js.JSApp{
     )
   }
 
-
   @JSExport
   def main(): Unit = {
 
@@ -74,8 +70,5 @@ object ClusterConsoleApp extends js.JSApp{
     WebSocketClient.websocket
 
   }
-
-
-
 
 }

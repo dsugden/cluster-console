@@ -10,27 +10,22 @@ import scala.scalajs.concurrent.JSExecutionContext.Implicits.runNow
 
 case object RefreshClusterMembers
 
-case class UpdateClusterForm(clusterForm:ClusterForm)
+case class UpdateClusterForm(clusterForm: ClusterForm)
 
-trait ClusterStore extends Actor{
+trait ClusterStore extends Actor {
 
   // refine a reactive variable
-  private val items = Var(Map.empty[String,DiscoveredCluster])
+  private val items = Var(Map.empty[String, DiscoveredCluster])
 
   private val events = Var(Seq.empty[ClusterEvent])
 
-
   private val clusterForm = Var(ClusterForm.initial)
 
+  def clusterMembers: Rx[Map[String, DiscoveredCluster]] = items
 
-  def clusterMembers:Rx[Map[String,DiscoveredCluster]] = items
+  def clusterEvents: Rx[Seq[ClusterEvent]] = events
 
-  def clusterEvents:Rx[Seq[ClusterEvent]] = events
-
-  def getClusterForm:Rx[ClusterForm] = clusterForm
-
-
-
+  def getClusterForm: Rx[ClusterForm] = clusterForm
 
   def name: String = "ClusterStore"
 
@@ -44,40 +39,31 @@ trait ClusterStore extends Actor{
       log.debug("+++++++++++ receive clusterMemberUp" + clusterMemberUp)
       events() = events() :+ clusterMemberUp
 
-
     case DiscoveryBegun(name, seeds) =>
-      log.debug("+++++++++++ receive " + DiscoveryBegun(name,seeds))
-      items() = items() + (name -> DiscoveredCluster(name, seeds, "Discovery begun") )
-
+      log.debug("+++++++++++ receive " + DiscoveryBegun(name, seeds))
+      items() = items() + (name -> DiscoveredCluster(name, seeds, "Discovery begun"))
 
     case clusterUnjoin: ClusterUnjoin =>
       log.debug("+++++++++++ receive ClusterUnjoin" + clusterUnjoin)
-      events() = events() :+  clusterUnjoin
+      events() = events() :+ clusterUnjoin
 
-
-        case x:UpdateClusterForm =>
-          clusterForm() = x.clusterForm
-
-
-
+    case x: UpdateClusterForm =>
+      clusterForm() = x.clusterForm
 
     case other => log.debug("other " + other)
 
   }
 
-
 }
 
-object ClusterStore extends ClusterStore{
+object ClusterStore extends ClusterStore {
   // register this actor with the dispatcher
   MainDispatcher.register(this)
 }
 
 object ClusterStoreActions {
 
-
-
-  def subscribeToCluster(actor:Actor, name:String, seedNodes:List[HostPort] ) = {
+  def subscribeToCluster(actor: Actor, name: String, seedNodes: List[HostPort]) = {
     log.debug("$$$$$$$$$$$$$  subscribeToCluster ")
     AjaxClient[Api].discover(name, seedNodes).call().foreach { discoveryBegun =>
       MainDispatcher.dispatch(discoveryBegun)
@@ -85,13 +71,10 @@ object ClusterStoreActions {
     }
   }
 
-  def updateClusterForm(clusterForm:ClusterForm) = {
+  def updateClusterForm(clusterForm: ClusterForm) = {
     log.debug("$$$$$$$$$$$$$  updateClusterForm ")
     MainDispatcher.dispatch(UpdateClusterForm(clusterForm))
   }
 
-
-
-
-//AjaxClient[Api].discover("SampleClusterSystem", List(HostPort("127.0.0.1",2551))).call().foreach( s =>
+  //AjaxClient[Api].discover("SampleClusterSystem", List(HostPort("127.0.0.1",2551))).call().foreach( s =>
 }

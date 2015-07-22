@@ -77,9 +77,9 @@ lazy val sharedProject = crossProject.in(file("."))
 
   // set up settings specific to the JVM project
   .jvmSettings(Revolver.settings: _*)
+
   .jvmSettings(
     libraryDependencies ++= Settings.jvmDependencies.value,
-
     // copy resources from the "shared" project
     unmanagedResourceDirectories in Compile += file(".") / sharedSrcDir / "src" / "main" / "resources",
     unmanagedResourceDirectories in Test += file(".") / sharedSrcDir / "src" / "test" / "resources",
@@ -153,7 +153,7 @@ lazy val js: Project = sharedProject.js.settings(
     IO.copyFile(base, (classDirectory in Compile).value / "web" / "js" / base.getName)
     base
   }
-).enablePlugins(SbtWeb)
+).settings(scalariformSettings).enablePlugins(SbtWeb)
 
 
 // instantiate the JVM project for SBT with some additional settings
