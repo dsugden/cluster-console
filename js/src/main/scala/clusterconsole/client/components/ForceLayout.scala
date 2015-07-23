@@ -68,12 +68,12 @@ object Graph {
 
   import clusterconsole.client.style.CustomTags._
 
-  case class Props(width: Double, height: Double, nodes: List[GraphNodeForce], links: List[GraphLinkForce], test: Rx[Double])
+  case class Props(width: Double, height: Double, nodes: List[GraphNodeForce], links: List[GraphLinkForce])
 
-  case class State(nodes: Rx[List[GraphNodeForce]], links: List[GraphLinkForce], force: ForceLayout, test: Rx[Double])
+  case class State(nodes: Rx[List[GraphNodeForce]], links: Rx[List[GraphLinkForce]], force: ForceLayout)
 
-  def drawLinks(links: List[GraphLinkForce]): ReactNode =
-    g(links.zipWithIndex.map { case (eachLink, i) => GraphLink(eachLink, i) })
+  def drawLinks(links: Rx[List[GraphLinkForce]]): ReactNode =
+    g(links().zipWithIndex.map { case (eachLink, i) => GraphLink(eachLink, i) })
 
   def drawNodes(nodes: Rx[List[GraphNodeForce]]): List[ReactNode] =
     nodes().zipWithIndex.map {
@@ -85,41 +85,20 @@ object Graph {
 
     def mounted(): Unit = {
       observe(t.state.nodes)
-      // MainDispatcher.dispatch(RefreshClusterMembers)
     }
     def tick() = {
 
-      val currentNodes = t.state.nodes
-
-      //      val newNodesVar:Var[List[GraphNodeForce]] = Var(List)
-
       val newNodes: Rx[List[GraphNodeForce]] = Var(t.state.force.nodes().toList)
-
       t.modState(s => s.copy(nodes = newNodes))
 
     }
-    //      t.modState(s => s.copy(nodes = s.nodes.map))
 
     def start() = {
       t.modState { s =>
-
         val firstState = s.copy(force = s.force.nodes(t.props.nodes.toJsArray).start())
-        val secondState = firstState.copy(force = s.force.on("tick", () => tick))
-        secondState
+        firstState.copy(force = s.force.on("tick", () => tick))
       }
-
     }
-
-    /*
-      link.attr("x1", (d: LinkData) => d.source.x)
-            .attr("y1", (d: LinkData) => d.source.y)
-            .attr("x2", (d: LinkData) => d.target.x)
-            .attr("y2", (d: LinkData) => d.target.y)
-
-          node.attr("cx", (d: GraphNode) => d.x)
-            .attr("cy", (d: GraphNode) =>  d.y)
-          ()
-       */
 
   }
 
@@ -133,19 +112,15 @@ object Graph {
         .charge(-400)
         .linkDistance(40)
 
-      State(Var(P.nodes), P.links, force, P.test)
+      State(Var(P.nodes), Var(P.links), force)
 
     }.backend(new Backend(_))
     .render((P, S, B) => {
 
       log.debug("**************** render")
 
-      //      import japgolly.scalajs.react.vdom.all._
-      //
-      //      div(S.test())
-
       svgtag(width := P.width, height := P.height)(
-        //        drawLinks(P.links),
+        drawLinks(S.links),
         drawNodes(S.nodes)
       )
     }).componentDidMount { scope =>
@@ -155,8 +130,8 @@ object Graph {
 
     }.build
 
-  def apply(width: Double, height: Double, nodes: List[GraphNodeForce], links: List[GraphLinkForce], test: Rx[Double]) =
-    component(Props(width, height, nodes, links, test))
+  def apply(width: Double, height: Double, nodes: List[GraphNodeForce], links: List[GraphLinkForce]) =
+    component(Props(width, height, nodes, links))
 
 }
 

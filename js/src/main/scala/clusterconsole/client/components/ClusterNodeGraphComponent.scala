@@ -29,32 +29,14 @@ object ClusterNodeGraphComponent {
 
   case class Props()
 
-  val test: Var[Double] = Var(1)
-
-  def getTest: Rx[Double] = test
-
-  case class State(test: Var[Double]) {
-    def getTest: Rx[Double] = test
-  }
-
+  case class State()
   class Backend(t: BackendScope[Props, State]) {
-
-    def tick(): Unit = {
-
-      test() = test() + 1
-
-      log.debug("^^^^ ticked")
-    }
-
-    def start(): Unit = {
-      js.timers.setInterval(1000)(tick())
-    }
 
   }
 
   def component = ReactComponentB[Props]("ClusterNodeGraph")
     .initialStateP(P => {
-      State(Var(2))
+      State()
     }).backend(new Backend(_))
     .render((P, S, B) => {
 
@@ -73,13 +55,12 @@ object ClusterNodeGraphComponent {
         }
 
       val links: List[GraphLinkForce] =
-        List(Link(1, 2), Link(2, 3), Link(1, 3)).zipWithIndex.map {
+        List(Link(0, 1), Link(0, 2), Link(1, 2)).zipWithIndex.map {
           case (link, i) =>
-            js.Dynamic.literal("source" -> link.source, "target" -> link.target).asInstanceOf[GraphLinkForce]
+            js.Dynamic.literal("source" -> nodes(link.source), "target" -> nodes(link.target)).asInstanceOf[GraphLinkForce]
         }
       div(
-        button(cls := "btn btn-default", onClick --> B.tick)("tick"),
-        Graph(600, 1000, nodes, links, getTest)
+        Graph(600, 600, nodes, links)
       )
 
     }).build
