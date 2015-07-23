@@ -15,8 +15,6 @@ trait Dispatcher {
 
   def register(actor: Actor): Unit = {
 
-    log.debug(s"Dispatcher register:  ${actor.name}")
-
     // register the actor
     actors += actor
   }
@@ -27,8 +25,6 @@ trait Dispatcher {
   }
 
   def dispatch(msg: AnyRef): Unit = {
-
-    log.debug(s"dispatch $msg  messageQueue = $messageQueue")
 
     messageQueue = messageQueue.enqueue(msg)
     if (isDispatching) {

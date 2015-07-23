@@ -64,15 +64,12 @@ object ClusterStore extends ClusterStore {
 object ClusterStoreActions {
 
   def subscribeToCluster(actor: Actor, name: String, seedNodes: List[HostPort]) = {
-    log.debug("$$$$$$$$$$$$$  subscribeToCluster ")
     AjaxClient[Api].discover(name, seedNodes).call().foreach { discoveryBegun =>
       MainDispatcher.dispatch(discoveryBegun)
-      log.debug("$$$$$$$$$$$$$  result " + discoveryBegun)
     }
   }
 
   def updateClusterForm(clusterForm: ClusterForm) = {
-    log.debug("$$$$$$$$$$$$$  updateClusterForm ")
     MainDispatcher.dispatch(UpdateClusterForm(clusterForm))
   }
 
