@@ -2,6 +2,7 @@ package clusterconsole.client.components
 
 import japgolly.scalajs.react.extra.OnUnmount
 import japgolly.scalajs.react.vdom.{ Attrs, SvgAttrs }
+import org.scalajs.dom.raw.SVGCircleElement
 import rx._
 
 import clusterconsole.client.d3.Layout._
@@ -9,7 +10,6 @@ import clusterconsole.client.modules.RxObserver
 import japgolly.scalajs.react.{ ReactComponentB, ReactNode }
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.all.svg._
-//import japgolly.scalajs.react.vdom.all._
 import japgolly.scalajs.react.vdom.prefix_<^._
 import scala.scalajs.js
 import clusterconsole.client.d3._
@@ -42,8 +42,8 @@ object GraphNode {
   val component = ReactComponentB[Props]("GraphNode")
     .render { P =>
       g(
-        circle(Attrs.cls := "node", r := "20", cx := P.x, cy := P.y, fill := "#aaa", stroke := "#fff", strokeWidth := "1.px5"),
-        text(x := P.x - 10, y := P.y - 10)("djhskfjhskdjf")
+        circle(Attrs.cls := "node", Attrs.id := P.key, r := "20", cx := P.x, cy := P.y, fill := "#aaa", stroke := "#fff", strokeWidth := "1.px5"),
+        text(x := P.x + 20, y := P.y - 20)("djhskfjhskdjf")
       )
 
     }.build
@@ -58,7 +58,7 @@ object GraphLink {
   val component = ReactComponentB[Props]("GraphLink")
     .render { P =>
       line(
-        "key".reactAttr := P.key,
+        Attrs.cls := "link",
         x1 := P.link.source.x,
         y1 := P.link.source.y,
         x2 := P.link.target.x,
@@ -106,6 +106,34 @@ object Graph {
       }
     }
 
+    def dragMove(a: js.Any, b: Double): js.Any = {
+
+      val mouse = d3.mouse(js.Dynamic.global.document.getElementById(b.toString))
+
+      val newNodes: Rx[List[GraphNodeForce]] = Var(t.state.nodes().map(n =>
+        if (n.index == b) {
+          js.Dynamic.literal(
+            "index" -> b,
+            "x" -> mouse(0),
+            "y" -> mouse(1),
+            "px" -> n.px,
+            "py" -> n.py,
+            "fixed" -> n.fixed,
+            "weight" -> n.weight
+          ).asInstanceOf[GraphNodeForce]
+
+        } else {
+          n
+        }
+      ))
+
+      val newLinks: Rx[List[GraphLinkForce]] = Var(t.state.links().map(link =>
+        js.Dynamic.literal("source" -> newNodes()(link.source.index.toInt), "target" -> newNodes()(link.target.index.toInt)).asInstanceOf[GraphLinkForce]
+      ))
+
+      t.modState(s => s.copy(nodes = newNodes, links = newLinks))
+    }
+
   }
 
   val component = ReactComponentB[Props]("Graph")
@@ -127,6 +155,13 @@ object Graph {
       scope.backend.start()
     }.componentDidMount { scope =>
       scope.backend.mounted()
+
+      val drag1 = d3.behavior.drag()
+      drag1.origin(() => js.Array(0, 0)).on("drag", (a: js.Any, b: Double) => scope.backend.dragMove(a, b))
+
+      //      val drag = scope.state.force.drag().on("dragstart", () => scope.backend.dragStart())
+
+      d3.select("svg").selectAll(".node").call(drag1)
 
     }.componentWillUnmount { scope =>
       scope.state.force.stop()

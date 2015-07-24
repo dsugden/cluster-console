@@ -471,7 +471,7 @@ package Layout {
     var target: GraphNodeForce = js.native
   }
 
-  trait ForceLayout extends js.Object {
+  trait ForceLayout extends js.Function {
     def apply(): ForceLayout = js.native
     def size(): Double = js.native
     def size(mysize: js.Array[Double]): ForceLayout = js.native
@@ -983,7 +983,7 @@ package Behavior {
     def y(y: Scale.Scale): Zoom = js.native
   }
 
-  trait Drag extends js.Object {
+  trait Drag extends js.Function {
     def apply(): js.Dynamic = js.native
     var on: js.Function2[String, js.Function2[js.Any, Double, Any], Drag] = js.native
     def origin(): js.Dynamic = js.native
