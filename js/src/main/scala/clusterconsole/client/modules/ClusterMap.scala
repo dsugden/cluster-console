@@ -19,10 +19,7 @@ object ClusterMap {
 
   class Backend(t: BackendScope[Props, State]) extends RxObserver(t) {
     def mounted(): Unit = {
-      // hook up to TodoStore changes
       observe(t.props.store.clusterMembers)
-      // dispatch a message to refresh the todos, which will cause TodoStore to fetch todos from the server
-      //      MainDispatcher.dispatch(RefreshClusterMembers)
     }
 
     def editCluster(item: ClusterForm): Unit = {

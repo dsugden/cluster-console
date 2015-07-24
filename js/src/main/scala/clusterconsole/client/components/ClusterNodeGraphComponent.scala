@@ -1,5 +1,7 @@
 package clusterconsole.client.components
 
+import clusterconsole.client.modules.RxObserver
+import japgolly.scalajs.react.extra.OnUnmount
 import rx._
 import clusterconsole.client.d3.Layout.{ GraphLinkForce, GraphNodeForce }
 import japgolly.scalajs.react._
@@ -30,7 +32,9 @@ object ClusterNodeGraphComponent {
   case class Props()
 
   case class State()
-  class Backend(t: BackendScope[Props, State]) {
+  class Backend(t: BackendScope[Props, State]) extends RxObserver(t) {
+    def mounted(): Unit = {
+    }
 
   }
 
@@ -63,7 +67,9 @@ object ClusterNodeGraphComponent {
         Graph(600, 600, nodes, links)
       )
 
-    }).build
+    }).componentDidMount(_.backend.mounted())
+    .configure(OnUnmount.install)
+    .build
 
   def apply() = component(Props())
 
