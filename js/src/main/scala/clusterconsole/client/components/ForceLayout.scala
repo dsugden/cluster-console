@@ -1,6 +1,7 @@
 package clusterconsole.client.components
 
 import japgolly.scalajs.react.extra.OnUnmount
+import japgolly.scalajs.react.vdom.{ Attrs, SvgAttrs }
 import rx._
 
 import clusterconsole.client.d3.Layout._
@@ -8,6 +9,7 @@ import clusterconsole.client.modules.RxObserver
 import japgolly.scalajs.react.{ ReactComponentB, ReactNode }
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.all.svg._
+//import japgolly.scalajs.react.vdom.all._
 import japgolly.scalajs.react.vdom.prefix_<^._
 import scala.scalajs.js
 import clusterconsole.client.d3._
@@ -40,7 +42,7 @@ object GraphNode {
   val component = ReactComponentB[Props]("GraphNode")
     .render { P =>
       g(
-        circle(r := 20, cx := P.x, cy := P.y, fill := "#aaa", stroke := "#fff", strokeWidth := "1.px5", "key".reactAttr := P.key),
+        circle(Attrs.cls := "node", r := "20", cx := P.x, cy := P.y, fill := "#aaa", stroke := "#fff", strokeWidth := "1.px5"),
         text(x := P.x - 10, y := P.y - 10)("djhskfjhskdjf")
       )
 
@@ -103,6 +105,7 @@ object Graph {
         firstState.copy(force = s.force.on("tick", () => tick))
       }
     }
+
   }
 
   val component = ReactComponentB[Props]("Graph")
@@ -116,7 +119,7 @@ object Graph {
 
     }.backend(new Backend(_))
     .render((P, S, B) => {
-      svgtag(width := P.width, height := P.height)(
+      svgtag(SvgAttrs.width := P.width, SvgAttrs.height := P.height)(
         drawLinks(S.links),
         drawNodes(S.nodes)
       )
@@ -124,6 +127,7 @@ object Graph {
       scope.backend.start()
     }.componentDidMount { scope =>
       scope.backend.mounted()
+
     }.componentWillUnmount { scope =>
       scope.state.force.stop()
     }.configure(OnUnmount.install).build
