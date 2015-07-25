@@ -49,7 +49,7 @@ class ClusterAware(systemName: String, seedNodes: List[HostPort], socketPublishe
     val addresses: immutable.Seq[Address] = seedNodes.map(e => Address("akka.tcp", systemName, e.host, e.port))
     cluster.joinSeedNodes(addresses)
 
-    cluster.subscribe(self, initialStateMode = InitialStateAsSnapshot,
+    cluster.subscribe(self, initialStateMode = InitialStateAsEvents,
       classOf[MemberUp], classOf[UnreachableMember],
       classOf[MemberRemoved], classOf[MemberExited], classOf[LeaderChanged])
 
@@ -69,17 +69,20 @@ class ClusterAware(systemName: String, seedNodes: List[HostPort], socketPublishe
 
     case MemberUp(m) =>
       m.logDebug("------- MemberUp: " + _)
-      socketPublisherRouter ! ClusterMemberUp(ClusterAware.toCusterMember(m))
+      if (m.roles != Set("clusterconsole"))
+        socketPublisherRouter ! ClusterMemberUp(ClusterAware.toCusterMember(m))
 
-    case msg: UnreachableMember =>
-      msg.logDebug("------- msg: " + _)
-      socketPublisherRouter ! ClusterMemberUnreachable(msg.member.address.toString)
+    case UnreachableMember(m) =>
+      if (m.roles != Set("clusterconsole"))
+        socketPublisherRouter ! ClusterMemberUnreachable(ClusterAware.toCusterMember(m))
 
-    case msg: MemberRemoved =>
-      socketPublisherRouter ! ClusterMemberRemoved(msg.member.address.toString)
+    case MemberRemoved(m, previousStatus) =>
+      if (m.roles != Set("clusterconsole"))
+        socketPublisherRouter ! ClusterMemberRemoved(ClusterAware.toCusterMember(m))
 
-    case msg: MemberExited =>
-      socketPublisherRouter ! ClusterMemberExited(msg.member.address.toString)
+    case MemberExited(m) =>
+      if (m.roles != Set("clusterconsole"))
+        socketPublisherRouter ! ClusterMemberExited(ClusterAware.toCusterMember(m))
 
   }
 

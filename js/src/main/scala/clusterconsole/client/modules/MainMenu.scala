@@ -20,13 +20,6 @@ object MainMenu {
 
   class Backend(t: BackendScope[Props, _]) extends OnUnmount {
     def mounted(): Unit = {
-      //      // hook up to Todo changes
-      //      val obsItems = t.props.todos.foreach { _ => t.forceUpdate() }
-      //      onUnmount {
-      //        // stop observing when unmounted (= never in this SPA)
-      //        obsItems.kill()
-      //      }
-      //      MainDispatcher.dispatch(RefreshTodos)
     }
   }
 

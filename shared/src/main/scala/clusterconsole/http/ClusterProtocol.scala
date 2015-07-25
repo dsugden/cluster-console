@@ -14,11 +14,11 @@ case class ClusterUnjoin(system: String, seedNodes: List[HostPort]) extends Clus
 
 case class ClusterMemberUp(member: ClusterMember) extends ClusterEvent
 
-case class ClusterMemberUnreachable(member: String) extends ClusterEvent
+case class ClusterMemberUnreachable(member: ClusterMember) extends ClusterEvent
 
-case class ClusterMemberRemoved(member: String) extends ClusterEvent
+case class ClusterMemberRemoved(member: ClusterMember) extends ClusterEvent
 
-case class ClusterMemberExited(member: String) extends ClusterEvent
+case class ClusterMemberExited(member: ClusterMember) extends ClusterEvent
 
 case class DiscoveryBegun(system: String, seedNodes: List[HostPort]) extends ClusterEvent
 
@@ -28,7 +28,7 @@ case class DiscoveredCluster(
                               name: String,
                               seeds: List[HostPort],
                               status: String,
-                              members: Seq[ClusterMember] = Nil) extends ClusterEvent
+                              members: Set[ClusterMember] = Set.empty[ClusterMember]) extends ClusterEvent
 
 /*
 ** COMMANDS

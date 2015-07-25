@@ -1,7 +1,7 @@
 package clusterconsole.client.modules
 
 import clusterconsole.client.ClusterConsoleApp.Loc
-import clusterconsole.client.components.{ ClusterFormComponent, ClusterNodeGraphComponent }
+import clusterconsole.client.components.{ DiscoveredClusterComponent, ClusterFormComponent, ClusterNodeGraphComponent }
 import clusterconsole.client.services.Logger._
 import clusterconsole.client.services.{ ActivityLogService, ClusterStore, ClusterStoreActions }
 import clusterconsole.http.{ HostPortUtil, HostPort, ClusterForm, DiscoveredCluster }
@@ -38,10 +38,8 @@ object ClusterMap {
           ClusterFormComponent(P.store, B.editCluster),
           div {
             h3("Discovered Clusters")
-            P.store.clusterMembers().map(e =>
-              div(key := e._1)(
-                span(e._1), span(e._2.toString)
-              )
+            P.store.clusterMembers().values.map(e =>
+              DiscoveredClusterComponent(e)
             )
           },
           div(

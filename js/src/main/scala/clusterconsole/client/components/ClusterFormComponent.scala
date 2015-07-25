@@ -112,30 +112,25 @@ object ClusterFormComponent {
               label("Cluster Name"),
               input(tpe := "text", cls := "form-control", value := S.cluster.name, onChange ==> B.updateClusterName)
             ),
+            div(cls := "row col-md-12 form-group") {
 
-            div(cls := "row col-md-12 form-group")(
-
-              h3("Seeds"),
-              {
-
-                P.cluster.seeds.zipWithIndex.map {
-                  case (eachSeed, index) =>
-                    div(cls := "row", key := s"$index")(
-                      div(cls := "form-group col-md-8")(
-                        label("Seed host"),
-                        input(tpe := "text", cls := "form-control", value := S.cluster.seeds.zipWithIndex.find { case (x, i) => i == index }.map(_._1.host).getOrElse(""),
-                          onChange ==> B.updateClusterSeedHost(index))
-                      ),
-                      div(cls := s"form-group col-md-4 ${if (!S.portValid) "has-error" else ""}")(
-                        label("Seed port"),
-                        input(tpe := "text", cls := "form-control",
-                          value := S.cluster.seeds.zipWithIndex.find { case (x, i) => i == index }.map(_._1.port.toString).getOrElse(""),
-                          onChange ==> B.updateClusterSeedPort(index))
-                      )
+              P.cluster.seeds.zipWithIndex.map {
+                case (eachSeed, index) =>
+                  div(cls := "row", key := s"$index")(
+                    div(cls := "form-group col-md-8")(
+                      label("Seed host"),
+                      input(tpe := "text", cls := "form-control", value := S.cluster.seeds.zipWithIndex.find { case (x, i) => i == index }.map(_._1.host).getOrElse(""),
+                        onChange ==> B.updateClusterSeedHost(index))
+                    ),
+                    div(cls := s"form-group col-md-4 ${if (!S.portValid) "has-error" else ""}")(
+                      label("Seed port"),
+                      input(tpe := "text", cls := "form-control",
+                        value := S.cluster.seeds.zipWithIndex.find { case (x, i) => i == index }.map(_._1.port.toString).getOrElse(""),
+                        onChange ==> B.updateClusterSeedPort(index))
                     )
-                }
+                  )
               }
-            ),
+            },
             div(cls := "form-group")(
               a(cls := "btn btn-default", disabled := !S.submitEnabled, onClick --> P.editHandler(S.cluster))("Discover")
             )
