@@ -106,7 +106,7 @@ class ClusterDiscoveryService(context: ActorContext, socketPublisherRouter: Acto
 
   def discover(systemName: String, seedNodes: List[HostPort]): DiscoveryBegun = {
 
-    val newSystemActor = context.system.actorOf(ActorSystemManager.props(systemName, seedNodes, socketPublisherRouter))
+    val newSystemActor = context.system.actorOf(ClusterAware.props(systemName, seedNodes, socketPublisherRouter))
 
     systems += newSystemActor -> SystemDetails(systemName, seedNodes)
 

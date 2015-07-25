@@ -8,13 +8,17 @@ trait ClusterEvent extends ClusterProtocol
 ** EVENTS
  */
 
+case class CurrentClusterStateInitial(members: Set[ClusterMember]) extends ClusterEvent
+
 case class ClusterUnjoin(system: String, seedNodes: List[HostPort]) extends ClusterEvent
 
-case class ClusterMemberUp(member: String) extends ClusterEvent
+case class ClusterMemberUp(member: ClusterMember) extends ClusterEvent
 
 case class ClusterMemberUnreachable(member: String) extends ClusterEvent
 
 case class ClusterMemberRemoved(member: String) extends ClusterEvent
+
+case class ClusterMemberExited(member: String) extends ClusterEvent
 
 case class DiscoveryBegun(system: String, seedNodes: List[HostPort]) extends ClusterEvent
 
@@ -34,17 +38,12 @@ case class Discover(system: String, seedNodes: List[HostPort]) extends ClusterPr
 
 case class ClusterSubscribe(name: String) extends ClusterProtocol
 
-/*
-** DEBUG
- */
-
-case class TestResponse(v: String) extends ClusterProtocol
 
 /*
 ** OTHER
  */
 
-case class ClusterMember(name: String)
+case class ClusterMember( address: HostPort, roles:Set[String], state:String)
 
 case class HostPort(host: String, port: Int)
 

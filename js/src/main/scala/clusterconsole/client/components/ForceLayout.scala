@@ -158,9 +158,6 @@ object Graph {
 
       val drag1 = d3.behavior.drag()
       drag1.origin(() => js.Array(0, 0)).on("drag", (a: js.Any, b: Double) => scope.backend.dragMove(a, b))
-
-      //      val drag = scope.state.force.drag().on("dragstart", () => scope.backend.dragStart())
-
       d3.select("svg").selectAll(".node").call(drag1)
 
     }.componentWillUnmount { scope =>

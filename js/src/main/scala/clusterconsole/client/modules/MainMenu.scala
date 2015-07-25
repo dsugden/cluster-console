@@ -1,6 +1,6 @@
 package clusterconsole.client.modules
 
-import clusterconsole.client.ClusterConsoleApp.{ ClusterMapLoc, DashboardLoc, ActivityLogLoc, Loc }
+import clusterconsole.client.ClusterConsoleApp.{ ClusterMapLoc, DashboardLoc, Loc }
 import clusterconsole.client.style.Icon.Icon
 import clusterconsole.client.style.{ GlobalStyles, Icon }
 import japgolly.scalajs.react._
@@ -32,8 +32,7 @@ object MainMenu {
 
   private val menuItems = Seq(
     MenuItem(_ => "Dashboard", Icon.dashboard, DashboardLoc),
-    MenuItem(_ => "ClusterMap", Icon.circle, ClusterMapLoc),
-    MenuItem(_ => "ActivityLog", Icon.archive, ActivityLogLoc)
+    MenuItem(_ => "ClusterMap", Icon.circle, ClusterMapLoc)
   )
 
   private val MainMenu = ReactComponentB[Props]("MainMenu")

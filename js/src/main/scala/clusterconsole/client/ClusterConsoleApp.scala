@@ -22,7 +22,6 @@ object ClusterConsoleApp extends js.JSApp {
 
   case object DashboardLoc extends Loc
   case object ClusterMapLoc extends Loc
-  case object ActivityLogLoc extends Loc
 
   val cs = ClusterStore
 
@@ -32,7 +31,6 @@ object ClusterConsoleApp extends js.JSApp {
 
     (staticRoute(root, DashboardLoc) ~> renderR(ctl => Dashboard.component(ctl))
       | staticRoute("#clustermap", ClusterMapLoc) ~> renderR(ctl => ClusterMap(cs)(ctl))
-      | staticRoute("#activitylog", ActivityLogLoc) ~> renderR(ctl => ActivityLogComponent(ActivityLogService)(ctl))
     ).notFound(redirectToPage(DashboardLoc)(Redirect.Replace))
   }.renderWith(layout)
 

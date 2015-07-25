@@ -6,11 +6,12 @@ object Json {
 
   implicit val clusterProtocolWriter = upickle.Writer[ClusterProtocol] {
 
-    case r: TestResponse =>
+    case r: CurrentClusterStateInitial =>
       Js.Arr(
         Js.Num(1),
-        Js.Str(upickle.write[TestResponse](r))
+        Js.Str(upickle.write[CurrentClusterStateInitial](r))
       )
+
 
     case r: ClusterMemberUp =>
       Js.Arr(
@@ -42,8 +43,9 @@ object Json {
 
   implicit  val clusterProtocolReader = upickle.Reader[ClusterProtocol] {
 
+
     case Js.Arr(Js.Num(1), Js.Str(v)) =>
-      upickle.read[TestResponse](v)
+      upickle.read[CurrentClusterStateInitial](v)
 
 
     case Js.Arr(Js.Num(2), Js.Str(v)) =>
@@ -57,9 +59,6 @@ object Json {
 
     case Js.Arr(Js.Num(5), Js.Str(v)) =>
       upickle.read[ClusterUnjoin](v)
-
-    case _ => TestResponse("BAD")
-
 
 
   }

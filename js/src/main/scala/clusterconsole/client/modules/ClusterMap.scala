@@ -3,7 +3,7 @@ package clusterconsole.client.modules
 import clusterconsole.client.ClusterConsoleApp.Loc
 import clusterconsole.client.components.{ ClusterFormComponent, ClusterNodeGraphComponent }
 import clusterconsole.client.services.Logger._
-import clusterconsole.client.services.{ ClusterStore, ClusterStoreActions }
+import clusterconsole.client.services.{ ActivityLogService, ClusterStore, ClusterStoreActions }
 import clusterconsole.http.{ HostPortUtil, HostPort, ClusterForm, DiscoveredCluster }
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.extra.OnUnmount
@@ -37,13 +37,17 @@ object ClusterMap {
         div(cls := "col-md-4")(
           ClusterFormComponent(P.store, B.editCluster),
           div {
+            h3("Discovered Clusters")
             P.store.clusterMembers().map(e =>
               div(key := e._1)(
                 span(e._1), span(e._2.toString)
               )
             )
-
-          }
+          },
+          div(
+            h3("Discovered Cluster Events"),
+            ActivityLogComponent(ActivityLogService)
+          )
         ),
         div(cls := "col-md-8")(
           h3("Cluster map"),

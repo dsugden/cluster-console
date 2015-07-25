@@ -137,9 +137,7 @@ object ClusterFormComponent {
               }
             ),
             div(cls := "form-group")(
-              a(cls := "btn btn-default", disabled := !S.submitEnabled, onClick --> P.editHandler(S.cluster))("Discover"),
-              span(paddingRight := 10)(""),
-              button(cls := "btn btn-default", onClick --> B.addSeedNodeToForm)("Add Seed Node")
+              a(cls := "btn btn-default", disabled := !S.submitEnabled, onClick --> P.editHandler(S.cluster))("Discover")
             )
           )
         )

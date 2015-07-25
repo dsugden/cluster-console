@@ -4,6 +4,9 @@ import com.typesafe.scalalogging.{ Logger, LazyLogging }
 
 import scala.language.implicitConversions
 
+/**
+ * @author patrick.premont@boldradius.com
+ */
 trait LogF extends LazyLogging {
   implicit val loggerF = logger
   def withValue[V](v: V)(f: V => Unit): V = { f(v); v }

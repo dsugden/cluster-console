@@ -11,11 +11,11 @@ import rx._
 
 object ActivityLogComponent {
 
-  case class Props(activities: Rx[Seq[ClusterProtocol]], router: RouterCtl[Loc])
+  case class Props(activities: Rx[Seq[ClusterProtocol]])
   case class State(logItems: Seq[ClusterProtocol] = Seq.empty)
 
-  def apply(service: ActivityLogService) = (router: RouterCtl[Loc]) => {
-    component(Props(service.activities, router))
+  def apply(service: ActivityLogService) = {
+    component(Props(service.activities))
   }
 
   class Backend(t: BackendScope[Props, State]) extends RxObserver(t) {
