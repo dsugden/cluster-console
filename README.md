@@ -32,5 +32,28 @@ to run in dev:
     
 To start the sample cluster:
     
-    sbt "project sampleCluster" "runMain samplecluster.SampleClusterApp 127.0.0.1 2551"
+
+    sbt
+    project sampleCluster
+    dist
+    exit
+    
+    cd sampleCluster/target/universal/
+    unzip samplecluster-1.0.0.zip 
+    sudo chmod +x samplecluster-1.0.0/bin/samplecluster
+    
+    samplecluster-1.0.0/bin/samplecluster 127.0.0.1 2551 BackEnd &
+    samplecluster-1.0.0/bin/samplecluster 127.0.0.1 2552 BackEnd &
+    samplecluster-1.0.0/bin/samplecluster 127.0.0.1 2553 BackEnd &
+    samplecluster-1.0.0/bin/samplecluster 127.0.0.1 2554 BackEnd &    
+    samplecluster-1.0.0/bin/samplecluster 127.0.0.1 2555 FrontEnd &
+    samplecluster-1.0.0/bin/samplecluster 127.0.0.1 2556 FrontEnd &
+    
+    
+    
+
+    lsof -i tcp:2771
+     
+     
+    netstat -anp tcp | grep 3000
     
