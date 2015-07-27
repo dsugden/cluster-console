@@ -1,18 +1,17 @@
-package clusterconsole.client.modules
+package clusterconsole.client.components
 
-import clusterconsole.client.ClusterConsoleApp.Loc
+import clusterconsole.client.modules.RxObserver
 import clusterconsole.client.services.ActivityLogService
-import clusterconsole.http.ClusterProtocol
+import clusterconsole.http.{ ClusterEvent, ClusterEventUtil, ClusterProtocol }
 import japgolly.scalajs.react.extra.OnUnmount
-import japgolly.scalajs.react.extra.router2.RouterCtl
 import japgolly.scalajs.react.vdom.all._
 import japgolly.scalajs.react.{ BackendScope, ReactComponentB }
 import rx._
 
 object ActivityLogComponent {
 
-  case class Props(activities: Rx[Seq[ClusterProtocol]])
-  case class State(logItems: Seq[ClusterProtocol] = Seq.empty)
+  case class Props(activities: Rx[Seq[ClusterEvent]])
+  case class State(logItems: Seq[ClusterEvent] = Seq.empty)
 
   def apply(service: ActivityLogService) = {
     component(Props(service.activities))
@@ -31,7 +30,7 @@ object ActivityLogComponent {
     .render((P, S, B) => {
       div(cls := "row")(
         div(cls := "col-md-12")(
-          P.activities().map(ac => div(ac.toString))
+          P.activities().map(ac => div(ClusterEventUtil.label(ac)))
         //ClusterFormComponent(ClusterForm.initial,B.editCluster),
         /*div{
           P.clusters().map(e =>

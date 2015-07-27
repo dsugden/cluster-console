@@ -18,23 +18,6 @@ import clusterconsole.client.services.Logger._
 
 import scala.scalajs.js
 
-case class Node(name: String)
-
-case class Link(source: Int, target: Int)
-
-trait LinkData extends GraphLinkForce {
-  var value: Double = js.native
-}
-
-trait NodeData extends GraphNodeForce {
-  var group: Int = js.native
-}
-
-trait GraphData extends js.Object {
-  var nodes: js.Array[NodeData] = js.native
-  var links: js.Array[LinkData] = js.native
-}
-
 object GraphNode {
 
   case class Props(x: Double, y: Double, key: Int)
@@ -141,7 +124,7 @@ object Graph {
       val force = d3.layout.force()
         .size(List[Double](P.width, P.height).toJsArray)
         .charge(-600)
-        .linkDistance(40)
+        .linkDistance(80)
 
       State(Var(P.nodes), Var(P.links), force)
 

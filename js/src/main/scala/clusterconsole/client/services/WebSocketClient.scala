@@ -13,16 +13,16 @@ object WebSocketClient {
   lazy val websocket = new WebSocket(getWebsocketUri(dom.document))
 
   websocket.onopen = { (event: Event) =>
-    log.debug("***************  websocket.onopen ")
+    //    log.debug("***************  websocket.onopen ")
     event
   }
   websocket.onerror = { (event: ErrorEvent) =>
-    log.debug("***************  websocket.onerror ")
+    //    log.debug("***************  websocket.onerror ")
   }
   websocket.onmessage = { (event: MessageEvent) =>
-    log.debug("***************  on raw message " + event.data.toString)
+    //    log.debug("***************  on raw message " + event.data.toString)
     val msg: ClusterProtocol = upickle.read[ClusterProtocol](event.data.toString)
-    log.debug("***************  on cluster protocol message " + msg)
+    //    log.debug("***************  on cluster protocol message " + msg)
 
     MainDispatcher.dispatch(msg)
     event

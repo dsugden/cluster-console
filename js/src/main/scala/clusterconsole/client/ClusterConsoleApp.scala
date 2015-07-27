@@ -1,6 +1,6 @@
 package clusterconsole.client
 
-import clusterconsole.client.modules.{ ActivityLogComponent, ClusterMap, Dashboard, MainMenu }
+import clusterconsole.client.modules.{ ClusterMap, Dashboard, MainMenu }
 import clusterconsole.client.services.Logger._
 import clusterconsole.client.services.{ ActivityLogService, ClusterStore, WebSocketClient }
 import clusterconsole.client.style.GlobalStyles

@@ -1,7 +1,7 @@
 package clusterconsole.client.modules
 
 import clusterconsole.client.ClusterConsoleApp.Loc
-import clusterconsole.client.components.{ DiscoveredClusterComponent, ClusterFormComponent, ClusterNodeGraphComponent }
+import clusterconsole.client.components._
 import clusterconsole.client.services.Logger._
 import clusterconsole.client.services.{ ActivityLogService, ClusterStore, ClusterStoreActions }
 import clusterconsole.http.{ HostPortUtil, HostPort, ClusterForm, DiscoveredCluster }
@@ -15,16 +15,27 @@ object ClusterMap {
 
   case class Props(store: ClusterStore, router: RouterCtl[Loc])
 
-  case class State(selectedItem: Option[DiscoveredCluster] = None)
+  case class State()
 
   class Backend(t: BackendScope[Props, State]) extends RxObserver(t) {
     def mounted(): Unit = {
-      observe(t.props.store.clusterMembers)
+      observe(t.props.store.getDiscoveredClusters)
+      observe(t.props.store.getDiscoveringClusters)
+      observe(t.props.store.getSelectedCluster)
+      //      observe(t.state.selectedItem)
+
+      ClusterStoreActions.getDiscoveringClusters()
+      ClusterStoreActions.getDiscoveredClusters()
+
     }
 
     def editCluster(item: ClusterForm): Unit = {
       log.debug("item " + item)
-      ClusterStoreActions.subscribeToCluster(ClusterStore, item.name, item.seeds.map(HostPortUtil.apply))
+      ClusterStoreActions.subscribeToCluster(item.name, item.seeds.map(HostPortUtil.apply))
+    }
+
+    def selectCluster(name: String) = {
+      ClusterStoreActions.getCluster(name)
     }
   }
 
@@ -33,15 +44,26 @@ object ClusterMap {
     .initialState(State()) // initial state from TodoStore
     .backend(new Backend(_))
     .render((P, S, B) => {
+
+      log.debug("!!!!!!!!!!!!!!!!!!!   render ClusterMap seelcted = " + P.store.getSelectedCluster)
+
       div(cls := "row")(
         div(cls := "col-md-4")(
           ClusterFormComponent(P.store, B.editCluster),
-          div {
-            h3("Discovered Clusters")
-            P.store.clusterMembers().values.map(e =>
-              DiscoveredClusterComponent(e)
-            )
-          },
+          div(
+            h3("Discovering Clusters"),
+            div(
+              P.store.getDiscoveringClusters().values.map(e =>
+                DiscoveringClusterComponent(e)
+              ))
+          ),
+          div(
+            h3("Discovered Clusters"),
+            div(
+              P.store.getDiscoveredClusters().values.map(e =>
+                DiscoveredClusterComponent(e, P.store.getSelectedCluster().contains(e.system), B.selectCluster)
+              ))
+          ),
           div(
             h3("Discovered Cluster Events"),
             ActivityLogComponent(ActivityLogService)
@@ -49,7 +71,9 @@ object ClusterMap {
         ),
         div(cls := "col-md-8")(
           h3("Cluster map"),
-          ClusterNodeGraphComponent()
+          P.store.getSelectedCluster().fold[TagMod](EmptyTag)(item =>
+            ClusterNodeGraphComponent(P.store, item.system)
+          )
         )
       )
     })

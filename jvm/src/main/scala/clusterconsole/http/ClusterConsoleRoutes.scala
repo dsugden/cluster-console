@@ -1,6 +1,7 @@
 package clusterconsole.http
 
 import akka.actor._
+import akka.pattern.ask
 import akka.http.scaladsl.marshalling.{ PredefinedToEntityMarshallers, ToEntityMarshaller }
 import akka.http.scaladsl.model.ws.{ Message, TextMessage }
 import akka.http.scaladsl.model.{ ContentTypes, HttpEntity, MediaTypes }
@@ -8,11 +9,14 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{ RequestContext, Route }
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{ Flow, FlowGraph, Merge, Source }
+import akka.util.Timeout
+import clusterconsole.clustertracking.{ GetDiscovered, TrackDiscovered, IsDiscovered, ClusterAware }
 import clusterconsole.core.LogF
 
+import scala.collection.mutable
 import scala.collection.mutable.{ Map => MutableMap }
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration._
 
 trait ClusterConsoleRoutes extends LogF { this: Actor =>
@@ -92,32 +96,53 @@ trait ClusterConsoleRoutes extends LogF { this: Actor =>
     case Terminated(ref) =>
       logger.logDebug(s"Died: $ref" + _)
       //TODO: refactor
-      clusterDiscoveryService.systems.get(ref).foreach(d => socketPublisherRouter ! ClusterUnjoin(d.systemName, d.seedNodes))
-      clusterDiscoveryService.systems -= ref
+      clusterDiscoveryService.discovering.get(ref).foreach(d => socketPublisherRouter ! ClusterUnjoin(d.system, d.seedNodes))
+      clusterDiscoveryService.discovering -= ref
   }
 
 }
 
 class ClusterDiscoveryService(context: ActorContext, socketPublisherRouter: ActorRef) extends Api with LogF {
 
-  case class SystemDetails(systemName: String, seedNodes: List[HostPort])
+  val discovering: MutableMap[ActorRef, DiscoveryBegun] = MutableMap.empty
 
-  val systems: MutableMap[ActorRef, SystemDetails] = MutableMap.empty
+  val trackDiscovered: ActorRef = context.system.actorOf(TrackDiscovered.props)
 
-  def discover(systemName: String, seedNodes: List[HostPort]): DiscoveryBegun = {
+  def discover(systemName: String, seedNodes: List[HostPort]): Option[DiscoveryBegun] = {
 
-    val newSystemActor = context.system.actorOf(ClusterAware.props(systemName, seedNodes, socketPublisherRouter))
-
-    systems += newSystemActor -> SystemDetails(systemName, seedNodes)
-
-    context.watch(newSystemActor)
-
-    //newSystemActor ! Discover(system, seedNodes)
-
-    "discover begun".logDebug("************   " + _)
-    DiscoveryBegun(systemName, seedNodes)
+    val discovered = getDiscoveredFromTracked
+    if (!discovered.exists(_.system == systemName)) {
+      val newSystemActor = context.system.actorOf(ClusterAware.props(systemName, seedNodes, socketPublisherRouter, trackDiscovered))
+      val value = DiscoveryBegun(systemName, seedNodes)
+      discovering += newSystemActor -> value
+      context.watch(newSystemActor)
+      systemName.logDebug("*********************************************************  discover  " + _)
+      Some(value)
+    } else None
 
   }
+
+  def getDiscovering(): Seq[DiscoveryBegun] = {
+    discovering.values.toList.filter(db => !getDiscovered().exists(dc => db.system == dc.system))
+  }
+
+  private def getDiscoveredFromTracked: Set[DiscoveredCluster] = {
+    implicit val timeout = Timeout(3 seconds)
+    val futureDiscovered: Future[Set[DiscoveredCluster]] = (trackDiscovered ? GetDiscovered).mapTo[Set[DiscoveredCluster]]
+    Await.result(futureDiscovered, 2 seconds)
+  }
+
+  private def getDiscoveredFromTracked(system: String): Option[DiscoveredCluster] = {
+    implicit val timeout = Timeout(3 seconds)
+    val futureMaybeDiscovered: Future[Option[DiscoveredCluster]] = (trackDiscovered ? GetDiscovered(system)).mapTo[Option[DiscoveredCluster]]
+    Await.result(futureMaybeDiscovered, 2 seconds)
+  }
+
+  def getDiscovered: Set[DiscoveredCluster] = {
+    getDiscoveredFromTracked.logDebug("getDiscovered [" + _.toList.size + "]")
+  }
+
+  def getCluster(system: String): Option[DiscoveredCluster] = getDiscoveredFromTracked(system)
 
 }
 

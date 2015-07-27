@@ -18,9 +18,9 @@ import scala.scalajs.js
 
 object DiscoveredClusterComponent {
 
-  case class Props(cluster: DiscoveredCluster)
+  case class Props(cluster: DiscoveredCluster, selected: Boolean, select: String => Unit)
 
-  case class State()
+  case class State(selected: Boolean)
 
   class Backend(t: BackendScope[Props, State]) extends RxObserver(t) {
 
@@ -28,24 +28,32 @@ object DiscoveredClusterComponent {
       //      observe(t.state.nodes)
     }
 
-    def toggleCluster() = {
-
+    def selectCluster(e: ReactEvent) = {
+      t.modState(_.copy(selected = true))
+      t.props.select(t.props.cluster.system)
+      e.preventDefault()
     }
-
   }
 
   val component = ReactComponentB[Props]("DiscoveredClusterComponent")
     .initialStateP(P => {
-      State()
+      State(P.selected)
     }) // initial state
     .backend(new Backend(_))
     .render((P, S, B) => {
 
-      a(P.cluster.name, onClick --> B.toggleCluster())
+      a(href := "", onClick ==> B.selectCluster)(
+        span(
+          if (S.selected) {
+            color := "red"
+          } else {
+            color := "blue"
+          })(P.cluster.system)
+      )
 
     }
     ).build
 
-  def apply(cluster: DiscoveredCluster) = component(Props(cluster))
+  def apply(cluster: DiscoveredCluster, selected: Boolean, select: String => Unit) = component(Props(cluster, selected, select))
 
 }
