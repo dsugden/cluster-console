@@ -33,7 +33,7 @@ trait ClusterStore extends Actor {
 
   def getSelectedCluster: Rx[Option[DiscoveredCluster]] = selectedCluster
 
-  def clusterEvents: Rx[Seq[ClusterEvent]] = events
+  //  def clusterEvents: Rx[Seq[ClusterEvent]] = events
 
   def getClusterForm: Rx[ClusterForm] = clusterForm
 
@@ -46,32 +46,20 @@ trait ClusterStore extends Actor {
    */
   def receive: ClusterStore.Receive = {
     case m @ ClusterMemberUp(system, clusterMember) =>
-      log.debug("+++++++++++ receive clusterMemberUp" + m + " system:" + system)
-      events() = events() :+ m
-      discoveredClusters().get(system).fold[Unit] {
-        val discovering = discoveringClusters().get(system)
-        discovering.foreach { d =>
-          log.debug("discovering.foreach d: " + d)
-          discoveredClusters() = discoveredClusters() + (d.system -> DiscoveredCluster(d.system, d.seedNodes, "", Set(clusterMember)))
-        }
-
-        discoveringClusters() = discoveringClusters() - system
-
-        log.debug("&&&&&&&&&&&&&&&&&&&&&&&&&&&&& discoveringClusters()  after removal: " + discoveringClusters())
-
-      }(_ => {})
+      //      log.debug("+++++++++++ receive clusterMemberUp" + m + " system:" + system)
+      ClusterStoreActions.getDiscoveredClusters()
 
     case m @ DiscoveryBegun(system, seedNodes) =>
-      log.debug("+++++++++++ receive DiscoveryBegun" + m)
+      //      log.debug("+++++++++++ receive DiscoveryBegun" + m)
       discoveringClusters() = discoveringClusters() + (system -> m)
 
     case m @ DiscoveredCluster(system, seeds, status, members) =>
-      log.debug("+++++++++++ receive DiscoveredCluster" + m)
+      //      log.debug("+++++++++++ receive DiscoveredCluster" + m)
       discoveringClusters() = discoveringClusters() - system
       discoveredClusters() = discoveredClusters() + (system -> m)
 
     case m @ SelectedCluster(DiscoveredCluster(system, seeds, status, members)) =>
-      log.debug("+++++++++++ receive Some(DiscoveredCluster)" + m)
+      //      log.debug("+++++++++++ receive Some(DiscoveredCluster)" + m)
       selectedCluster() = Some(m.c)
 
     case clusterUnjoin: ClusterUnjoin =>

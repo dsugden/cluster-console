@@ -20,23 +20,23 @@ import scala.scalajs.js
 
 object GraphNode {
 
-  case class Props(x: Double, y: Double, key: Int)
+  case class Props(node: GraphNode)
 
   val component = ReactComponentB[Props]("GraphNode")
     .render { P =>
       g(
-        circle(Attrs.cls := "node", Attrs.id := P.key, r := "20", cx := P.x, cy := P.y, fill := "#aaa", stroke := "#fff", strokeWidth := "1.px5"),
-        text(x := P.x + 20, y := P.y - 20)("djhskfjhskdjf")
+        circle(Attrs.cls := "node", Attrs.id := P.node.index, r := "20", cx := P.node.x, cy := P.node.y, fill := "#aaa", stroke := "#fff", strokeWidth := "1.px5"),
+        text(x := P.node.x + 20, y := P.node.y - 20)(P.node.name)
       )
 
     }.build
 
-  def apply(node: GraphNodeForce, key: Int) = component(Props(node.x, node.y, key))
+  def apply(node: GraphNode) = component(Props(node))
 }
 
 object GraphLink {
 
-  case class Props(link: GraphLinkForce, key: Int)
+  case class Props(link: GraphLink, key: Int)
 
   val component = ReactComponentB[Props]("GraphLink")
     .render { P =>
@@ -51,24 +51,24 @@ object GraphLink {
         strokeWidth := "1")
     }.build
 
-  def apply(link: GraphLinkForce, key: Int) = component(Props(link, key))
+  def apply(link: GraphLink, key: Int) = component(Props(link, key))
 }
 
 object Graph {
 
   import clusterconsole.client.style.CustomTags._
 
-  case class Props(width: Double, height: Double, nodes: List[GraphNodeForce], links: List[GraphLinkForce])
+  case class Props(width: Double, height: Double, nodes: List[GraphNode], links: List[GraphLink])
 
-  case class State(nodes: Rx[List[GraphNodeForce]], links: Rx[List[GraphLinkForce]], force: ForceLayout)
+  case class State(nodes: Rx[List[GraphNode]], links: Rx[List[GraphLink]], force: ForceLayout)
 
-  def drawLinks(links: Rx[List[GraphLinkForce]]): ReactNode =
+  def drawLinks(links: Rx[List[GraphLink]]): ReactNode =
     g(links().zipWithIndex.map { case (eachLink, i) => GraphLink(eachLink, i) })
 
-  def drawNodes(nodes: Rx[List[GraphNodeForce]]): List[ReactNode] =
+  def drawNodes(nodes: Rx[List[GraphNode]]): List[ReactNode] =
     nodes().zipWithIndex.map {
       case (node, i) =>
-        GraphNode(node, i)
+        GraphNode(node)
     }
 
   class Backend(t: BackendScope[Props, State]) extends RxObserver(t) {
@@ -78,7 +78,7 @@ object Graph {
     }
 
     def tick() = {
-      val newNodes: Rx[List[GraphNodeForce]] = Var(t.state.force.nodes().toList)
+      val newNodes: Rx[List[GraphNode]] = Var(t.state.force.nodes().toList)
       t.modState(s => s.copy(nodes = newNodes))
     }
 
@@ -93,9 +93,10 @@ object Graph {
 
       val mouse = d3.mouse(js.Dynamic.global.document.getElementById(b.toString))
 
-      val newNodes: Rx[List[GraphNodeForce]] = Var(t.state.nodes().map(n =>
+      val newNodes: Rx[List[GraphNode]] = Var(t.state.nodes().map(n =>
         if (n.index == b) {
           js.Dynamic.literal(
+            "name" -> n.name,
             "index" -> b,
             "x" -> mouse(0),
             "y" -> mouse(1),
@@ -103,15 +104,15 @@ object Graph {
             "py" -> n.py,
             "fixed" -> n.fixed,
             "weight" -> n.weight
-          ).asInstanceOf[GraphNodeForce]
+          ).asInstanceOf[GraphNode]
 
         } else {
           n
         }
       ))
 
-      val newLinks: Rx[List[GraphLinkForce]] = Var(t.state.links().map(link =>
-        js.Dynamic.literal("source" -> newNodes()(link.source.index.toInt), "target" -> newNodes()(link.target.index.toInt)).asInstanceOf[GraphLinkForce]
+      val newLinks: Rx[List[GraphLink]] = Var(t.state.links().map(link =>
+        js.Dynamic.literal("source" -> newNodes()(link.source.index.toInt), "target" -> newNodes()(link.target.index.toInt)).asInstanceOf[GraphLink]
       ))
 
       t.modState(s => s.copy(nodes = newNodes, links = newLinks))
@@ -147,7 +148,7 @@ object Graph {
       scope.state.force.stop()
     }.configure(OnUnmount.install).build
 
-  def apply(width: Double, height: Double, nodes: List[GraphNodeForce], links: List[GraphLinkForce]) =
+  def apply(width: Double, height: Double, nodes: List[GraphNode], links: List[GraphLink]) =
     component(Props(width, height, nodes, links))
 
 }

@@ -4,7 +4,7 @@ import clusterconsole.client.modules.RxObserver
 import clusterconsole.client.services.ClusterStore
 import japgolly.scalajs.react.extra.OnUnmount
 import rx._
-import clusterconsole.client.d3.Layout.{ GraphLinkForce, GraphNodeForce }
+import clusterconsole.client.d3.Layout.{ GraphLink, GraphNode }
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.all._
 //import japgolly.scalajs.react.vdom.prefix_<^._
@@ -12,10 +12,6 @@ import scala.scalajs.js
 import clusterconsole.client.d3._
 import js.JSConverters._
 import clusterconsole.client.services.Logger._
-
-trait ClusterNode extends GraphNodeForce {
-  var name: String = js.native
-}
 
 object ClusterNodeGraphComponent {
 
@@ -38,13 +34,11 @@ object ClusterNodeGraphComponent {
       val cluster = P.store.getDiscoveredClusters().get(P.system)
       cluster.fold(span(""))(cluster => {
 
-        log.debug("*****************  " + cluster.members.toList)
-
-        val nodes: List[GraphNodeForce] =
+        val nodes: List[GraphNode] =
           cluster.members.toList.zipWithIndex.map {
             case (node, i) =>
               js.Dynamic.literal(
-                //                "name" -> node.label,
+                "name" -> node.label,
                 "index" -> i,
                 "x" -> 0,
                 "y" -> 0,
@@ -52,16 +46,24 @@ object ClusterNodeGraphComponent {
                 "py" -> 0,
                 "fixed" -> false,
                 "weight" -> 0
-              ).asInstanceOf[GraphNodeForce]
+              ).asInstanceOf[GraphNode]
           }
 
-        val links: List[GraphLinkForce] = Nil
+        val indexes = nodes.map(_.index)
+
+        val links: List[GraphLink] =
+          indexes.flatMap(f => indexes.filter(_ > f).map((f, _))).map {
+            case (a, b) =>
+              js.Dynamic.literal("source" -> nodes(a.toInt), "target" -> nodes(b.toInt)).asInstanceOf[GraphLink]
+
+          }
+
         //        List(Link(0, 1), Link(0, 2), Link(1, 2)).zipWithIndex.map {
         //          case (link, i) =>
         //            js.Dynamic.literal("source" -> nodes(link.source), "target" -> nodes(link.target)).asInstanceOf[GraphLinkForce]
         //        }
         div(
-          Graph(600, 600, nodes, links)
+          Graph(900, 900, nodes, links)
         )
 
       })

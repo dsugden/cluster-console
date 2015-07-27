@@ -497,10 +497,10 @@ package Layout {
     def gravity(): Double = js.native
     def gravity(number: Double): ForceLayout = js.native
     def gravity(accessor: js.Function2[js.Any, Double, Double]): ForceLayout = js.native
-    def links(): js.Array[GraphLinkForce] = js.native
-    def links(arLinks: js.Array[GraphLinkForce]): ForceLayout = js.native
-    def nodes(): js.Array[GraphNodeForce] = js.native
-    def nodes(arNodes: js.Array[GraphNodeForce]): ForceLayout = js.native
+    def links(): js.Array[GraphLink] = js.native
+    def links[A <: GraphLink](arLinks: js.Array[A]): ForceLayout = js.native
+    def nodes(): js.Array[GraphNode] = js.native
+    def nodes[A <: GraphNode](arNodes: js.Array[A]): ForceLayout = js.native
     def start(): ForceLayout = js.native
     def resume(): ForceLayout = js.native
     def stop(): ForceLayout = js.native

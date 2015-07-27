@@ -53,12 +53,13 @@ class ClusterAware(systemName: String, seedNodes: List[HostPort],
   override def preStart() = {
     println("@@@@@@ lazy!!!!!!    ActorSystemManager preStart")
     val addresses: immutable.Seq[Address] = seedNodes.map(e => Address("akka.tcp", systemName, e.host, e.port))
-    cluster.joinSeedNodes(addresses)
 
     cluster.subscribe(self,
       //      initialStateMode = InitialStateAsSnapshot,
       classOf[MemberUp], classOf[UnreachableMember],
       classOf[MemberRemoved], classOf[MemberExited], classOf[LeaderChanged])
+
+    cluster.joinSeedNodes(addresses)
 
   }
 

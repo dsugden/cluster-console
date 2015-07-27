@@ -50,10 +50,11 @@ To start the sample cluster:
     samplecluster-1.0.0/bin/samplecluster 127.0.0.1 2556 FrontEnd &
     
     
-    
 
-    lsof -i tcp:2771
-     
-     
-    netstat -anp tcp | grep 3000
+To stop a particular actor by port:    
+
+    lsof -i tcp:2551
     
+    
+    kill -9 `lsof -i tcp:2555`
+     
