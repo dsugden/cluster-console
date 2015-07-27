@@ -60,7 +60,7 @@ case class DiscoveredCluster(
 
 
 case class ClusterMember( address: HostPort, roles:Set[String], state:String) {
-  def label = address.label + s" roles[$roles]"
+  def label = address.label + s" roles[${roles.mkString(",").map(r => r)}] status[$state]"
 }
 
 case class HostPort(host: String, port: Int){

@@ -53,8 +53,8 @@ To start the sample cluster:
 
 To stop a particular actor by port:    
 
-    lsof -i tcp:2551
+    lsof -i tcp:2553 | grep -i LISTEN
     
     
-    kill -9 `lsof -i tcp:2555`
+    kill -9 `lsof -i tcp:2553 | grep -i LISTEN`
      

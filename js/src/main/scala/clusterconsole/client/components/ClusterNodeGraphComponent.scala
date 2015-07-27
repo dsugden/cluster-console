@@ -40,8 +40,8 @@ object ClusterNodeGraphComponent {
               js.Dynamic.literal(
                 "name" -> node.label,
                 "index" -> i,
-                "x" -> 0,
-                "y" -> 0,
+                "x" -> 450,
+                "y" -> 450,
                 "px" -> 0,
                 "py" -> 0,
                 "fixed" -> false,
@@ -54,6 +54,9 @@ object ClusterNodeGraphComponent {
         val links: List[GraphLink] =
           indexes.flatMap(f => indexes.filter(_ > f).map((f, _))).map {
             case (a, b) =>
+
+              val nodeA = nodes(a.toInt)
+
               js.Dynamic.literal("source" -> nodes(a.toInt), "target" -> nodes(b.toInt)).asInstanceOf[GraphLink]
 
           }

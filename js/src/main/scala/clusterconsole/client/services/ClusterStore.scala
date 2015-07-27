@@ -49,6 +49,14 @@ trait ClusterStore extends Actor {
       //      log.debug("+++++++++++ receive clusterMemberUp" + m + " system:" + system)
       ClusterStoreActions.getDiscoveredClusters()
 
+    case m @ ClusterMemberUnreachable(system, clusterMember) =>
+      //      log.debug("+++++++++++ receive clusterMemberUp" + m + " system:" + system)
+      ClusterStoreActions.getDiscoveredClusters()
+
+    case m @ ClusterMemberRemoved(system, clusterMember) =>
+      //      log.debug("+++++++++++ receive clusterMemberUp" + m + " system:" + system)
+      ClusterStoreActions.getDiscoveredClusters()
+
     case m @ DiscoveryBegun(system, seedNodes) =>
       //      log.debug("+++++++++++ receive DiscoveryBegun" + m)
       discoveringClusters() = discoveringClusters() + (system -> m)
