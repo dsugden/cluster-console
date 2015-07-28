@@ -96,6 +96,11 @@ object ClusterFormComponent {
         hp.host.length > 0 && hp.port != 0 && hp.port.toString.length > 0)
     }
 
+    def submitForm = {
+      t.props.editHandler
+      updateClusterForm(ClusterForm.initial)
+    }
+
   }
 
   def component = ReactComponentB[EditClusterProps]("ClusterForm")

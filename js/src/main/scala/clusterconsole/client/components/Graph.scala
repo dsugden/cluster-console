@@ -1,5 +1,6 @@
 package clusterconsole.client.components
 
+import clusterconsole.client.services.ClusterStoreActions
 import japgolly.scalajs.react.extra.OnUnmount
 import japgolly.scalajs.react.vdom.{ Attrs, SvgAttrs }
 import org.scalajs.dom.raw.SVGCircleElement
@@ -58,7 +59,7 @@ object Graph {
 
   import clusterconsole.client.style.CustomTags._
 
-  case class Props(width: Double, height: Double, nodes: List[GraphNode], links: List[GraphLink])
+  case class Props(system: String, width: Double, height: Double, nodes: List[GraphNode], links: List[GraphLink], fixedMap: Boolean)
 
   case class State(nodes: Rx[List[GraphNode]], links: Rx[List[GraphLink]], force: ForceLayout)
 
@@ -89,6 +90,39 @@ object Graph {
       }
     }
 
+    def resume() = {
+      t.modState { s =>
+        val firstState = s.copy(force = s.force.nodes(t.props.nodes.toJsArray).resume())
+        firstState.copy(force = s.force.on("tick", () => tick))
+      }
+
+    }
+
+    def dragEnd(a: js.Any, b: Double): js.Any = {
+      val mouse = d3.mouse(js.Dynamic.global.document.getElementById(b.toString))
+
+      val newNodes: List[GraphNode] = t.state.nodes().map(n =>
+        if (n.index == b) {
+          js.Dynamic.literal(
+            "name" -> n.name,
+            "index" -> b,
+            "x" -> mouse(0),
+            "y" -> mouse(1),
+            "px" -> n.px,
+            "py" -> n.py,
+            "fixed" -> true,
+            "weight" -> n.weight
+          ).asInstanceOf[GraphNode]
+
+        } else {
+          n
+        }
+      )
+
+      ClusterStoreActions.updateClusterNode(t.props.system, newNodes)
+
+    }
+
     def dragMove(a: js.Any, b: Double): js.Any = {
 
       val mouse = d3.mouse(js.Dynamic.global.document.getElementById(b.toString))
@@ -102,7 +136,7 @@ object Graph {
             "y" -> mouse(1),
             "px" -> n.px,
             "py" -> n.py,
-            "fixed" -> n.fixed,
+            "fixed" -> true,
             "weight" -> n.weight
           ).asInstanceOf[GraphNode]
 
@@ -116,6 +150,7 @@ object Graph {
       ))
 
       t.modState(s => s.copy(nodes = newNodes, links = newLinks))
+
     }
 
   }
@@ -124,32 +159,38 @@ object Graph {
     .initialStateP { P =>
       val force = d3.layout.force()
         .size(List[Double](P.width, P.height).toJsArray)
-        .charge(-600)
+        .charge(-1000)
         .linkDistance(80)
+        .alpha(0)
 
       State(Var(P.nodes), Var(P.links), force)
 
     }.backend(new Backend(_))
     .render((P, S, B) => {
+
       svgtag(SvgAttrs.width := P.width, SvgAttrs.height := P.height)(
         drawLinks(S.links),
         drawNodes(S.nodes)
       )
     }).componentWillMount { scope =>
-      scope.backend.start()
+      if (!scope.props.fixedMap)
+        scope.backend.start()
     }.componentDidMount { scope =>
       scope.backend.mounted()
 
       val drag1 = d3.behavior.drag()
       drag1.origin(() => js.Array(0, 0)).on("drag", (a: js.Any, b: Double) => scope.backend.dragMove(a, b))
+        .on("dragend", (a: js.Any, b: Double) => scope.backend.dragEnd(a, b))
       d3.select("svg").selectAll(".node").call(drag1)
 
     }.componentWillUnmount { scope =>
       scope.state.force.stop()
     }.configure(OnUnmount.install).build
 
-  def apply(width: Double, height: Double, nodes: List[GraphNode], links: List[GraphLink]) =
-    component(Props(width, height, nodes, links))
+  def apply(system: String, width: Double, height: Double, nodes: List[GraphNode], links: List[GraphLink], fixedMap: Boolean) = {
+
+    component(Props(system, width, height, nodes, links, fixedMap))
+  }
 
 }
 

@@ -1,6 +1,7 @@
 package clusterconsole.client.services
 
 import autowire._
+import clusterconsole.client.d3.Layout.GraphNode
 import clusterconsole.client.services.Logger._
 import clusterconsole.client.ukko.Actor
 import clusterconsole.http._
@@ -14,10 +15,14 @@ case class UpdateClusterForm(clusterForm: ClusterForm)
 
 case class SelectedCluster(c: DiscoveredCluster)
 
+case class UpdateClusterNodes(system: String, node: List[GraphNode])
+
 trait ClusterStore extends Actor {
 
   // refine a reactive variable
   private val discoveredClusters = Var(Map.empty[String, DiscoveredCluster])
+
+  private val discoveredClusterNodes = Var(Map.empty[String, List[GraphNode]])
 
   private val selectedCluster = Var(Option.empty[DiscoveredCluster])
 
@@ -28,6 +33,8 @@ trait ClusterStore extends Actor {
   private val clusterForm = Var(ClusterForm.initial)
 
   def getDiscoveredClusters: Rx[Map[String, DiscoveredCluster]] = discoveredClusters
+
+  def getDiscoveredClusterNodes: Rx[Map[String, List[GraphNode]]] = discoveredClusterNodes
 
   def getDiscoveringClusters: Rx[Map[String, DiscoveryBegun]] = discoveringClusters
 
@@ -69,6 +76,9 @@ trait ClusterStore extends Actor {
     case m @ SelectedCluster(DiscoveredCluster(system, seeds, status, members)) =>
       //      log.debug("+++++++++++ receive Some(DiscoveredCluster)" + m)
       selectedCluster() = Some(m.c)
+
+    case m @ UpdateClusterNodes(system, nodes) =>
+      discoveredClusterNodes() = discoveredClusterNodes() + (system -> nodes)
 
     case clusterUnjoin: ClusterUnjoin =>
       //      log.debug("+++++++++++ receive ClusterUnjoin" + clusterUnjoin)
@@ -117,6 +127,10 @@ object ClusterStoreActions {
 
   def updateClusterForm(clusterForm: ClusterForm) = {
     MainDispatcher.dispatch(UpdateClusterForm(clusterForm))
+  }
+
+  def updateClusterNode(system: String, nodes: List[GraphNode]) = {
+    MainDispatcher.dispatch(UpdateClusterNodes(system, nodes))
   }
 
   //AjaxClient[Api].discover("SampleClusterSystem", List(HostPort("127.0.0.1",2551))).call().foreach( s =>

@@ -2,39 +2,54 @@ package clusterconsole.client.components
 
 import clusterconsole.client.modules.RxObserver
 import clusterconsole.client.services.ClusterStore
+import clusterconsole.http.DiscoveredCluster
 import japgolly.scalajs.react.extra.OnUnmount
 import rx._
 import clusterconsole.client.d3.Layout.{ GraphLink, GraphNode }
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.all._
+
 //import japgolly.scalajs.react.vdom.prefix_<^._
+
 import scala.scalajs.js
 import clusterconsole.client.d3._
 import js.JSConverters._
 import clusterconsole.client.services.Logger._
 
+sealed trait LinkMode
+
+case object Cluster extends LinkMode
+
+case object Roles extends LinkMode
+
 object ClusterNodeGraphComponent {
 
   case class Props(store: ClusterStore, system: String)
 
-  case class State()
+  case class State(system: Option[DiscoveredCluster], linkMode: LinkMode)
+
   class Backend(t: BackendScope[Props, State]) extends RxObserver(t) {
     def mounted(): Unit = {
       observe(t.props.store.getDiscoveredClusters)
+      observe(t.props.store.getDiscoveredClusterNodes)
     }
 
   }
 
   def component = ReactComponentB[Props]("ClusterNodeGraph")
     .initialStateP(P => {
-      State()
+      State(P.store.getSelectedCluster(), Cluster)
     }).backend(new Backend(_))
     .render((P, S, B) => {
 
-      val cluster = P.store.getDiscoveredClusters().get(P.system)
-      cluster.fold(span(""))(cluster => {
+      log.debug("********  render ClusterNodeGraphComponent")
+      log.debug("********  render P.store.getDiscoveredClusterNodes() " + P.store.getDiscoveredClusterNodes())
 
-        val nodes: List[GraphNode] =
+      S.system.fold(span(""))(cluster => {
+
+        val fixedMap = P.store.getDiscoveredClusterNodes().get(cluster.system)
+
+        val nodes: List[GraphNode] = fixedMap.getOrElse(
           cluster.members.toList.zipWithIndex.map {
             case (node, i) =>
               js.Dynamic.literal(
@@ -47,7 +62,7 @@ object ClusterNodeGraphComponent {
                 "fixed" -> false,
                 "weight" -> 0
               ).asInstanceOf[GraphNode]
-          }
+          })
 
         val indexes = nodes.map(_.index)
 
@@ -60,13 +75,8 @@ object ClusterNodeGraphComponent {
               js.Dynamic.literal("source" -> nodes(a.toInt), "target" -> nodes(b.toInt)).asInstanceOf[GraphLink]
 
           }
-
-        //        List(Link(0, 1), Link(0, 2), Link(1, 2)).zipWithIndex.map {
-        //          case (link, i) =>
-        //            js.Dynamic.literal("source" -> nodes(link.source), "target" -> nodes(link.target)).asInstanceOf[GraphLinkForce]
-        //        }
         div(
-          Graph(900, 900, nodes, links)
+          Graph(cluster.system, 900, 900, nodes, links, fixedMap.isDefined)
         )
 
       })
