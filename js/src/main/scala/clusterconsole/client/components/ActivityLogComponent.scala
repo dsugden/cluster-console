@@ -28,20 +28,14 @@ object ActivityLogComponent {
     .initialState(State())
     .backend(new Backend(_))
     .render((P, S, B) => {
-      div(cls := "row")(
+
+      div(
+        h3("Discovered Cluster Events"),
         div(cls := "col-md-12")(
           P.activities().map(ac => div(ClusterEventUtil.label(ac)))
-        //ClusterFormComponent(ClusterForm.initial,B.editCluster),
-        /*div{
-          P.clusters().map(e =>
-            div(key:=e._1)(
-              span(e._1),span(e._2.toString)
-            )
-          )
-
-        }*/
         )
       )
+
     })
     .componentDidMount(_.backend.mounted())
     .configure(OnUnmount.install)

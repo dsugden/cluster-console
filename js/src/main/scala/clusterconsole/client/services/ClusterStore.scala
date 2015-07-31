@@ -54,18 +54,18 @@ trait ClusterStore extends Actor {
   def receive: ClusterStore.Receive = {
     case m @ ClusterMemberUp(system, clusterMember) =>
       //      log.debug("+++++++++++ receive clusterMemberUp" + m + " system:" + system)
-      ClusterStoreActions.getDiscoveredClusters()
+      ClusterStoreActions.selectCluster(system)
 
     case m @ ClusterMemberUnreachable(system, clusterMember) =>
       //      log.debug("+++++++++++ receive clusterMemberUp" + m + " system:" + system)
-      ClusterStoreActions.getDiscoveredClusters()
+      ClusterStoreActions.selectCluster(system)
 
     case m @ ClusterMemberRemoved(system, clusterMember) =>
       //      log.debug("+++++++++++ receive clusterMemberUp" + m + " system:" + system)
-      ClusterStoreActions.getDiscoveredClusters()
+      ClusterStoreActions.selectCluster(system)
 
     case m @ DiscoveryBegun(system, seedNodes) =>
-      //      log.debug("+++++++++++ receive DiscoveryBegun" + m)
+      log.debug("+++++++++++ receive DiscoveryBegun" + m)
       discoveringClusters() = discoveringClusters() + (system -> m)
 
     case m @ DiscoveredCluster(system, seeds, status, members) =>
@@ -74,7 +74,9 @@ trait ClusterStore extends Actor {
       discoveredClusters() = discoveredClusters() + (system -> m)
 
     case m @ SelectedCluster(DiscoveredCluster(system, seeds, status, members)) =>
-      //      log.debug("+++++++++++ receive Some(DiscoveredCluster)" + m)
+      log.debug("+++++++++++ SelectedCluster" + m)
+      discoveringClusters() = discoveringClusters() - system
+      discoveredClusters() = discoveredClusters() + (system -> m.c)
       selectedCluster() = Some(m.c)
 
     case m @ UpdateClusterNodes(system, nodes) =>
@@ -106,19 +108,19 @@ object ClusterStoreActions {
 
   def getDiscoveringClusters() = {
     AjaxClient[Api].getDiscovering().call().foreach { discoveringSeq =>
-      log.debug("********************  getDiscoveringClusters " + discoveringSeq)
+      log.debug("********************  ClusterStoreActions.getDiscoveringClusters " + discoveringSeq)
       discoveringSeq.foreach(MainDispatcher.dispatch)
     }
   }
 
   def getDiscoveredClusters() = {
     AjaxClient[Api].getDiscovered().call().foreach { discoveredSet =>
-      log.debug("********************  getDiscoveringClusters " + discoveredSet)
+      log.debug("********************  ClusterStoreActions.getDiscoveredClusters " + discoveredSet)
       discoveredSet.foreach(MainDispatcher.dispatch)
     }
   }
 
-  def getCluster(system: String) = {
+  def selectCluster(system: String) = {
     AjaxClient[Api].getCluster(system).call().foreach { discovered =>
       log.debug("********************  getCluster " + discovered)
       discovered.foreach(c => MainDispatcher.dispatch(SelectedCluster(c)))

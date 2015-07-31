@@ -59,7 +59,14 @@ case class DiscoveredCluster(
  */
 
 
-case class ClusterMember( address: HostPort, roles:Set[String], state:String) {
+sealed trait NodeState
+case object Up extends NodeState
+case object Unreachable extends NodeState
+case object Removed extends NodeState
+case object Exited extends NodeState
+
+
+case class ClusterMember( address: HostPort, roles:Set[String], state:NodeState) {
   def label = address.label + s" roles[${roles.mkString(",").map(r => r)}] status[$state]"
 }
 

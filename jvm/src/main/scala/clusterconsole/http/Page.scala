@@ -10,24 +10,7 @@ object Page {
     head(
       tags2.title(id := "title")(title),
       meta(name := "viewport", content := "width=device-width, initial-scale=1.0"),
-      link(href := "stylesheets/main.min.css", rel := "stylesheet", tpe := "text/css"),
-      tags2.style(raw("""
-          |.link {
-          |  stroke: #000;
-          |  stroke-width: 1.5px;
-          |}
-          |
-          |.node {
-          |  cursor: move;
-          |  fill: #ccc;
-          |  stroke: #000;
-          |  stroke-width: 1.5px;
-          |}
-          |
-          |.node.fixed {
-          |  fill: #f00;
-          |}
-        """.stripMargin))
+      link(href := "stylesheets/main.min.css", rel := "stylesheet", tpe := "text/css")
     )
 
   def main(title: String, content: Frag*) =

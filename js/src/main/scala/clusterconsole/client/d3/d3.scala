@@ -193,6 +193,7 @@ package D3 {
     var empty: js.Function0[Boolean] = js.native
     def data(values: js.Function2[js.Any, Double, js.Array[js.Any]], key: js.Function2[js.Any, Double, Any] = js.native): UpdateSelection = js.native
     def data(): js.Array[js.Any] = js.native
+    def data[A](values: js.Array[A]): UpdateSelection = js.native
     def datum(values: js.Function2[js.Any, Double, Any]): UpdateSelection = js.native
     def datum(): js.Dynamic = js.native
     def filter(filter: js.Function2[js.Any, Double, Boolean], thisArg: js.Any = js.native): UpdateSelection = js.native
@@ -490,6 +491,7 @@ package Layout {
     def alpha(accessor: js.Function2[js.Any, Double, Double]): ForceLayout = js.native
     def charge(): Double = js.native
     def charge(number: Double): ForceLayout = js.native
+    def chargeDistance(number: Double): ForceLayout = js.native
     def charge(accessor: js.Function2[js.Any, Double, Double]): ForceLayout = js.native
     def theta(): Double = js.native
     def theta(number: Double): ForceLayout = js.native
@@ -499,7 +501,7 @@ package Layout {
     def gravity(accessor: js.Function2[js.Any, Double, Double]): ForceLayout = js.native
     def links(): js.Array[GraphLink] = js.native
     def links[A <: GraphLink](arLinks: js.Array[A]): ForceLayout = js.native
-    def nodes(): js.Array[GraphNode] = js.native
+    def nodes[A <: GraphNode](): js.Array[A] = js.native
     def nodes[A <: GraphNode](arNodes: js.Array[A]): ForceLayout = js.native
     def start(): ForceLayout = js.native
     def resume(): ForceLayout = js.native

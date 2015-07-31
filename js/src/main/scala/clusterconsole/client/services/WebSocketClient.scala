@@ -14,6 +14,8 @@ object WebSocketClient {
 
   websocket.onopen = { (event: Event) =>
     //    log.debug("***************  websocket.onopen ")
+    ClusterStoreActions.getDiscoveringClusters()
+    ClusterStoreActions.getDiscoveredClusters()
     event
   }
   websocket.onerror = { (event: ErrorEvent) =>

@@ -1,5 +1,6 @@
 package clusterconsole.client.components
 
+import clusterconsole.client.components.Graph
 import clusterconsole.client.modules.RxObserver
 import clusterconsole.client.services.ClusterStore
 import clusterconsole.http.DiscoveredCluster
@@ -24,14 +25,30 @@ case object Roles extends LinkMode
 
 object ClusterNodeGraphComponent {
 
-  case class Props(store: ClusterStore, system: String)
+  case class Props(store: ClusterStore)
 
-  case class State(system: Option[DiscoveredCluster], linkMode: LinkMode)
+  case class State(cluster: Option[DiscoveredCluster], linkMode: LinkMode)
 
   class Backend(t: BackendScope[Props, State]) extends RxObserver(t) {
     def mounted(): Unit = {
-      observe(t.props.store.getDiscoveredClusters)
-      observe(t.props.store.getDiscoveredClusterNodes)
+      //      observe(t.props.store.getSelectedCluster)
+
+      react(t.props.store.getSelectedCluster, updateCluster)
+
+    }
+
+    def updateCluster(maybeCluster: Option[DiscoveredCluster]) = {
+
+      val current = t.state.cluster
+
+      current match {
+        case None => maybeCluster.fold[Unit]({})(c => t.modState(_.copy(cluster = maybeCluster)))
+        case Some(c) => maybeCluster.fold[Unit](t.modState(_.copy(cluster = None)))(newC =>
+          if (c.system != newC.system) {
+            t.modState(_.copy(cluster = maybeCluster))
+          })
+      }
+
     }
 
   }
@@ -41,50 +58,15 @@ object ClusterNodeGraphComponent {
       State(P.store.getSelectedCluster(), Cluster)
     }).backend(new Backend(_))
     .render((P, S, B) => {
-
-      log.debug("********  render ClusterNodeGraphComponent")
-      log.debug("********  render P.store.getDiscoveredClusterNodes() " + P.store.getDiscoveredClusterNodes())
-
-      S.system.fold(span(""))(cluster => {
-
-        val fixedMap = P.store.getDiscoveredClusterNodes().get(cluster.system)
-
-        val nodes: List[GraphNode] = fixedMap.getOrElse(
-          cluster.members.toList.zipWithIndex.map {
-            case (node, i) =>
-              js.Dynamic.literal(
-                "name" -> node.label,
-                "index" -> i,
-                "x" -> 450,
-                "y" -> 450,
-                "px" -> 0,
-                "py" -> 0,
-                "fixed" -> false,
-                "weight" -> 0
-              ).asInstanceOf[GraphNode]
-          })
-
-        val indexes = nodes.map(_.index)
-
-        val links: List[GraphLink] =
-          indexes.flatMap(f => indexes.filter(_ > f).map((f, _))).map {
-            case (a, b) =>
-
-              val nodeA = nodes(a.toInt)
-
-              js.Dynamic.literal("source" -> nodes(a.toInt), "target" -> nodes(b.toInt)).asInstanceOf[GraphLink]
-
-          }
+      S.cluster.fold(span(""))(cluster => {
         div(
-          Graph(cluster.system, 900, 900, nodes, links, fixedMap.isDefined)
+          Graph(cluster.system, 900, 900, P.store, false)
         )
-
       })
-
     }).componentDidMount(_.backend.mounted())
     .configure(OnUnmount.install)
     .build
 
-  def apply(store: ClusterStore, system: String) = component(Props(store, system))
+  def apply(store: ClusterStore) = component(Props(store))
 
 }

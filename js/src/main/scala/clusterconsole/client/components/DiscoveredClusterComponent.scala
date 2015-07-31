@@ -7,7 +7,7 @@ import clusterconsole.client.d3._
 import clusterconsole.client.modules.RxObserver
 import clusterconsole.client.services.{ ClusterStoreActions, ClusterStore }
 import clusterconsole.client.style.GlobalStyles
-import clusterconsole.http.{ ClusterForm, HostPort, DiscoveredCluster }
+import clusterconsole.http.{ DiscoveryBegun, ClusterForm, HostPort, DiscoveredCluster }
 import japgolly.scalajs.react.extra.OnUnmount
 import japgolly.scalajs.react.vdom.all._
 import japgolly.scalajs.react._
@@ -18,42 +18,50 @@ import scala.scalajs.js
 
 object DiscoveredClusterComponent {
 
-  case class Props(cluster: DiscoveredCluster, selected: Boolean, select: String => Unit)
+  case class Props(discovered: Rx[Map[String, DiscoveredCluster]], selected: Rx[Option[DiscoveredCluster]])
 
-  case class State(selected: Boolean)
+  case class State()
 
   class Backend(t: BackendScope[Props, State]) extends RxObserver(t) {
 
     def mounted(): Unit = {
-      //      observe(t.state.nodes)
+      observe(t.props.discovered)
+      observe(t.props.selected)
+
     }
 
-    def selectCluster(e: ReactEvent) = {
-      t.modState(_.copy(selected = true))
-      t.props.select(t.props.cluster.system)
+    def selectCluster(e: ReactMouseEvent) = {
+      val system = e.currentTarget.firstChild.nodeValue
+      log.debug("%%%%%%%%%%%%%%% selectCluster" + system)
+      ClusterStoreActions.selectCluster(system)
       e.preventDefault()
     }
+
   }
 
   val component = ReactComponentB[Props]("DiscoveredClusterComponent")
     .initialStateP(P => {
-      State(P.selected)
+      State()
     }) // initial state
     .backend(new Backend(_))
     .render((P, S, B) => {
 
-      a(href := "", onClick ==> B.selectCluster)(
-        span(
-          if (S.selected) {
-            color := "red"
-          } else {
-            color := "blue"
-          })(P.cluster.system)
+      div(
+        h3("Discovered Clusters"),
+        div(
+          P.discovered().values.map(e =>
+            a(href := "", key := e.system)(
+              span(onClick ==> B.selectCluster)(
+                color := P.selected().map(dc =>
+                  if (dc.system == e.system) { "red" } else { "blue" }))(e.system)
+            )
+          ))
       )
-
     }
-    ).build
+    ).componentDidMount(_.backend.mounted())
+    .configure(OnUnmount.install)
+    .build
 
-  def apply(cluster: DiscoveredCluster, selected: Boolean, select: String => Unit) = component(Props(cluster, selected, select))
+  def apply(discovered: Rx[Map[String, DiscoveredCluster]], selected: Rx[Option[DiscoveredCluster]]) = component(Props(discovered, selected))
 
 }

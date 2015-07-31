@@ -106,13 +106,13 @@ class ClusterDiscoveryService(context: ActorContext, socketPublisherRouter: Acto
 
   val discovering: MutableMap[ActorRef, DiscoveryBegun] = MutableMap.empty
 
-  val trackDiscovered: ActorRef = context.system.actorOf(TrackDiscovered.props)
+  val trackDiscovered: ActorRef = context.system.actorOf(TrackDiscovered.props(socketPublisherRouter))
 
   def discover(systemName: String, seedNodes: List[HostPort]): Option[DiscoveryBegun] = {
 
     val discovered = getDiscoveredFromTracked
     if (!discovered.exists(_.system == systemName)) {
-      val newSystemActor = context.system.actorOf(ClusterAware.props(systemName, seedNodes, socketPublisherRouter, trackDiscovered))
+      val newSystemActor = context.system.actorOf(ClusterAware.props(systemName, seedNodes, trackDiscovered))
       val value = DiscoveryBegun(systemName, seedNodes)
       discovering += newSystemActor -> value
       context.watch(newSystemActor)

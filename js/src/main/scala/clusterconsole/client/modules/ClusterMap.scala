@@ -19,12 +19,11 @@ object ClusterMap {
 
   class Backend(t: BackendScope[Props, State]) extends RxObserver(t) {
     def mounted(): Unit = {
-      observe(t.props.store.getDiscoveredClusters)
-      observe(t.props.store.getDiscoveringClusters)
-      observe(t.props.store.getSelectedCluster)
+      //      observe(t.props.store.getDiscoveredClusters)
+      //      observe(t.props.store.getDiscoveringClusters)
+      //      observe(t.props.store.getSelectedCluster)
       //      observe(t.state.selectedItem)
 
-      ClusterStoreActions.getDiscoveringClusters()
       ClusterStoreActions.getDiscoveredClusters()
 
     }
@@ -35,7 +34,7 @@ object ClusterMap {
     }
 
     def selectCluster(name: String) = {
-      ClusterStoreActions.getCluster(name)
+      ClusterStoreActions.selectCluster(name)
     }
   }
 
@@ -50,30 +49,13 @@ object ClusterMap {
       div(cls := "row")(
         div(cls := "col-md-4")(
           ClusterFormComponent(P.store, B.editCluster),
-          div(
-            h3("Discovering Clusters"),
-            div(
-              P.store.getDiscoveringClusters().values.map(e =>
-                DiscoveringClusterComponent(e)
-              ))
-          ),
-          div(
-            h3("Discovered Clusters"),
-            div(
-              P.store.getDiscoveredClusters().values.map(e =>
-                DiscoveredClusterComponent(e, P.store.getSelectedCluster().contains(e.system), B.selectCluster)
-              ))
-          ),
-          div(
-            h3("Discovered Cluster Events"),
-            ActivityLogComponent(ActivityLogService)
-          )
+          DiscoveringClusterComponent(P.store.getDiscoveringClusters),
+          DiscoveredClusterComponent(P.store.getDiscoveredClusters, P.store.getSelectedCluster),
+          ActivityLogComponent(ActivityLogService)
         ),
         div(cls := "col-md-8")(
           h3("Cluster map"),
-          P.store.getSelectedCluster().fold[TagMod](EmptyTag)(item =>
-            ClusterNodeGraphComponent(P.store, item.system)
-          )
+          ClusterNodeGraphComponent(P.store)
         )
       )
     })
