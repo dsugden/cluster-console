@@ -45,18 +45,27 @@ object DiscoveredClusterComponent {
     }) // initial state
     .backend(new Backend(_))
     .render((P, S, B) => {
-
-      div(
-        h3("Discovered Clusters"),
-        div(
-          P.discovered().values.map(e =>
-            a(href := "", key := e.system)(
-              span(onClick ==> B.selectCluster)(
-                color := P.selected().map(dc =>
-                  if (dc.system == e.system) { "red" } else { "blue" }))(e.system)
-            )
-          ))
-      )
+      if (P.discovered().isEmpty) {
+        span("")
+      } else {
+        div(cls := "row")(
+          div(cls := "col-md-12")(
+            div(cls := "row", backgroundColor := "#02631B")(div(cls := "col-md-12")(h4("Discovered Clusters"))),
+            div(cls := "row", backgroundColor := "#666")(div(cls := "col-md-12")(
+              P.discovered().values.map(e =>
+                a(href := "", key := e.system)(
+                  span(onClick ==> B.selectCluster)(
+                    color := P.selected().map(dc =>
+                      if (dc.system == e.system) {
+                        "red"
+                      } else {
+                        "blue"
+                      }))(e.system)
+                )
+              )))
+          )
+        )
+      }
     }
     ).componentDidMount(_.backend.mounted())
     .configure(OnUnmount.install)

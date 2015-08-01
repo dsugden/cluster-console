@@ -298,9 +298,9 @@ object Graph {
 
       val force = d3.layout.force()
         .size(List[Double](P.width, P.height).toJsArray)
-        .charge(-1500)
-        .chargeDistance(1000)
-        .linkDistance(500)
+        .charge(-3000)
+      //        .chargeDistance(1000)
+      //        .linkDistance(500)
       //        .friction(0.9)
 
       val (nodes, links) = P.store.getSelectedCluster().map(cluster => {

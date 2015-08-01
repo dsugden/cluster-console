@@ -16,7 +16,7 @@ import scalacss.ScalaCssReact._
 
 object ClusterMap {
 
-  @inline private def bss = GlobalStyles
+  @inline private def globalStyles = GlobalStyles
 
   case class Props(store: ClusterStore, router: RouterCtl[Loc])
 
@@ -49,10 +49,10 @@ object ClusterMap {
     .render((P, S, B) => {
 
       val toolBar: ReactElement =
-        div(cls := "row")(
+        div(cls := "row", globalStyles.mainHeaders)(
           div(cls := "col-md-8")(h3("Clusters")),
-          div(cls := "col-md-4")(button(cls := "pull-right btn-default",
-            tpe := "button", onClick --> B.showClusterForm)(Icon.plus, " Discover")))
+          div(cls := "col-md-4")(button(cls := "pull-right btn-lg", marginTop := "9px",
+            tpe := "button", onClick --> B.showClusterForm)(Icon.plus)))
 
       val modal: Seq[ReactElement] = if (S.showClusterForm) Seq(ClusterFormComponent(P.store, B.editCluster)) else Seq.empty[ReactElement]
 
@@ -62,10 +62,16 @@ object ClusterMap {
       ) ++ modal)
 
       div(cls := "row")(
-        div(cls := "col-md-3", bss.leftNav, height := "100%")(items),
+        div(cls := "col-md-3", globalStyles.leftNav, height := "100%")(items),
         div(cls := "col-md-9")(
-          h3("Cluster map"),
-          ClusterNodeGraphComponent(P.store)
+          div(cls := "row")(
+            div(cls := "col-md-12", globalStyles.mainHeaders)(h3("Cluster map")),
+            div(cls := "row")(
+              div(cls := "col-md-12")(
+                ClusterNodeGraphComponent(P.store)
+              )
+            )
+          )
         )
       )
     })

@@ -23,6 +23,11 @@ object GlobalStyles extends StyleSheet.Inline {
     backgroundColor("#39484E")
   )
 
+  val mainHeaders = style("mainHeaders")(
+    backgroundColor("#2C3138"),
+    borderBottom(1 px, solid, white)
+  )
+
   val regText = style("regText")(
     color(textColor)
   )

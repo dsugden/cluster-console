@@ -22,7 +22,6 @@ object DiscoveringClusterComponent {
 
     def mounted(): Unit = {
       observe(t.props.discovering)
-      //      ClusterStoreActions.getDiscoveringClusters()
     }
 
   }
@@ -33,16 +32,21 @@ object DiscoveringClusterComponent {
     }) // initial state
     .backend(new Backend(_))
     .render((P, S, B) => {
-      div(
-        h3("Discovering Clusters"),
+      if (P.discovering().isEmpty) {
+        span("")
+      } else {
         div(
-          P.discovering().values.map(e =>
-            div(key := e.system, bss.regText)(
-              span(e.system) + " " + span(e.seedNodes.map(hp => hp.host + ":" + hp.port))
+          h3("Discovering Clusters"),
+          div(
+            P.discovering().values.map(e =>
+              div(key := e.system, bss.regText)(
+                span(e.system) + " " + span(e.seedNodes.map(hp => hp.host + ":" + hp.port))
+              )
             )
           )
         )
-      )
+      }
+
     }
     ).componentDidMount(_.backend.mounted())
     .configure(OnUnmount.install)
