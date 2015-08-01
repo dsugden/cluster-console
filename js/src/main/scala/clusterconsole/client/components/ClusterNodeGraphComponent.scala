@@ -60,7 +60,7 @@ object ClusterNodeGraphComponent {
     .render((P, S, B) => {
       S.cluster.fold(span(""))(cluster => {
         div(
-          Graph(cluster.system, 900, 900, P.store, false)
+          Graph(cluster.system, 1400, 900, P.store, false)
         )
       })
     }).componentDidMount(_.backend.mounted())

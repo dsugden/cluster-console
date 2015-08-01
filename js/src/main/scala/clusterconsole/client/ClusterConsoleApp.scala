@@ -39,7 +39,7 @@ object ClusterConsoleApp extends js.JSApp {
     div(
       // here we use plain Bootstrap class names as these are specific to the top level layout defined here
       nav(className := "navbar navbar-inverse navbar-fixed-top")(
-        div(className := "container")(
+        div(className := "container-fluid")(
           div(className := "navbar-header")(span(className := "navbar-brand")("Cluster Console")),
           div(className := "collapse navbar-collapse")(
             MainMenu(MainMenu.Props(c, r.page))
@@ -47,7 +47,7 @@ object ClusterConsoleApp extends js.JSApp {
         )
       ),
       // currently active module is shown in this container
-      div(className := "container")(r.render())
+      div(className := "container-fluid")(r.render())
     )
   }
 

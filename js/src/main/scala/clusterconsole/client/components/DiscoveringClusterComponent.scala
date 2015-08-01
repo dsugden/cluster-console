@@ -2,13 +2,17 @@ package clusterconsole.client.components
 
 import clusterconsole.client.modules.RxObserver
 import clusterconsole.client.services.ClusterStoreActions
+import clusterconsole.client.style.GlobalStyles
 import clusterconsole.http.{ DiscoveryBegun, DiscoveredCluster }
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.extra.OnUnmount
 import japgolly.scalajs.react.vdom.all._
 import rx._
+import scalacss.ScalaCssReact._
 
 object DiscoveringClusterComponent {
+
+  @inline private def bss = GlobalStyles
 
   case class Props(discovering: Rx[Map[String, DiscoveryBegun]])
 
@@ -33,7 +37,7 @@ object DiscoveringClusterComponent {
         h3("Discovering Clusters"),
         div(
           P.discovering().values.map(e =>
-            div(key := e.system)(
+            div(key := e.system, bss.regText)(
               span(e.system) + " " + span(e.seedNodes.map(hp => hp.host + ":" + hp.port))
             )
           )

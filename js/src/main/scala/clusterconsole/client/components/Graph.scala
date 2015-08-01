@@ -42,7 +42,7 @@ object GraphNode {
   val component = ReactComponentB[Props]("GraphNode")
     .render { P =>
       g(
-        circle(Attrs.cls := "node", Attrs.id := P.node.index, r := "20", cx := P.node.x, cy := P.node.y,
+        circle(Attrs.cls := "node", Attrs.id := P.node.index, r := "40", cx := P.node.x, cy := P.node.y,
           fill := {
 
             // TODO match on enum
@@ -54,7 +54,7 @@ object GraphNode {
             }
 
           }, stroke := "#fff", strokeWidth := "1.px5"),
-        text(x := P.node.x - 30, y := P.node.y - 65, fill := "blue")(P.node.host),
+        text(x := P.node.x - 30, y := P.node.y - 65, fill := "white")(P.node.host),
         text(x := P.node.x - 30, y := P.node.y - 45, fill := "green")(P.node.roles),
         text(x := P.node.x - 30, y := P.node.y - 25, fill := "green")(P.node.status)
       )
@@ -84,7 +84,7 @@ object GraphLink {
         x2 := P.link.target.x,
         y2 := P.link.target.y,
         stroke := "#999",
-        strokeOpacity := "0.6",
+        strokeOpacity := "1",
         strokeWidth := "1")
     }.build
 
@@ -298,7 +298,7 @@ object Graph {
 
       val force = d3.layout.force()
         .size(List[Double](P.width, P.height).toJsArray)
-        .charge(-1000)
+        .charge(-1500)
         .chargeDistance(1000)
         .linkDistance(500)
       //        .friction(0.9)

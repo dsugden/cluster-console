@@ -1,10 +1,12 @@
 package clusterconsole.client.components
 
 import clusterconsole.client.services.{ ClusterStoreActions, ClusterStore }
-import clusterconsole.client.style.GlobalStyles
+import clusterconsole.client.style.Bootstrap.{ Button, Modal }
+import clusterconsole.client.style.{ Icon, GlobalStyles }
 import clusterconsole.http.{ ClusterForm, HostPort, DiscoveredCluster }
 import japgolly.scalajs.react.vdom.all._
 import japgolly.scalajs.react._
+import japgolly.scalajs.react.vdom._
 import clusterconsole.client.services.Logger._
 
 object ClusterFormComponent {
@@ -101,6 +103,10 @@ object ClusterFormComponent {
       updateClusterForm(ClusterForm.initial)
     }
 
+    def hide() = {
+
+    }
+
   }
 
   def component = ReactComponentB[EditClusterProps]("ClusterForm")
@@ -109,35 +115,40 @@ object ClusterFormComponent {
     }) // initial state
     .backend(new Backend(_))
     .render((P, S, B) => {
-      div(cls := "row")(
-        div(cls := "col-md-12")(
-          h3("Cluster form"),
-          form(
-            div(cls := "form-group")(
-              label("Cluster Name"),
-              input(tpe := "text", cls := "form-control", value := S.cluster.name, onChange ==> B.updateClusterName)
-            ),
-            div(cls := "row col-md-12 form-group") {
 
-              P.cluster.seeds.zipWithIndex.map {
-                case (eachSeed, index) =>
-                  div(cls := "row", key := s"$index")(
-                    div(cls := "form-group col-md-8")(
-                      label("Seed host"),
-                      input(tpe := "text", cls := "form-control", value := S.cluster.seeds.zipWithIndex.find { case (x, i) => i == index }.map(_._1.host).getOrElse(""),
-                        onChange ==> B.updateClusterSeedHost(index))
-                    ),
-                    div(cls := s"form-group col-md-4 ${if (!S.portValid) "has-error" else ""}")(
-                      label("Seed port"),
-                      input(tpe := "text", cls := "form-control",
-                        value := S.cluster.seeds.zipWithIndex.find { case (x, i) => i == index }.map(_._1.port.toString).getOrElse(""),
-                        onChange ==> B.updateClusterSeedPort(index))
+      Modal(Modal.Props(be => span(button(tpe := "button", cls := "pull-right", onClick --> be.hide(), Icon.close), h4("Discover Cluster")),
+        be => span(Button(Button.Props(() => { B.submitForm; be.hide() }), "OK")),
+        () => B.hide),
+        div(cls := "row")(
+          div(cls := "col-md-12")(
+            h3("Cluster form"),
+            form(
+              div(cls := "form-group")(
+                label("Cluster Name"),
+                input(tpe := "text", cls := "form-control", value := S.cluster.name, onChange ==> B.updateClusterName)
+              ),
+              div(cls := "row col-md-12 form-group") {
+
+                P.cluster.seeds.zipWithIndex.map {
+                  case (eachSeed, index) =>
+                    div(cls := "row", key := s"$index")(
+                      div(cls := "form-group col-md-8")(
+                        label("Seed host"),
+                        input(tpe := "text", cls := "form-control", value := S.cluster.seeds.zipWithIndex.find { case (x, i) => i == index }.map(_._1.host).getOrElse(""),
+                          onChange ==> B.updateClusterSeedHost(index))
+                      ),
+                      div(cls := s"form-group col-md-4 ${if (!S.portValid) "has-error" else ""}")(
+                        label("Seed port"),
+                        input(tpe := "text", cls := "form-control",
+                          value := S.cluster.seeds.zipWithIndex.find { case (x, i) => i == index }.map(_._1.port.toString).getOrElse(""),
+                          onChange ==> B.updateClusterSeedPort(index))
+                      )
                     )
-                  )
-              }
-            },
-            div(cls := "form-group")(
-              a(cls := "btn btn-default", disabled := !S.submitEnabled, onClick --> P.editHandler(S.cluster))("Discover")
+                }
+              },
+              div(cls := "form-group")(
+                a(cls := "btn btn-default", disabled := !S.submitEnabled, onClick --> P.editHandler(S.cluster))("Discover")
+              )
             )
           )
         )
