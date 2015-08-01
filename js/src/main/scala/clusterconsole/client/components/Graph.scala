@@ -37,23 +37,37 @@ object GraphNode {
 
   case class Props(node: ClusterGraphNode, force: ForceLayout)
 
-  case class State()
+  case class State(selected: Boolean)
+
+  class Backend(t: BackendScope[Props, State]) {
+    def select = t.modState(_.copy(selected = !t.state.selected))
+  }
 
   val component = ReactComponentB[Props]("GraphNode")
-    .render { P =>
+    .initialStateP(P => State(false))
+    .backend(new Backend(_))
+    .render { (P, S, B) =>
       g(
         circle(Attrs.cls := "node", Attrs.id := P.node.index, r := "40", cx := P.node.x, cy := P.node.y,
           fill := {
 
-            // TODO match on enum
-            P.node.status match {
-              case "Up" => "#3ACC35"
-              case "Unreachable" => "#F26F11"
-              case "Removed" => "#F21111"
-              case "Exited" => "#F21111"
+            if (S.selected) {
+              "#EEE"
+            } else {
+              P.node.status match {
+                case "Up" => "#3ACC35"
+                case "Unreachable" => "#F26F11"
+                case "Removed" => "#F21111"
+                case "Exited" => "#F21111"
+              }
+
             }
 
-          }, stroke := "#fff", strokeWidth := "1.px5"),
+          }, stroke := "#fff", strokeWidth := "1.px5", {
+            import japgolly.scalajs.react.vdom.all._
+            onClick --> B.select
+
+          }),
         text(x := P.node.x - 30, y := P.node.y - 65, fill := "white")(P.node.host),
         text(x := P.node.x - 30, y := P.node.y - 45, fill := "green")(P.node.roles),
         text(x := P.node.x - 30, y := P.node.y - 25, fill := "green")(P.node.status)

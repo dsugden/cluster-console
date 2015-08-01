@@ -14,13 +14,28 @@ import japgolly.scalajs.react.vdom.all._
 import rx._
 import scalacss.ScalaCssReact._
 
+sealed trait Mode {
+  def isActive(m: Mode): Boolean = this == m
+}
+object Mode {
+  def fromString(s: String) =
+    s match {
+      case "Members" => Members
+      case "Roles" => Roles
+      case "Nodes" => Nodes
+    }
+}
+case object Members extends Mode
+case object Roles extends Mode
+case object Nodes extends Mode
+
 object ClusterMap {
 
   @inline private def globalStyles = GlobalStyles
 
   case class Props(store: ClusterStore, router: RouterCtl[Loc])
 
-  case class State(showClusterForm: Boolean)
+  case class State(showClusterForm: Boolean, mode: Mode)
 
   class Backend(t: BackendScope[Props, State]) extends RxObserver(t) {
     def mounted(): Unit = {
@@ -40,11 +55,16 @@ object ClusterMap {
       t.modState(_.copy(showClusterForm = true))
     }
 
+    def changeMode(e: ReactMouseEvent) = {
+      t.modState(_.copy(mode = Mode.fromString(e.currentTarget.childNodes.item(0).childNodes.item(0).childNodes.item(0).nodeValue)))
+      e.preventDefault()
+    }
+
   }
 
   // create the React component for Clusters mgmt
   val component = ReactComponentB[Props]("Clusters")
-    .initialState(State(false)) // initial state from TodoStore
+    .initialState(State(false, Members)) // initial state from TodoStore
     .backend(new Backend(_))
     .render((P, S, B) => {
 
@@ -56,20 +76,45 @@ object ClusterMap {
 
       val modal: Seq[ReactElement] = if (S.showClusterForm) Seq(ClusterFormComponent(P.store, B.editCluster)) else Seq.empty[ReactElement]
 
-      val items: Seq[ReactElement] = toolBar +: (Seq(DiscoveringClusterComponent(P.store.getDiscoveringClusters),
+      val leftNav: Seq[ReactElement] = toolBar +: (Seq(DiscoveringClusterComponent(P.store.getDiscoveringClusters),
         DiscoveredClusterComponent(P.store.getDiscoveredClusters, P.store.getSelectedCluster),
         ActivityLogComponent(ActivityLogService)
       ) ++ modal)
 
+      def renderModeButton(m: Mode) =
+        if (S.mode.isActive(m)) {
+          li(cls := "active", onClick ==> B.changeMode, globalStyles.mainHeaders)(
+            a(href := "", globalStyles.mainHeaders, backgroundColor := globalStyles.mapBackground)(
+              span(color := globalStyles.textColor)(fontSize := "24px")(m.toString)
+            )
+          )
+
+        } else {
+          li(borderBottom := "1px solid white", onClick ==> B.changeMode, globalStyles.mainHeaders)(
+            a(href := "", globalStyles.mainHeaders)(
+              span(fontSize := "24px")(m.toString)
+            )
+          )
+
+        }
+      val clusterMapToolBar =
+        div(cls := "row", globalStyles.mainHeaders)(
+          ul(cls := "nav nav-tabs")(
+            renderModeButton(Members),
+            renderModeButton(Roles),
+            renderModeButton(Nodes)
+          )
+        )
+
       div(cls := "row")(
-        div(cls := "col-md-3", globalStyles.leftNav, height := "100%")(items),
+        div(cls := "col-md-3", globalStyles.leftNav, height := "100%")(
+          leftNav
+        ),
         div(cls := "col-md-9")(
+          clusterMapToolBar,
           div(cls := "row")(
-            div(cls := "col-md-12", globalStyles.mainHeaders)(h3("Cluster map")),
-            div(cls := "row")(
-              div(cls := "col-md-12")(
-                ClusterNodeGraphComponent(P.store)
-              )
+            div(cls := "col-md-12")(
+              ClusterNodeGraphComponent(P.store)
             )
           )
         )

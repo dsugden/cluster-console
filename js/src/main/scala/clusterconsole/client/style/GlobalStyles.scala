@@ -8,8 +8,12 @@ object GlobalStyles extends StyleSheet.Inline {
 
   val textColor = "#EAD0D0"
 
+  val mainHeaderColor = "#2C3138"
+
+  val mapBackground = "#353131"
+
   val common = mixin(
-    backgroundColor("#353131")
+    backgroundColor(mapBackground)
   )
 
   val button = style(
@@ -24,8 +28,9 @@ object GlobalStyles extends StyleSheet.Inline {
   )
 
   val mainHeaders = style("mainHeaders")(
-    backgroundColor("#2C3138"),
-    borderBottom(1 px, solid, white)
+    backgroundColor(mainHeaderColor),
+    borderColor(white),
+    borderBottom(1 px, solid)
   )
 
   val regText = style("regText")(

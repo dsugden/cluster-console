@@ -31,9 +31,7 @@ object DiscoveredClusterComponent {
     }
 
     def selectCluster(e: ReactMouseEvent) = {
-      val system = e.currentTarget.firstChild.nodeValue
-      log.debug("%%%%%%%%%%%%%%% selectCluster" + system)
-      ClusterStoreActions.selectCluster(system)
+      ClusterStoreActions.selectCluster(e.currentTarget.firstChild.nodeValue)
       e.preventDefault()
     }
 
