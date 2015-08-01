@@ -83,14 +83,14 @@ object ClusterMap {
 
       def renderModeButton(m: Mode) =
         if (S.mode.isActive(m)) {
-          li(cls := "active", onClick ==> B.changeMode, globalStyles.mainHeaders)(
+          li(cls := "active", onClick ==> B.changeMode, globalStyles.mainHeaders, borderTop := "1px solid white")(
             a(href := "", globalStyles.mainHeaders, backgroundColor := globalStyles.mapBackground)(
               span(color := globalStyles.textColor)(fontSize := "24px")(m.toString)
             )
           )
 
         } else {
-          li(borderBottom := "1px solid white", onClick ==> B.changeMode, globalStyles.mainHeaders)(
+          li(onClick ==> B.changeMode, globalStyles.mainHeaders)(
             a(href := "", globalStyles.mainHeaders)(
               span(fontSize := "24px")(m.toString)
             )
@@ -114,7 +114,7 @@ object ClusterMap {
           clusterMapToolBar,
           div(cls := "row")(
             div(cls := "col-md-12")(
-              ClusterNodeGraphComponent(P.store)
+              ClusterNodeGraphComponent(P.store, S.mode)
             )
           )
         )

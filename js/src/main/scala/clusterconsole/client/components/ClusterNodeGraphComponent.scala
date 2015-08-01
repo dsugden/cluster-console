@@ -1,40 +1,20 @@
 package clusterconsole.client.components
 
-import clusterconsole.client.components.Graph
-import clusterconsole.client.modules.RxObserver
+import clusterconsole.client.modules.{ Mode, RxObserver }
 import clusterconsole.client.services.ClusterStore
 import clusterconsole.http.DiscoveredCluster
 import japgolly.scalajs.react.extra.OnUnmount
-import rx._
-import clusterconsole.client.d3.Layout.{ GraphLink, GraphNode }
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.all._
-
-//import japgolly.scalajs.react.vdom.prefix_<^._
-
-import scala.scalajs.js
-import clusterconsole.client.d3._
-import js.JSConverters._
-import clusterconsole.client.services.Logger._
-
-sealed trait LinkMode
-
-case object Cluster extends LinkMode
-
-case object Roles extends LinkMode
-
 object ClusterNodeGraphComponent {
 
-  case class Props(store: ClusterStore)
+  case class Props(store: ClusterStore, mode: Mode)
 
-  case class State(cluster: Option[DiscoveredCluster], linkMode: LinkMode)
+  case class State(cluster: Option[DiscoveredCluster])
 
   class Backend(t: BackendScope[Props, State]) extends RxObserver(t) {
     def mounted(): Unit = {
-      //      observe(t.props.store.getSelectedCluster)
-
       react(t.props.store.getSelectedCluster, updateCluster)
-
     }
 
     def updateCluster(maybeCluster: Option[DiscoveredCluster]) = {
@@ -55,18 +35,18 @@ object ClusterNodeGraphComponent {
 
   def component = ReactComponentB[Props]("ClusterNodeGraph")
     .initialStateP(P => {
-      State(P.store.getSelectedCluster(), Cluster)
+      State(P.store.getSelectedCluster())
     }).backend(new Backend(_))
     .render((P, S, B) => {
       S.cluster.fold(span(""))(cluster => {
         div(
-          Graph(cluster.system, 1400, 900, P.store, false)
+          Graph(cluster.system, P.mode, 1400, 900, P.store, false)
         )
       })
     }).componentDidMount(_.backend.mounted())
     .configure(OnUnmount.install)
     .build
 
-  def apply(store: ClusterStore) = component(Props(store))
+  def apply(store: ClusterStore, mode: Mode) = component(Props(store, mode))
 
 }

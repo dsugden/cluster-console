@@ -9,7 +9,7 @@ import org.scalajs.dom.raw.SVGCircleElement
 import rx._
 
 import clusterconsole.client.d3.Layout._
-import clusterconsole.client.modules.RxObserver
+import clusterconsole.client.modules.{ Mode, RxObserver }
 import japgolly.scalajs.react.{ ReactComponentB, ReactNode }
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.all.svg._
@@ -109,7 +109,7 @@ object Graph {
 
   import clusterconsole.client.style.CustomTags._
 
-  case class Props(system: String, width: Double, height: Double,
+  case class Props(system: String, mode: Mode, width: Double, height: Double,
     store: ClusterStore, fixedMap: Boolean)
 
   case class State(nodes: List[ClusterGraphNode],
@@ -135,8 +135,6 @@ object Graph {
     def updateGraph(c: Option[DiscoveredCluster]) = {
 
       c.fold[Unit]({})(cluster => {
-
-        //        val fixedMap = P.store.getDiscoveredClusterNodes().get(cluster.system)
 
         val currentNodesMap = t.state.nodes.map(e => (e.host, e)).toMap
 
@@ -179,54 +177,14 @@ object Graph {
           }
 
         t.modState { s =>
-
-          log.debug("******** newNodes " + incomingNodes.map(_.host))
-
           val indexes = incomingNodes.filter(_.status == "Up").map(_.index)
-
-          log.debug("******** indexes " + indexes)
-
-          val links: List[ClusterGraphLink] =
-            indexes.flatMap(index => indexes.filter(_ > index).map((index, _))).flatMap {
-              case (a, b) =>
-                for {
-                  source <- incomingNodes.find(_.index == a)
-                  target <- incomingNodes.find(_.index == b)
-                } yield {
-                  js.Dynamic.literal(
-                    "source" -> source,
-                    "target" -> target,
-                    "sourceHost" -> source.host,
-                    "targetHost" -> target.host).asInstanceOf[ClusterGraphLink]
-                }
-            }
-
-          log.debug("links = " + links.map(e => e.sourceHost + " " + e.targetHost))
-
+          val links: List[ClusterGraphLink] = getMembersLinks(incomingNodes)
           val nodeUpdateState = s.copy(nodes = incomingNodes, force = s.force.nodes(incomingNodes.toJsArray).start())
-
-          val linkUpdateState = nodeUpdateState.copy(links = links)
-
-          linkUpdateState
+          nodeUpdateState.copy(links = links)
         }
 
       })
     }
-
-    /*
-      c.fold[Unit]({})(cluster => {
-        val (nodes, links) = getNodesAndLink(cluster)
-
-        val newState = State(nodes, links, t.state.force)
-
-        t.modState { s =>
-          val firstState = s.copy(nodes = nodes, links = links, force = s.force.nodes(nodes.toJsArray).start())
-          firstState.copy(force = s.force.on("tick", () => tick))
-          //          firstState.copy(force = s.force.on("tick", () => tick))
-        }
-      })
-
-     */
 
     def tick() = {
       val newNodes: List[ClusterGraphNode] = t.state.force.nodes().toList
@@ -371,9 +329,9 @@ object Graph {
       scope.state.force.stop()
     }.configure(OnUnmount.install).build
 
-  def apply(system: String, width: Double, height: Double, store: ClusterStore, fixedMap: Boolean) = {
+  def apply(system: String, mode: Mode, width: Double, height: Double, store: ClusterStore, fixedMap: Boolean) = {
 
-    component(Props(system, width, height, store, fixedMap))
+    component(Props(system, mode, width, height, store, fixedMap))
   }
 
   def getNodesAndLink(cluster: DiscoveredCluster): (List[ClusterGraphNode], List[ClusterGraphLink]) = {
@@ -394,25 +352,7 @@ object Graph {
         ).asInstanceOf[ClusterGraphNode]
     }
     val indexes = nodes.filter(_.status == "Up").map(_.index)
-
-    log.debug("******** indexes " + indexes)
-
-    val links: List[ClusterGraphLink] =
-      indexes.flatMap(index => indexes.filter(_ > index).map((index, _))).flatMap {
-        case (a, b) =>
-          for {
-            source <- nodes.find(_.index == a)
-            target <- nodes.find(_.index == b)
-          } yield {
-            js.Dynamic.literal(
-              "source" -> source,
-              "target" -> target,
-              "sourceHost" -> source.host,
-              "targetHost" -> target.host).asInstanceOf[ClusterGraphLink]
-          }
-      }
-
-    log.debug("**************  nodes: " + nodes.map(_.name))
+    val links: List[ClusterGraphLink] = getMembersLinks(nodes)
     (nodes, links)
 
   }
@@ -423,6 +363,24 @@ object Graph {
     } else {
       v
     }
+
+  def getMembersLinks(nodes: List[ClusterGraphNode]) = {
+    val indexes = nodes.filter(_.status == "Up").map(_.index)
+    indexes.flatMap(index => indexes.filter(_ > index).map((index, _))).flatMap {
+      case (a, b) =>
+        for {
+          source <- nodes.find(_.index == a)
+          target <- nodes.find(_.index == b)
+        } yield {
+          js.Dynamic.literal(
+            "source" -> source,
+            "target" -> target,
+            "sourceHost" -> source.host,
+            "targetHost" -> target.host).asInstanceOf[ClusterGraphLink]
+        }
+    }
+
+  }
 
 }
 
