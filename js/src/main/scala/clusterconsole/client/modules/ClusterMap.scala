@@ -51,9 +51,11 @@ object ClusterMap {
       ClusterStoreActions.selectCluster(name)
     }
 
-    def showClusterForm = {
-      t.modState(_.copy(showClusterForm = true))
+    def showClusterForm(show: Boolean) = {
+      t.modState(_.copy(showClusterForm = show))
     }
+
+    def closeClusterForm = showClusterForm(false)
 
     def changeMode(e: ReactMouseEvent) = {
       t.modState(_.copy(mode = Mode.fromString(e.currentTarget.childNodes.item(0).childNodes.item(0).childNodes.item(0).nodeValue)))
@@ -72,12 +74,14 @@ object ClusterMap {
         div(cls := "row", globalStyles.mainHeaders)(
           div(cls := "col-md-8")(h3("Clusters")),
           div(cls := "col-md-4")(button(cls := "pull-right btn-lg", marginTop := "9px",
-            tpe := "button", onClick --> B.showClusterForm)(Icon.plus)))
+            tpe := "button", onClick --> B.showClusterForm(true))(Icon.plus)))
 
-      val modal: Seq[ReactElement] = if (S.showClusterForm) Seq(ClusterFormComponent(P.store, B.editCluster)) else Seq.empty[ReactElement]
+      val modal: Seq[ReactElement] = if (S.showClusterForm) Seq(ClusterFormComponent(P.store, B.editCluster,
+        () => B.closeClusterForm))
+      else Seq.empty[ReactElement]
 
       val leftNav: Seq[ReactElement] = toolBar +: (Seq(DiscoveringClusterComponent(P.store.getDiscoveringClusters),
-        DiscoveredClusterComponent(P.store.getDiscoveredClusters, P.store.getSelectedCluster),
+        DiscoveredClusterComponent(P.store.getDiscoveredClusters, P.store.getSelectedCluster, S.mode),
         ActivityLogComponent(ActivityLogService)
       ) ++ modal)
 

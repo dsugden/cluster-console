@@ -3,6 +3,7 @@ package clusterconsole.http
 import akka.actor.Actor
 import akka.routing.{ RemoveRoutee, AddRoutee, Routee }
 import clusterconsole.core.LogF
+import upickle.default._
 
 class RouterActor extends Actor with LogF {
   var routees = Set[Routee]()
@@ -14,7 +15,7 @@ class RouterActor extends Actor with LogF {
       routees.foreach { r =>
         msg.logDebug("sending " + _)
         import Json._
-        r.send(upickle.write(msg), sender)
+        r.send(write(msg), sender)
       }
   }
 }

@@ -8,6 +8,8 @@ object GlobalStyles extends StyleSheet.Inline {
 
   val textColor = "#EAD0D0"
 
+  val navUnselectedTextColor = "#8ED5EA"
+
   val mainHeaderColor = "#2C3138"
 
   val mapBackground = "#353131"
@@ -48,7 +50,11 @@ object GlobalStyles extends StyleSheet.Inline {
       ),
       unsafeChild("h2")(
         color(textColor)
+      ),
+      unsafeChild("h4")(
+        color(textColor)
       )
+
     )
 
   )

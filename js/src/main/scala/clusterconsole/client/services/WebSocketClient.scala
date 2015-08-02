@@ -1,10 +1,11 @@
 package clusterconsole.client.services
 
-import clusterconsole.client.services.Logger._
 import clusterconsole.http.ClusterProtocol
-import clusterconsole.http.Json._
 import org.scalajs.dom
 import org.scalajs.dom.raw._
+import upickle.default._
+import clusterconsole.http.Json._
+import Logger._
 
 object WebSocketClient {
 
@@ -13,19 +14,14 @@ object WebSocketClient {
   lazy val websocket = new WebSocket(getWebsocketUri(dom.document))
 
   websocket.onopen = { (event: Event) =>
-    //    log.debug("***************  websocket.onopen ")
     ClusterStoreActions.getDiscoveringClusters()
     ClusterStoreActions.getDiscoveredClusters()
     event
   }
   websocket.onerror = { (event: ErrorEvent) =>
-    //    log.debug("***************  websocket.onerror ")
   }
   websocket.onmessage = { (event: MessageEvent) =>
-    //    log.debug("***************  on raw message " + event.data.toString)
-    val msg: ClusterProtocol = upickle.read[ClusterProtocol](event.data.toString)
-    //    log.debug("***************  on cluster protocol message " + msg)
-
+    val msg: ClusterProtocol = read[ClusterProtocol](event.data.toString)
     MainDispatcher.dispatch(msg)
     event
 
@@ -40,7 +36,8 @@ object WebSocketClient {
   }
 
   def send(msg: ClusterProtocol): Unit = {
-    websocket.send(upickle.write(msg))
+    //    import clusterconsole.http.Json._
+    websocket.send(write(msg))
   }
 
 }

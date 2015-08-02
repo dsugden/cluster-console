@@ -42,12 +42,25 @@ To start the sample cluster:
     unzip samplecluster-1.0.0.zip 
     sudo chmod +x samplecluster-1.0.0/bin/samplecluster
     
-    samplecluster-1.0.0/bin/samplecluster 127.0.0.1 2551 BackEnd &
-    samplecluster-1.0.0/bin/samplecluster 127.0.0.1 2552 BackEnd &
-    samplecluster-1.0.0/bin/samplecluster 127.0.0.1 2553 BackEnd &
-    samplecluster-1.0.0/bin/samplecluster 127.0.0.1 2554 BackEnd &    
-    samplecluster-1.0.0/bin/samplecluster 127.0.0.1 2555 FrontEnd &
-    samplecluster-1.0.0/bin/samplecluster 127.0.0.1 2556 FrontEnd &
+    samplecluster-1.0.0/bin/samplecluster 127.0.0.1 2551 FooCluster 127.0.0.1:2551 Stable-Seed &
+    samplecluster-1.0.0/bin/samplecluster 127.0.0.1 2552 FooCluster 127.0.0.1:2551 Baz-Security &
+    samplecluster-1.0.0/bin/samplecluster 127.0.0.1 2553 FooCluster 127.0.0.1:2551 Baz-Security &
+    samplecluster-1.0.0/bin/samplecluster 127.0.0.1 2554 FooCluster 127.0.0.1:2551 Foo-Worker &
+    samplecluster-1.0.0/bin/samplecluster 127.0.0.1 2555 FooCluster 127.0.0.1:2551 Foo-Worker &
+    samplecluster-1.0.0/bin/samplecluster 127.0.0.1 2556 FooCluster 127.0.0.1:2551 Bar-Worker &
+    samplecluster-1.0.0/bin/samplecluster 127.0.0.1 2557 FooCluster 127.0.0.1:2551 Bar-Worker &
+    samplecluster-1.0.0/bin/samplecluster 127.0.0.1 2558 FooCluster 127.0.0.1:2551 Foo-Http &
+    samplecluster-1.0.0/bin/samplecluster 127.0.0.1 2559 FooCluster 127.0.0.1:2551 Bar-Http &
+    
+
+    
+    samplecluster-1.0.0/bin/samplecluster 127.0.0.1 2661 BazCluster 127.0.0.1:2661 Stable-Seed &
+    samplecluster-1.0.0/bin/samplecluster 127.0.0.1 2662 BazCluster 127.0.0.1:2661 Baz-Security &
+    samplecluster-1.0.0/bin/samplecluster 127.0.0.1 2663 BazCluster 127.0.0.1:2661 Foo-Worker &
+    samplecluster-1.0.0/bin/samplecluster 127.0.0.1 2664 BazCluster 127.0.0.1:2661 Bar-Worker &
+    samplecluster-1.0.0/bin/samplecluster 127.0.0.1 2665 BazCluster 127.0.0.1:2661 Foo-Http &
+    samplecluster-1.0.0/bin/samplecluster 127.0.0.1 2666 BazCluster 127.0.0.1:2661 Bar-Http &
+    
     
     
 
@@ -63,6 +76,9 @@ OSX:
     kill -9 `lsof -i tcp:2554 | grep -i LISTEN`
     kill -9 `lsof -i tcp:2555 | grep -i LISTEN`
     kill -9 `lsof -i tcp:2556 | grep -i LISTEN`
+    kill -9 `lsof -i tcp:2557 | grep -i LISTEN`
+    kill -9 `lsof -i tcp:2558 | grep -i LISTEN`
+    kill -9 `lsof -i tcp:2559 | grep -i LISTEN`
      
 
 Nix:

@@ -1,18 +1,17 @@
 package clusterconsole.client.services
 
-import java.nio.ByteBuffer
-
+import clusterconsole.http.Json
 import org.scalajs.dom
 
 import scala.concurrent.{ Future, Promise }
 import scala.scalajs.concurrent.JSExecutionContext.Implicits.runNow
-import scala.scalajs.js.typedarray._
-import upickle._
-import autowire._
+import upickle.default._
 
 object AjaxClient extends autowire.Client[String, Reader, Writer] {
 
   import org.scalajs.dom.ext.AjaxException
+
+  import Json._
 
   def post(url: String,
     data: String,
@@ -36,13 +35,11 @@ object AjaxClient extends autowire.Client[String, Reader, Writer] {
   }
 
   override def doCall(req: Request): Future[String] = {
-
     post(url = "/api/" + req.path.mkString("/"),
-      data = upickle.write(req.args)
+      data = write[Map[String, String]](req.args)
     ).map(_.responseText)
-
   }
 
-  def write[Result: Writer](r: Result) = upickle.write(r)
-  def read[Result: Reader](p: String) = upickle.read[Result](p)
+  def write[Result: Writer](r: Result) = upickle.default.write(r)
+  def read[Result: Reader](p: String) = upickle.default.read[Result](p)
 }

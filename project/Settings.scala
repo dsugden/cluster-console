@@ -50,7 +50,7 @@ object Settings {
 
   val sharedDependencies = Def.setting(Seq(
     "com.lihaoyi" %%% "autowire" % "0.2.5",
-    "com.lihaoyi" %%% "upickle" % "0.2.8",
+    "com.lihaoyi" %%% "upickle" % "0.3.4",
     "com.lihaoyi" %%% "utest" % "0.3.1",
     "org.webjars" % "font-awesome" % "4.3.0-1" % Provided,
     "org.webjars" % "bootstrap" % versions.bootstrap % Provided

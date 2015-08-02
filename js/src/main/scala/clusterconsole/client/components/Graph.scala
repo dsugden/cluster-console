@@ -9,7 +9,7 @@ import org.scalajs.dom.raw.SVGCircleElement
 import rx._
 
 import clusterconsole.client.d3.Layout._
-import clusterconsole.client.modules.{ Mode, RxObserver }
+import clusterconsole.client.modules._
 import japgolly.scalajs.react.{ ReactComponentB, ReactNode }
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.all.svg._
@@ -178,7 +178,7 @@ object Graph {
 
         t.modState { s =>
           val indexes = incomingNodes.filter(_.status == "Up").map(_.index)
-          val links: List[ClusterGraphLink] = getMembersLinks(incomingNodes)
+          val links: List[ClusterGraphLink] = getLinks(incomingNodes, t.props.mode)
           val nodeUpdateState = s.copy(nodes = incomingNodes, force = s.force.nodes(incomingNodes.toJsArray).start())
           nodeUpdateState.copy(links = links)
         }
@@ -276,12 +276,9 @@ object Graph {
       //        .friction(0.9)
 
       val (nodes, links) = P.store.getSelectedCluster().map(cluster => {
-        getNodesAndLink(cluster)
+        getNodesAndLink(cluster, P.mode)
       }).getOrElse((Nil, Nil))
-      //
-      //      val nodeSelection: Selection = d3.select("svg").selectAll(".node")
-      //      val linkSelection: Selection = d3.select("svg").selectAll(".link")
-      //
+
       State(nodes, links, force)
 
     }.backend(new Backend(_))
@@ -297,7 +294,7 @@ object Graph {
       )
     }).componentWillReceiveProps { (scope, P) =>
       val (nodes, links) = P.store.getSelectedCluster().map(cluster => {
-        getNodesAndLink(cluster)
+        getNodesAndLink(cluster, P.mode)
       }).getOrElse((Nil, Nil))
 
       val newState = State(nodes, links, scope.state.force)
@@ -334,7 +331,7 @@ object Graph {
     component(Props(system, mode, width, height, store, fixedMap))
   }
 
-  def getNodesAndLink(cluster: DiscoveredCluster): (List[ClusterGraphNode], List[ClusterGraphLink]) = {
+  def getNodesAndLink(cluster: DiscoveredCluster, mode: Mode): (List[ClusterGraphNode], List[ClusterGraphLink]) = {
     val nodes = cluster.members.toList.zipWithIndex.map {
       case (node, i) =>
         js.Dynamic.literal(
@@ -352,7 +349,7 @@ object Graph {
         ).asInstanceOf[ClusterGraphNode]
     }
     val indexes = nodes.filter(_.status == "Up").map(_.index)
-    val links: List[ClusterGraphLink] = getMembersLinks(nodes)
+    val links: List[ClusterGraphLink] = getLinks(nodes, mode)
     (nodes, links)
 
   }
@@ -364,9 +361,16 @@ object Graph {
       v
     }
 
-  def getMembersLinks(nodes: List[ClusterGraphNode]) = {
+  def getLinks(nodes: List[ClusterGraphNode], mode: Mode) = {
     val indexes = nodes.filter(_.status == "Up").map(_.index)
-    indexes.flatMap(index => indexes.filter(_ > index).map((index, _))).flatMap {
+
+    val connections: List[(Double, Double)] = mode match {
+      case Members => indexes.flatMap(index => indexes.filter(_ > index).map((index, _)))
+      case Roles => indexes.flatMap(index => indexes.filter(_ > index).map((index, _)))
+      case Nodes => indexes.flatMap(index => indexes.filter(_ > index).map((index, _)))
+    }
+
+    connections.flatMap {
       case (a, b) =>
         for {
           source <- nodes.find(_.index == a)

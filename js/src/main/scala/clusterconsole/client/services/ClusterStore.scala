@@ -6,6 +6,7 @@ import clusterconsole.client.services.Logger._
 import clusterconsole.client.ukko.Actor
 import clusterconsole.http._
 import rx._
+import upickle.default._
 
 import scala.scalajs.concurrent.JSExecutionContext.Implicits.runNow
 
@@ -14,6 +15,8 @@ case object RefreshClusterMembers
 case class UpdateClusterForm(clusterForm: ClusterForm)
 
 case class SelectedCluster(c: DiscoveredCluster)
+
+case class RefreshCluster(c: DiscoveredCluster)
 
 case class UpdateClusterNodes(system: String, node: List[GraphNode])
 
@@ -54,15 +57,15 @@ trait ClusterStore extends Actor {
   def receive: ClusterStore.Receive = {
     case m @ ClusterMemberUp(system, clusterMember) =>
       //      log.debug("+++++++++++ receive clusterMemberUp" + m + " system:" + system)
-      ClusterStoreActions.selectCluster(system)
+      ClusterStoreActions.refreshCluster(system)
 
     case m @ ClusterMemberUnreachable(system, clusterMember) =>
       //      log.debug("+++++++++++ receive clusterMemberUp" + m + " system:" + system)
-      ClusterStoreActions.selectCluster(system)
+      ClusterStoreActions.refreshCluster(system)
 
     case m @ ClusterMemberRemoved(system, clusterMember) =>
       //      log.debug("+++++++++++ receive clusterMemberUp" + m + " system:" + system)
-      ClusterStoreActions.selectCluster(system)
+      ClusterStoreActions.refreshCluster(system)
 
     case m @ DiscoveryBegun(system, seedNodes) =>
       log.debug("+++++++++++ receive DiscoveryBegun" + m)
@@ -74,10 +77,13 @@ trait ClusterStore extends Actor {
       discoveredClusters() = discoveredClusters() + (system -> m)
 
     case m @ SelectedCluster(DiscoveredCluster(system, seeds, status, members)) =>
-      log.debug("+++++++++++ SelectedCluster" + m)
+      selectedCluster() = Some(m.c)
+
+    case m @ RefreshCluster(DiscoveredCluster(system, seeds, status, members)) =>
       discoveringClusters() = discoveringClusters() - system
       discoveredClusters() = discoveredClusters() + (system -> m.c)
-      selectedCluster() = Some(m.c)
+      if (selectedCluster().isEmpty)
+        selectedCluster() = Some(m.c)
 
     case m @ UpdateClusterNodes(system, nodes) =>
       discoveredClusterNodes() = discoveredClusterNodes() + (system -> nodes)
@@ -102,28 +108,36 @@ object ClusterStore extends ClusterStore {
 
 object ClusterStoreActions {
 
+  import Json._
+
   def subscribeToCluster(name: String, seedNodes: List[HostPort]) =
     AjaxClient[Api].discover(name, seedNodes).call()
       .foreach(_.foreach(MainDispatcher.dispatch))
 
   def getDiscoveringClusters() = {
+
+    log.debug("clalling getDiscoveringClusters")
+
     AjaxClient[Api].getDiscovering().call().foreach { discoveringSeq =>
-      log.debug("********************  ClusterStoreActions.getDiscoveringClusters " + discoveringSeq)
       discoveringSeq.foreach(MainDispatcher.dispatch)
     }
   }
 
   def getDiscoveredClusters() = {
     AjaxClient[Api].getDiscovered().call().foreach { discoveredSet =>
-      log.debug("********************  ClusterStoreActions.getDiscoveredClusters " + discoveredSet)
       discoveredSet.foreach(MainDispatcher.dispatch)
     }
   }
 
   def selectCluster(system: String) = {
     AjaxClient[Api].getCluster(system).call().foreach { discovered =>
-      log.debug("********************  getCluster " + discovered)
       discovered.foreach(c => MainDispatcher.dispatch(SelectedCluster(c)))
+    }
+  }
+
+  def refreshCluster(system: String) = {
+    AjaxClient[Api].getCluster(system).call().foreach { discovered =>
+      discovered.foreach(c => MainDispatcher.dispatch(RefreshCluster(c)))
     }
   }
 
@@ -134,6 +148,4 @@ object ClusterStoreActions {
   def updateClusterNode(system: String, nodes: List[GraphNode]) = {
     MainDispatcher.dispatch(UpdateClusterNodes(system, nodes))
   }
-
-  //AjaxClient[Api].discover("SampleClusterSystem", List(HostPort("127.0.0.1",2551))).call().foreach( s =>
 }

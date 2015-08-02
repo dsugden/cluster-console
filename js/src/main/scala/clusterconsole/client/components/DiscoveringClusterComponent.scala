@@ -12,7 +12,7 @@ import scalacss.ScalaCssReact._
 
 object DiscoveringClusterComponent {
 
-  @inline private def bss = GlobalStyles
+  @inline private def globalStyles = GlobalStyles
 
   case class Props(discovering: Rx[Map[String, DiscoveryBegun]])
 
@@ -24,6 +24,10 @@ object DiscoveringClusterComponent {
       observe(t.props.discovering)
     }
 
+    def select(e: ReactMouseEvent) = {
+      e.preventDefault()
+    }
+
   }
 
   val component = ReactComponentB[Props]("DiscoveringClusterComponent")
@@ -32,21 +36,30 @@ object DiscoveringClusterComponent {
     }) // initial state
     .backend(new Backend(_))
     .render((P, S, B) => {
-      if (P.discovering().isEmpty) {
-        span("")
-      } else {
-        div(
-          h3("Discovering Clusters"),
-          div(
-            P.discovering().values.map(e =>
-              div(key := e.system, bss.regText)(
-                span(e.system) + " " + span(e.seedNodes.map(hp => hp.host + ":" + hp.port))
-              )
+
+      div(paddingTop := "30px")(
+        if (P.discovering().isEmpty) {
+          span("")
+        } else {
+          div(cls := "row", height := "200px")(
+            div(cls := "col-md-12")(
+              div(cls := "row", borderBottom := "1px solid white")(
+                div(cls := "col-md-12")(
+                  span(fontSize := "20px", color := globalStyles.textColor)("Discovery in Progress"))),
+              div(cls := "row")(
+                P.discovering().values.map(e =>
+                  div(cls := "col-md-12", paddingTop := "5px", paddingBottom := "5px")(
+                    a(href := "", key := e.system, onClick ==> B.select)(
+                      span(color := globalStyles.navUnselectedTextColor, fontSize := "15px")(
+                        span(e.system), span(e.seedNodes.map(hp => hp.host + ":" + hp.port))
+                      )
+                    )
+                  )
+                ))
             )
           )
-        )
-      }
-
+        }
+      )
     }
     ).componentDidMount(_.backend.mounted())
     .configure(OnUnmount.install)

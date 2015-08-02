@@ -2,7 +2,7 @@ package clusterconsole.client
 
 import clusterconsole.client.modules.{ ClusterMap, Dashboard, MainMenu }
 import clusterconsole.client.services.Logger._
-import clusterconsole.client.services.{ ActivityLogService, ClusterStore, WebSocketClient }
+import clusterconsole.client.services.{ ClusterStoreActions, ActivityLogService, ClusterStore, WebSocketClient }
 import clusterconsole.client.style.GlobalStyles
 import japgolly.scalajs.react.React
 import japgolly.scalajs.react.extra.router2._

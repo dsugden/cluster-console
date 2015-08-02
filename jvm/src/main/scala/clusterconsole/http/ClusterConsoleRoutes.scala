@@ -13,11 +13,11 @@ import akka.util.Timeout
 import clusterconsole.clustertracking.{ GetDiscovered, TrackDiscovered, IsDiscovered, ClusterAware }
 import clusterconsole.core.LogF
 
-import scala.collection.mutable
 import scala.collection.mutable.{ Map => MutableMap }
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration._
+import upickle.default._
 
 trait ClusterConsoleRoutes extends LogF { this: Actor =>
 
@@ -54,10 +54,11 @@ trait ClusterConsoleRoutes extends LogF { this: Actor =>
       path("api" / Segments) { segments =>
         extract(httpRequest2String) { dataExtractor =>
           complete {
+            import Json._
             for {
               data <- dataExtractor
               response <- AutowireServer.route[Api](clusterDiscoveryService)(autowire.Core.Request(
-                segments, upickle.read[Map[String, String]](data.logDebug("***********  data: " + _)))
+                segments, read[Map[String, String]](data.logDebug("***********  data: " + _)))
               )
             } yield HttpEntity(response)
           }
@@ -146,8 +147,8 @@ class ClusterDiscoveryService(context: ActorContext, socketPublisherRouter: Acto
 
 }
 
-object AutowireServer extends autowire.Server[String, upickle.Reader, upickle.Writer] {
-  def read[Result: upickle.Reader](p: String) = upickle.read[Result](p)
-  def write[Result: upickle.Writer](r: Result) = upickle.write(r)
+object AutowireServer extends autowire.Server[String, Reader, Writer] with LogF {
+  def read[Result: Reader](p: String) = upickle.default.read[Result](p)
+  def write[Result: Writer](r: Result) = upickle.default.write(r)
 }
 

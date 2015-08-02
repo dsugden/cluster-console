@@ -1,7 +1,7 @@
 package clusterconsole.client.style
 
+import japgolly.scalajs.react.vdom.all._
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.prefix_<^._
 
 import scala.language.implicitConversions
 import scala.scalajs.js
@@ -34,7 +34,7 @@ object Bootstrap {
 
     val component = ReactComponentB[Props]("Button")
       .render { (P, C) =>
-        <.button(bss.buttonOpt(P.style), P.addStyles, ^.tpe := "button", ^.onClick --> P.onClick())(C)
+        button(bss.buttonOpt(P.style), P.addStyles, tpe := "button", onClick --> P.onClick())(C)
       }.build
 
     def apply(props: Props, children: ReactNode*) = component(props, children)
@@ -47,9 +47,9 @@ object Bootstrap {
 
     val component = ReactComponentB[Props]("Panel")
       .render { (P, C) =>
-        <.div(bss.panelOpt(P.style))(
-          <.div(bss.panelHeading)(P.heading),
-          <.div(bss.panelBody)(C)
+        div(bss.panelOpt(P.style))(
+          div(bss.panelHeading)(P.heading),
+          div(bss.panelBody)(C)
         )
       }.build
 
@@ -81,12 +81,12 @@ object Bootstrap {
       .backend(new Backend(_))
       .render((P, C, _, B) => {
         val modalStyle = bss.modal
-        <.div(modalStyle.modal, modalStyle.fade, ^.role := "dialog", ^.aria.hidden := true,
-          <.div(modalStyle.dialog,
-            <.div(modalStyle.content,
-              <.div(modalStyle.header, P.header(B)),
-              <.div(modalStyle.body, C),
-              <.div(modalStyle.footer, P.footer(B))
+        div(modalStyle.modal, modalStyle.fade, role := "dialog", aria.hidden := true,
+          div(modalStyle.dialog,
+            div(modalStyle.content, backgroundColor := GlobalStyles.mainHeaderColor,
+              div(modalStyle.header, P.header(B)),
+              div(modalStyle.body, C),
+              div(modalStyle.footer, P.footer(B))
             )
           )
         )

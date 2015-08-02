@@ -45,26 +45,6 @@ case class DiscoveredCluster(
                               status: String,
                               members: Set[ClusterMember] = Set.empty[ClusterMember]) extends ClusterProtocol
 
-///*
-//** COMMANDS
-// */
-//
-//case class Discover(system: String, seedNodes: List[HostPort]) extends ClusterProtocol
-//
-//case class ClusterSubscribe(name: String) extends ClusterProtocol
-
-
-/*
-** OTHER
- */
-
-
-sealed trait NodeState
-case object Up extends NodeState
-case object Unreachable extends NodeState
-case object Removed extends NodeState
-case object Exited extends NodeState
-
 
 case class ClusterMember( address: HostPort, roles:Set[String], state:NodeState) {
   def label = address.label + s" roles[${roles.mkString(",").map(r => r)}] status[$state]"

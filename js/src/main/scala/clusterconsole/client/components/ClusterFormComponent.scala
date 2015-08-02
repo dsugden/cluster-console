@@ -14,7 +14,7 @@ object ClusterFormComponent {
   // shorthand for styles
   @inline private def bss = GlobalStyles.bootstrapStyles
 
-  case class EditClusterProps(cluster: ClusterForm, editHandler: ClusterForm => Unit)
+  case class EditClusterProps(cluster: ClusterForm, editHandler: ClusterForm => Unit, closeForm: () => Unit)
 
   case class State(cluster: ClusterForm, seeds: Int, portValid: Boolean, submitEnabled: Boolean)
 
@@ -99,12 +99,12 @@ object ClusterFormComponent {
     }
 
     def submitForm = {
+      t.modState(_.copy(cluster = ClusterForm.initial))
       t.props.editHandler
-      updateClusterForm(ClusterForm.initial)
     }
 
     def hide() = {
-
+      t.props.closeForm
     }
 
   }
@@ -117,14 +117,13 @@ object ClusterFormComponent {
     .render((P, S, B) => {
 
       Modal(Modal.Props(be => span(button(tpe := "button", cls := "pull-right", onClick --> be.hide(), Icon.close), h4("Discover Cluster")),
-        be => span(Button(Button.Props(() => { B.submitForm; be.hide() }), "OK")),
+        be => span(Button(Button.Props(() => { P.editHandler(S.cluster); be.hide() }), "OK")),
         () => B.hide),
         div(cls := "row")(
           div(cls := "col-md-12")(
-            h3("Cluster form"),
             form(
               div(cls := "form-group")(
-                label("Cluster Name"),
+                label(color := GlobalStyles.textColor)("Cluster Name"),
                 input(tpe := "text", cls := "form-control", value := S.cluster.name, onChange ==> B.updateClusterName)
               ),
               div(cls := "row col-md-12 form-group") {
@@ -133,22 +132,19 @@ object ClusterFormComponent {
                   case (eachSeed, index) =>
                     div(cls := "row", key := s"$index")(
                       div(cls := "form-group col-md-8")(
-                        label("Seed host"),
+                        label(color := GlobalStyles.textColor)("Seed host"),
                         input(tpe := "text", cls := "form-control", value := S.cluster.seeds.zipWithIndex.find { case (x, i) => i == index }.map(_._1.host).getOrElse(""),
                           onChange ==> B.updateClusterSeedHost(index))
                       ),
                       div(cls := s"form-group col-md-4 ${if (!S.portValid) "has-error" else ""}")(
-                        label("Seed port"),
+                        label(color := GlobalStyles.textColor)("Seed port"),
                         input(tpe := "text", cls := "form-control",
                           value := S.cluster.seeds.zipWithIndex.find { case (x, i) => i == index }.map(_._1.port.toString).getOrElse(""),
                           onChange ==> B.updateClusterSeedPort(index))
                       )
                     )
                 }
-              },
-              div(cls := "form-group")(
-                a(cls := "btn btn-default", disabled := !S.submitEnabled, onClick --> P.editHandler(S.cluster))("Discover")
-              )
+              }
             )
           )
         )
@@ -156,6 +152,8 @@ object ClusterFormComponent {
     }).componentDidMount(x => x.modState(s => s.copy(cluster = x.props.cluster)))
     .build
 
-  def apply(store: ClusterStore, editHandler: ClusterForm => Unit) = component(EditClusterProps(store.getClusterForm(), editHandler))
+  def apply(store: ClusterStore,
+    editHandler: ClusterForm => Unit,
+    closeForm: () => Unit) = component(EditClusterProps(store.getClusterForm(), editHandler, closeForm))
 
 }
