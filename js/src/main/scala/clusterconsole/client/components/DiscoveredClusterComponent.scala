@@ -38,7 +38,14 @@ object DiscoveredClusterComponent {
     }
 
     def roles(system: String) = {
+      log.debug("open roles " + system)
       t.modState(_.copy(rolesOpen = Some(system)))
+    }
+
+    def closeRolesForm() = {
+      log.debug("closeRolesForm")
+
+      t.modState(_.copy(rolesOpen = None))
     }
 
   }
@@ -50,13 +57,16 @@ object DiscoveredClusterComponent {
     .backend(new Backend(_))
     .render((P, S, B) => {
 
+      log.debug("************* S.rolesOpen " + S.rolesOpen)
+
       div(paddingTop := "30px")(
         if (P.discovered().isEmpty) {
           span("")
         } else {
           div(cls := "row", height := "200px")(
             if (S.rolesOpen.isDefined) {
-              RolesFormComponent()
+
+              RolesFormComponent(() => B.closeRolesForm())
             } else {
               span("")
             },

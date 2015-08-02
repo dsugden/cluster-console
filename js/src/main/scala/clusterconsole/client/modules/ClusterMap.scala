@@ -15,19 +15,28 @@ import rx._
 import scalacss.ScalaCssReact._
 
 sealed trait Mode {
+  val name: String
   def isActive(m: Mode): Boolean = this == m
+
 }
 object Mode {
   def fromString(s: String) =
     s match {
-      case "Members" => Members
-      case "Roles" => Roles
-      case "Nodes" => Nodes
+      case Members.name => Members
+      case Roles.name => Roles
+      case Nodes.name => Nodes
+      case _ => Members
     }
 }
-case object Members extends Mode
-case object Roles extends Mode
-case object Nodes extends Mode
+case object Members extends Mode {
+  val name = "Members"
+}
+case object Roles extends Mode {
+  val name = "Roles"
+}
+case object Nodes extends Mode {
+  val name = "Nodes"
+}
 
 object ClusterMap {
 
