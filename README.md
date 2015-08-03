@@ -80,6 +80,13 @@ OSX:
     kill -9 `lsof -i tcp:2558 | grep -i LISTEN`
     kill -9 `lsof -i tcp:2559 | grep -i LISTEN`
      
+    kill -9 `lsof -i tcp:2661 | grep -i LISTEN`
+    kill -9 `lsof -i tcp:2662 | grep -i LISTEN`
+    kill -9 `lsof -i tcp:2663 | grep -i LISTEN`
+    kill -9 `lsof -i tcp:2664 | grep -i LISTEN`
+    kill -9 `lsof -i tcp:2665 | grep -i LISTEN`
+    kill -9 `lsof -i tcp:2666 | grep -i LISTEN`
+     
 
 Nix:
 

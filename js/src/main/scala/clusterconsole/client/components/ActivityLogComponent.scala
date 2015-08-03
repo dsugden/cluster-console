@@ -3,7 +3,7 @@ package clusterconsole.client.components
 import clusterconsole.client.modules.RxObserver
 import clusterconsole.client.services.ActivityLogService
 import clusterconsole.client.style.GlobalStyles
-import clusterconsole.http.{ ClusterEvent, ClusterEventUtil, ClusterProtocol }
+import clusterconsole.http._
 import japgolly.scalajs.react.extra.OnUnmount
 import japgolly.scalajs.react.vdom.all._
 import japgolly.scalajs.react.{ ReactMouseEvent, BackendScope, ReactComponentB }
@@ -14,6 +14,7 @@ object ActivityLogComponent {
   @inline private def globalStyles = GlobalStyles
 
   case class Props(activities: Rx[Seq[ClusterEvent]])
+
   case class State(logItems: Seq[ClusterEvent] = Seq.empty)
 
   def apply(service: ActivityLogService) = {
@@ -44,12 +45,22 @@ object ActivityLogComponent {
               div(cls := "col-md-12")(
                 span(fontSize := "20px", color := globalStyles.textColor)("Events"))),
             div(cls := "row")(
-              div(cls := "col-md-12", paddingTop := "10px")(
-                P.activities().map(e =>
+              P.activities().map { e =>
+
+                val (bg, tcolor) = e match {
+                  case ev: ClusterMemberUp => (globalStyles.nodeUpColor, "white")
+                  case ev: ClusterMemberUnreachable => (globalStyles.nodeUnreachableColor, "white")
+                  case ev: ClusterMemberRemoved => (globalStyles.nodeRemovedColor, "white")
+                  case ev: ClusterMemberExited => (globalStyles.nodeRemovedColor, "white")
+                }
+
+                div(cls := "col-md-12", paddingTop := "10px", backgroundColor := bg, color := tcolor)(
                   a(href := "", key := e.system)(
                     span(onClick ==> B.select)(ClusterEventUtil.label(e))
                   )
-                )))
+                )
+              }
+            )
           )
         )
       )

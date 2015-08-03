@@ -44,7 +44,6 @@ object DiscoveredClusterComponent {
 
     def closeRolesForm() = {
       log.debug("closeRolesForm")
-
       t.modState(_.copy(rolesOpen = None))
     }
 
@@ -64,12 +63,11 @@ object DiscoveredClusterComponent {
           span("")
         } else {
           div(cls := "row", height := "200px")(
-            if (S.rolesOpen.isDefined) {
-
-              RolesFormComponent(() => B.closeRolesForm())
-            } else {
-              span("")
-            },
+            S.rolesOpen.flatMap(role =>
+              P.selected().map(cluster =>
+                RolesFormComponent(cluster, () => B.closeRolesForm())
+              )
+            ).getOrElse[ReactElement](span("")),
             div(cls := "col-md-12")(
               div(cls := "row", borderBottom := "1px solid white")(
                 div(cls := "col-md-12")(

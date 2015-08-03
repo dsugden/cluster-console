@@ -80,8 +80,43 @@ object Json {
     case Js.Arr(Js.Num(2)) => Unreachable
     case Js.Arr(Js.Num(3)) => Removed
     case Js.Arr(Js.Num(4)) => Exited
+  }
+
+
+  implicit val clusterDepWrite = Writer[ClusterDependency] {
+    case r: DistributedRouter =>
+      Js.Arr(
+        Js.Num(1),
+        Js.Str(write[DistributedRouter](r))
+      )
+
+    case r: ClusterSharded =>
+      Js.Arr(
+        Js.Num(2),
+        Js.Str(write[ClusterSharded](r))
+      )
+
+    case r: Manual =>
+      Js.Arr(
+        Js.Num(3),
+        Js.Str(write[Manual](r))
+      )
+
 
   }
+
+  implicit val clusterDepRead = Reader[ClusterDependency] {
+    case Js.Arr(Js.Num(1), Js.Str(v)) =>
+      read[DistributedRouter](v)
+
+    case Js.Arr(Js.Num(2), Js.Str(v)) =>
+      read[ClusterSharded](v)
+
+    case Js.Arr(Js.Num(3), Js.Str(v)) =>
+      read[Manual](v)
+
+  }
+
 
 
 

@@ -2,7 +2,8 @@ package clusterconsole.client.components
 
 import clusterconsole.client.d3.D3.Selection
 import clusterconsole.client.services.{ ClusterStore, ClusterStoreActions }
-import clusterconsole.http.DiscoveredCluster
+import clusterconsole.client.style.GlobalStyles
+import clusterconsole.http.{ RoleDependency, DiscoveredCluster }
 import japgolly.scalajs.react.extra.OnUnmount
 import japgolly.scalajs.react.vdom.{ Attrs, SvgAttrs }
 import org.scalajs.dom.raw.SVGCircleElement
@@ -48,17 +49,17 @@ object GraphNode {
     .backend(new Backend(_))
     .render { (P, S, B) =>
       g(
-        circle(Attrs.cls := "node", Attrs.id := P.node.index, r := "40", cx := P.node.x, cy := P.node.y,
+        circle(Attrs.cls := "node", Attrs.id := P.node.index, r := "30", cx := P.node.x, cy := P.node.y,
           fill := {
 
             if (S.selected) {
               "#EEE"
             } else {
               P.node.status match {
-                case "Up" => "#3ACC35"
-                case "Unreachable" => "#F26F11"
-                case "Removed" => "#F21111"
-                case "Exited" => "#F21111"
+                case "Up" => GlobalStyles.nodeUpColor
+                case "Unreachable" => GlobalStyles.nodeUnreachableColor
+                case "Removed" => GlobalStyles.nodeRemovedColor
+                case "Exited" => GlobalStyles.nodeRemovedColor
               }
 
             }
@@ -112,14 +113,14 @@ object Graph {
   case class Props(system: String, mode: Mode, width: Double, height: Double,
     store: ClusterStore, fixedMap: Boolean)
 
-  case class State(nodes: List[ClusterGraphNode],
-    links: List[ClusterGraphLink],
+  case class State(nodes: Seq[ClusterGraphNode],
+    links: Seq[ClusterGraphLink],
     force: ForceLayout)
 
-  def drawLinks(links: List[ClusterGraphLink]): ReactNode =
+  def drawLinks(links: Seq[ClusterGraphLink]): ReactNode =
     g(links.zipWithIndex.map { case (eachLink, i) => GraphLink(eachLink, i) })
 
-  def drawNodes(nodes: List[ClusterGraphNode], force: ForceLayout): List[ReactNode] =
+  def drawNodes(nodes: Seq[ClusterGraphNode], force: ForceLayout): Seq[ReactNode] =
     nodes.zipWithIndex.map {
       case (node, i) =>
         GraphNode(node, force)
@@ -178,7 +179,7 @@ object Graph {
 
         t.modState { s =>
           val indexes = incomingNodes.filter(_.status == "Up").map(_.index)
-          val links: List[ClusterGraphLink] = getLinks(incomingNodes, t.props.mode)
+          val links: Seq[ClusterGraphLink] = getLinks(incomingNodes, t.props.mode, cluster)
           val nodeUpdateState = s.copy(nodes = incomingNodes, force = s.force.nodes(incomingNodes.toJsArray).start())
           nodeUpdateState.copy(links = links)
         }
@@ -270,7 +271,8 @@ object Graph {
 
       val force = d3.layout.force()
         .size(List[Double](P.width, P.height).toJsArray)
-        .charge(-3000)
+        .charge(-1500)
+        .linkDistance(500)
       //        .chargeDistance(1000)
       //        .linkDistance(500)
       //        .friction(0.9)
@@ -284,10 +286,7 @@ object Graph {
     }.backend(new Backend(_))
     .render((P, S, B) => {
 
-      log.debug("@@@@@@@@@@@@@@@@  render Graph")
-      //
-      //      log.debug("@@@@@@@@@@@@@@@@  render Graph S.nodes = " + S.nodes().map(_.name))
-      //
+      //      log.debug("@@@@@@@@@@@@@@@@  render Graph")
       svgtag(SvgAttrs.width := P.width, SvgAttrs.height := P.height)(
         drawLinks(S.links),
         drawNodes(S.nodes, S.force)
@@ -298,8 +297,6 @@ object Graph {
       }).getOrElse((Nil, Nil))
 
       val newState = State(nodes, links, scope.state.force)
-
-      log.debug("$$$$$$$$$$$$$$$$$$$  render componentWillReceiveProps S: " + newState.nodes.map(_.name))
 
       scope.modState { s =>
         val firstState = s.copy(nodes = nodes, links = links, force = s.force.nodes(nodes.toJsArray).start())
@@ -331,8 +328,8 @@ object Graph {
     component(Props(system, mode, width, height, store, fixedMap))
   }
 
-  def getNodesAndLink(cluster: DiscoveredCluster, mode: Mode): (List[ClusterGraphNode], List[ClusterGraphLink]) = {
-    val nodes = cluster.members.toList.zipWithIndex.map {
+  def getNodesAndLink(cluster: DiscoveredCluster, mode: Mode): (Seq[ClusterGraphNode], Seq[ClusterGraphLink]) = {
+    val nodes = cluster.members.toSeq.zipWithIndex.map {
       case (node, i) =>
         js.Dynamic.literal(
           "host" -> node.address.label,
@@ -348,9 +345,7 @@ object Graph {
           "weight" -> 0
         ).asInstanceOf[ClusterGraphNode]
     }
-    val indexes = nodes.filter(_.status == "Up").map(_.index)
-    val links: List[ClusterGraphLink] = getLinks(nodes, mode)
-    (nodes, links)
+    (nodes, getLinks(nodes, mode, cluster))
 
   }
 
@@ -361,14 +356,50 @@ object Graph {
       v
     }
 
-  def getLinks(nodes: List[ClusterGraphNode], mode: Mode) = {
-    val indexes = nodes.filter(_.status == "Up").map(_.index)
+  def getLinks(nodes: Seq[ClusterGraphNode], mode: Mode, cluster: DiscoveredCluster) = {
 
-    val connections: List[(Double, Double)] = mode match {
-      case Members => indexes.flatMap(index => indexes.filter(_ > index).map((index, _)))
-      case Roles => indexes.flatMap(index => indexes.filter(_ > index).map((index, _)))
-      case Nodes => indexes.flatMap(index => indexes.filter(_ > index).map((index, _)))
+    val connections: Seq[(Double, Double)] = mode match {
+      case Members => Seq.empty[(Double, Double)]
+      //        val indexes = nodes.filter(_.status == "Up").map(_.index)
+      //        indexes.foldLeft(Seq.empty[(Double, Double)])((a, b) =>
+      //
+      //          if (a.isEmpty) {
+      //            indexes match {
+      //              case Nil => Nil
+      //              case h :: Nil => Nil
+      //              case list => Seq((list.reverse.head, list.head))
+      //            }
+      //          } else {
+      //            a :+ (a.reverse.head._2, b)
+      //          }
+      //
+      //        )
+      //        indexes.flatMap(index => indexes.filter(_ > index).map((index, _)))
+      case Roles =>
+
+        log.debug("cluster.dependencies " + cluster.dependencies)
+
+        cluster.dependencies.flatMap { rd =>
+
+          val sourcesIndexes = rd.roles.flatMap { eachRole =>
+            cluster.getNodesByRole(eachRole).toSeq.flatMap(e =>
+              nodes.filter(_.host == e.address.label).map(_.index))
+          }
+
+          val targetsIndexes = rd.dependsOn.flatMap { eachRole =>
+            cluster.getNodesByRole(eachRole).toSeq.flatMap(e =>
+              nodes.filter(_.host == e.address.label).map(_.index))
+          }
+
+          sourcesIndexes.flatMap(eachSource =>
+            targetsIndexes.map(eachTarget =>
+              (eachSource, eachTarget)))
+        }
+
+      case Nodes => Seq.empty[(Double, Double)]
     }
+
+    log.debug("----------- connections = " + connections)
 
     connections.flatMap {
       case (a, b) =>

@@ -18,6 +18,8 @@ case class SelectedCluster(c: DiscoveredCluster)
 
 case class RefreshCluster(c: DiscoveredCluster)
 
+case class UpdatedCluster(c: DiscoveredCluster)
+
 case class UpdateClusterNodes(system: String, node: List[GraphNode])
 
 trait ClusterStore extends Actor {
@@ -71,19 +73,31 @@ trait ClusterStore extends Actor {
       log.debug("+++++++++++ receive DiscoveryBegun" + m)
       discoveringClusters() = discoveringClusters() + (system -> m)
 
-    case m @ DiscoveredCluster(system, seeds, status, members) =>
+    case m @ DiscoveredCluster(system, seeds, status, members, _) =>
       //      log.debug("+++++++++++ receive DiscoveredCluster" + m)
       discoveringClusters() = discoveringClusters() - system
       discoveredClusters() = discoveredClusters() + (system -> m)
 
-    case m @ SelectedCluster(DiscoveredCluster(system, seeds, status, members)) =>
+    case m @ SelectedCluster(DiscoveredCluster(system, seeds, status, members, _)) =>
       selectedCluster() = Some(m.c)
 
-    case m @ RefreshCluster(DiscoveredCluster(system, seeds, status, members)) =>
+    case m @ RefreshCluster(DiscoveredCluster(system, seeds, status, members, _)) =>
       discoveringClusters() = discoveringClusters() - system
       discoveredClusters() = discoveredClusters() + (system -> m.c)
       if (selectedCluster().isEmpty)
         selectedCluster() = Some(m.c)
+      else {
+        selectedCluster().foreach(c =>
+          if (c.system == m.c.system)
+            selectedCluster() = Some(m.c)
+        )
+      }
+
+    case m @ UpdatedCluster(DiscoveredCluster(system, seeds, status, members, _)) =>
+      selectedCluster().foreach(c =>
+        if (c.system == m.c.system)
+          selectedCluster() = Some(m.c)
+      )
 
     case m @ UpdateClusterNodes(system, nodes) =>
       discoveredClusterNodes() = discoveredClusterNodes() + (system -> nodes)
@@ -139,6 +153,15 @@ object ClusterStoreActions {
     AjaxClient[Api].getCluster(system).call().foreach { discovered =>
       discovered.foreach(c => MainDispatcher.dispatch(RefreshCluster(c)))
     }
+  }
+
+  def updateClusterDependencies(cluster: DiscoveredCluster) = {
+
+    AjaxClient[Api].updateClusterDependencies(cluster).call().foreach { updated =>
+      log.debug("updateClusterDependencies cluster " + cluster)
+      MainDispatcher.dispatch(UpdatedCluster(updated))
+    }
+
   }
 
   def updateClusterForm(clusterForm: ClusterForm) = {

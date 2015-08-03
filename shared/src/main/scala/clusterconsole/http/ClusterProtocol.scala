@@ -43,8 +43,14 @@ case class DiscoveredCluster(
                               system: String,
                               seeds: List[HostPort],
                               status: String,
-                              members: Set[ClusterMember] = Set.empty[ClusterMember]) extends ClusterProtocol
+                              members: Set[ClusterMember] = Set.empty[ClusterMember],
+                              dependencies: Seq[RoleDependency] = Seq.empty[RoleDependency]) extends ClusterProtocol {
 
+  def getRoles:Seq[String] = members.foldLeft[Set[String]](Set.empty[String])((a,b) => b.roles ++ a ).toSeq
+
+  def getNodesByRole(role:String) = members.filter(_.roles.contains(role))
+
+}
 
 case class ClusterMember( address: HostPort, roles:Set[String], state:NodeState) {
   def label = address.label + s" roles[${roles.mkString(",").map(r => r)}] status[$state]"
@@ -65,8 +71,9 @@ object HostPortUtil {
     )
 }
 
-case class HostPortForm(host: String, port: String)
+case class RoleDependency(roles:Seq[String], dependsOn:Seq[String], tpe:ClusterDependency)
 
+case class HostPortForm(host: String, port: String)
 
 case class ClusterForm(name: String, seeds: List[HostPortForm])
 

@@ -61,13 +61,14 @@ object ClusterMap {
     }
 
     def showClusterForm(show: Boolean) = {
+      log.debug("called showClusterForm")
       t.modState(_.copy(showClusterForm = show))
     }
 
     def closeClusterForm = showClusterForm(false)
 
     def changeMode(e: ReactMouseEvent) = {
-      t.modState(_.copy(mode = Mode.fromString(e.currentTarget.childNodes.item(0).childNodes.item(0).childNodes.item(0).nodeValue)))
+      t.modState(_.copy(mode = Mode.fromString(e.currentTarget.childNodes.item(0).childNodes.item(0).childNodes.item(0).nodeValue), showClusterForm = false))
       e.preventDefault()
     }
 
@@ -79,10 +80,12 @@ object ClusterMap {
     .backend(new Backend(_))
     .render((P, S, B) => {
 
+      log.debug("*** showClusterForm  " + S.showClusterForm)
+
       val toolBar: ReactElement =
         div(cls := "row", globalStyles.mainHeaders)(
           div(cls := "col-md-8")(h3("Clusters")),
-          div(cls := "col-md-4")(button(cls := "pull-right btn-lg", marginTop := "9px",
+          div(cls := "col-md-4")(button(cls := "pull-right btn-lg", marginTop := "9px", name := "showClusterForm",
             tpe := "button", onClick --> B.showClusterForm(true))(Icon.plus)))
 
       val modal: Seq[ReactElement] = if (S.showClusterForm) Seq(ClusterFormComponent(P.store, B.editCluster,

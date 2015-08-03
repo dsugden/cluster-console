@@ -14,6 +14,10 @@ object GlobalStyles extends StyleSheet.Inline {
 
   val mapBackground = "#353131"
 
+  val nodeUpColor = "#3ACC35"
+  val nodeUnreachableColor = "#F26F11"
+  val nodeRemovedColor = "#F21111"
+
   val common = mixin(
     backgroundColor(mapBackground)
   )

@@ -8,6 +8,8 @@ case object GetDiscovered
 
 case class GetDiscovered(system: String)
 
+case class UpdateDiscoveredDependencies(cluster: DiscoveredCluster)
+
 object TrackDiscovered {
   def props(socketPublisherRouter: ActorRef): Props = Props(new TrackDiscovered(socketPublisherRouter))
 }
@@ -65,6 +67,13 @@ class TrackDiscovered(socketPublisherRouter: ActorRef) extends Actor with LogF {
 
       }
       socketPublisherRouter.forward(m)
+
+    case UpdateDiscoveredDependencies(cluster) =>
+      val newdiscoveredClustersMap = discoveredClustersMap.get(cluster.system).map { newDc =>
+        discoveredClustersMap + (cluster.system -> newDc.copy(dependencies = cluster.dependencies))
+      }
+      context.become(track(newdiscoveredClustersMap.getOrElse(discoveredClustersMap)))
+      sender() ! true
 
   }
 }

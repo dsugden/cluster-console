@@ -11,4 +11,6 @@ trait Api {
 
   def getCluster(system:String): Option[DiscoveredCluster]
 
+  def updateClusterDependencies(cluster:DiscoveredCluster):DiscoveredCluster
+
 }

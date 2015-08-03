@@ -10,7 +10,7 @@ import akka.http.scaladsl.server.{ RequestContext, Route }
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{ Flow, FlowGraph, Merge, Source }
 import akka.util.Timeout
-import clusterconsole.clustertracking.{ GetDiscovered, TrackDiscovered, IsDiscovered, ClusterAware }
+import clusterconsole.clustertracking._
 import clusterconsole.core.LogF
 
 import scala.collection.mutable.{ Map => MutableMap }
@@ -105,6 +105,8 @@ trait ClusterConsoleRoutes extends LogF { this: Actor =>
 
 class ClusterDiscoveryService(context: ActorContext, socketPublisherRouter: ActorRef) extends Api with LogF {
 
+  implicit val timeout = Timeout(3 seconds)
+
   val discovering: MutableMap[ActorRef, DiscoveryBegun] = MutableMap.empty
 
   val trackDiscovered: ActorRef = context.system.actorOf(TrackDiscovered.props(socketPublisherRouter))
@@ -128,7 +130,7 @@ class ClusterDiscoveryService(context: ActorContext, socketPublisherRouter: Acto
   }
 
   private def getDiscoveredFromTracked: Set[DiscoveredCluster] = {
-    implicit val timeout = Timeout(3 seconds)
+
     val futureDiscovered: Future[Set[DiscoveredCluster]] = (trackDiscovered ? GetDiscovered).mapTo[Set[DiscoveredCluster]]
     Await.result(futureDiscovered, 2 seconds)
   }
@@ -145,6 +147,12 @@ class ClusterDiscoveryService(context: ActorContext, socketPublisherRouter: Acto
 
   def getCluster(system: String): Option[DiscoveredCluster] = getDiscoveredFromTracked(system)
 
+  def updateClusterDependencies(cluster: DiscoveredCluster): DiscoveredCluster = {
+    val updated = (trackDiscovered ? UpdateDiscoveredDependencies(cluster)).mapTo[Boolean]
+    Await.result(updated, 2 seconds)
+    cluster
+
+  }
 }
 
 object AutowireServer extends autowire.Server[String, Reader, Writer] with LogF {
