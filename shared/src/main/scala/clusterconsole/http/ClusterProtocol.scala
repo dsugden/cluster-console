@@ -28,10 +28,10 @@ object ClusterEventUtil{
     e match {
       case ev:CurrentClusterStateInitial => s"CurrentClusterStateInitial[ ${ev.system}, ${ev.members}} ]"
       case ev:ClusterUnjoin => s"ClusterUnjoin[ ${ev.system}]"
-      case ev:ClusterMemberUp => s"ClusterMemberUp[ ${ev.system} ${ev.member.label}}]"
-      case ev:ClusterMemberUnreachable => s"ClusterMemberUnreachable[ ${ev.system} ${ev.member.label}}]"
-      case ev:ClusterMemberRemoved => s"ClusterMemberRemoved[ ${ev.system} ${ev.member.label}}]"
-      case ev:ClusterMemberExited => s"ClusterMemberExited[ ${ev.system} ${ev.member.label}}]"
+      case ev:ClusterMemberUp => s"MemberUp ${ev.system} ${ev.member.labelSimple}"
+      case ev:ClusterMemberUnreachable => s"MemberUnreachable ${ev.system} ${ev.member.labelSimple}"
+      case ev:ClusterMemberRemoved => s"MemberRemoved ${ev.system} ${ev.member.labelSimple}"
+      case ev:ClusterMemberExited => s"MemberExited ${ev.system} ${ev.member.labelSimple}"
     }
   }
 }
@@ -54,6 +54,7 @@ case class DiscoveredCluster(
 
 case class ClusterMember( address: HostPort, roles:Set[String], state:NodeState) {
   def label = address.label + s" roles[${roles.mkString(",").map(r => r)}] status[$state]"
+  def labelSimple = address.label
 }
 
 case class HostPort(host: String, port: Int){

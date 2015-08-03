@@ -17,11 +17,7 @@ abstract class RxObserver[BS <: BackendScope[_, _]](scope: BS) extends OnUnmount
 
   protected def react[T](rx: Rx[T], update: T => Unit): Unit = {
     val obs = rx.foreach(v => {
-
-      log.debug("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@  react    " + v.toString)
-
       update(v)
-
     }, true)
     // stop observing when unmounted
     onUnmount(obs.kill())

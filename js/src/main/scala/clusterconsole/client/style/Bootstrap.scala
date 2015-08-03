@@ -84,7 +84,7 @@ object Bootstrap {
         val modalStyle = bss.modal
         div(modalStyle.modal, modalStyle.fade, role := "dialog", aria.hidden := true,
           div(modalStyle.dialog,
-            div(modalStyle.content, backgroundColor := GlobalStyles.mainHeaderColor,
+            div(modalStyle.content, backgroundColor := GlobalStyles.leftNavBackgrounColor,
               div(modalStyle.header, P.header(B)),
               div(modalStyle.body, C),
               div(modalStyle.footer, P.footer(B))

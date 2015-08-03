@@ -43,8 +43,9 @@ object ActivityLogComponent {
           div(cls := "col-md-12")(
             div(cls := "row", borderBottom := "1px solid white")(
               div(cls := "col-md-12")(
-                span(fontSize := "20px", color := globalStyles.textColor)("Events"))),
-            div(cls := "row")(
+                span(fontSize := "20px", color := globalStyles.textColor)("Events"))
+            ),
+            div(
               P.activities().map { e =>
 
                 val (bg, tcolor) = e match {
@@ -53,10 +54,13 @@ object ActivityLogComponent {
                   case ev: ClusterMemberRemoved => (globalStyles.nodeRemovedColor, "white")
                   case ev: ClusterMemberExited => (globalStyles.nodeRemovedColor, "white")
                 }
-
-                div(cls := "col-md-12", paddingTop := "10px", backgroundColor := bg, color := tcolor)(
-                  a(href := "", key := e.system)(
-                    span(onClick ==> B.select)(ClusterEventUtil.label(e))
+                div(cls := "row", borderTop := "1px solid white", borderBottom := "1px solid white")(
+                  div(cls := "col-md-12", paddingTop := "10px", paddingBottom := "10px", backgroundColor := bg, color := tcolor)(
+                    span(color := tcolor, fontSize := "15px")(
+                      b(
+                        ClusterEventUtil.label(e)
+                      )
+                    )
                   )
                 )
               }

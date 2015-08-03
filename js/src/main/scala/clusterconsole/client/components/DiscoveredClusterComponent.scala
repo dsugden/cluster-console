@@ -76,16 +76,16 @@ object DiscoveredClusterComponent {
                 P.discovered().values.map(e =>
 
                   if (isSelected(P, e.system) && P.mode == Roles) {
-                    div(cls := "col-md-12", paddingTop := "5px", paddingBottom := "5px", backgroundColor := selectedBackground(P, e.system))(
-                      a(href := "", key := e.system)(
+                    div(cls := "col-md-12", paddingTop := "10px", paddingBottom := "10px", backgroundColor := selectedBackground(P, e.system))(
+                      a(href := "", key := e.system, fontSize := "18px")(
                         span(onClick ==> B.selectCluster,
                           color := selectedColor(P, e.system))(e.system)
-                      ), span(cls := "pull-right")(button(onClick --> B.roles(e.system))("Roles"))
+                      ), span(cls := "pull-right")(button(cls := "btn btn-small", onClick --> B.roles(e.system))("Roles"))
                     )
 
                   } else {
-                    div(cls := "col-md-12", paddingTop := "5px", paddingBottom := "5px", backgroundColor := selectedBackground(P, e.system))(
-                      a(href := "", key := e.system)(
+                    div(cls := "col-md-12", paddingTop := "10px", paddingBottom := "10px", backgroundColor := selectedBackground(P, e.system))(
+                      a(href := "", key := e.system, fontSize := "18px")(
                         span(onClick ==> B.selectCluster,
                           color := selectedColor(P, e.system))(e.system)
                       )

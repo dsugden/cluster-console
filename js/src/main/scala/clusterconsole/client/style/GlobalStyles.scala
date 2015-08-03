@@ -12,11 +12,13 @@ object GlobalStyles extends StyleSheet.Inline {
 
   val mainHeaderColor = "#2C3138"
 
+  val leftNavBackgrounColor = "#39484E"
+
   val mapBackground = "#353131"
 
-  val nodeUpColor = "#3ACC35"
-  val nodeUnreachableColor = "#F26F11"
-  val nodeRemovedColor = "#F21111"
+  val nodeUpColor = "#2FA02B"
+  val nodeUnreachableColor = "#D46415"
+  val nodeRemovedColor = "#B91414"
 
   val common = mixin(
     backgroundColor(mapBackground)

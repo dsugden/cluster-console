@@ -1,6 +1,7 @@
 package clusterconsole.client.services
 
 import autowire._
+import clusterconsole.client.components.ClusterGraphNode
 import clusterconsole.client.d3.Layout.GraphNode
 import clusterconsole.client.services.Logger._
 import clusterconsole.client.ukko.Actor
@@ -20,14 +21,14 @@ case class RefreshCluster(c: DiscoveredCluster)
 
 case class UpdatedCluster(c: DiscoveredCluster)
 
-case class UpdateClusterNodes(system: String, node: List[GraphNode])
+case class UpdateClusterNodes(system: String, node: ClusterGraphNode)
 
 trait ClusterStore extends Actor {
 
   // refine a reactive variable
   private val discoveredClusters = Var(Map.empty[String, DiscoveredCluster])
 
-  private val discoveredClusterNodes = Var(Map.empty[String, List[GraphNode]])
+  private val discoveredClusterNodes = Var(Map.empty[String, List[ClusterGraphNode]])
 
   private val selectedCluster = Var(Option.empty[DiscoveredCluster])
 
@@ -39,7 +40,7 @@ trait ClusterStore extends Actor {
 
   def getDiscoveredClusters: Rx[Map[String, DiscoveredCluster]] = discoveredClusters
 
-  def getDiscoveredClusterNodes: Rx[Map[String, List[GraphNode]]] = discoveredClusterNodes
+  def getDiscoveredClusterNodes: Rx[Map[String, List[ClusterGraphNode]]] = discoveredClusterNodes
 
   def getDiscoveringClusters: Rx[Map[String, DiscoveryBegun]] = discoveringClusters
 
@@ -99,8 +100,19 @@ trait ClusterStore extends Actor {
           selectedCluster() = Some(m.c)
       )
 
-    case m @ UpdateClusterNodes(system, nodes) =>
-      discoveredClusterNodes() = discoveredClusterNodes() + (system -> nodes)
+    case m @ UpdateClusterNodes(system, node) =>
+      log.debug("UpdateClusterNodes " + node.host)
+      discoveredClusterNodes() =
+        discoveredClusterNodes() + (system ->
+          discoveredClusterNodes().get(system).fold({
+            log.debug("**************  added node")
+            List(node)
+          })(nodes =>
+            nodes.map(n =>
+              if (n.host == node.host) {
+                log.debug("**************  replaced node")
+                node
+              } else n)))
 
     case clusterUnjoin: ClusterUnjoin =>
       //      log.debug("+++++++++++ receive ClusterUnjoin" + clusterUnjoin)
@@ -168,7 +180,8 @@ object ClusterStoreActions {
     MainDispatcher.dispatch(UpdateClusterForm(clusterForm))
   }
 
-  def updateClusterNode(system: String, nodes: List[GraphNode]) = {
-    MainDispatcher.dispatch(UpdateClusterNodes(system, nodes))
+  def updateClusterNode(system: String, node: ClusterGraphNode) = {
+    log.debug("updateClusterNode cluster " + node.host)
+    MainDispatcher.dispatch(UpdateClusterNodes(system, node))
   }
 }
