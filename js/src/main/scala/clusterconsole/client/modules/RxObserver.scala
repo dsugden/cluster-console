@@ -15,6 +15,9 @@ abstract class RxObserver[BS <: BackendScope[_, _]](scope: BS) extends OnUnmount
     onUnmount(obs.kill())
   }
 
+  /**
+   * Instead of forceUpdate(), call an update function
+   */
   protected def react[T](rx: Rx[T], update: T => Unit): Unit = {
     val obs = rx.foreach(v => {
       update(v)

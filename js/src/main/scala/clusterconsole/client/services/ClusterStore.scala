@@ -88,7 +88,10 @@ trait ClusterStore extends Actor {
     case m @ SelectedCluster(DiscoveredCluster(system, seeds, status, members, _)) =>
       selectedCluster() = Some(m.c)
 
-    case m @ RefreshCluster(DiscoveredCluster(system, seeds, status, members, _)) =>
+    case m @ RefreshCluster(DiscoveredCluster(system, seeds, status, members, deps)) =>
+
+      log.debug("************* RefreshCluster deps:  " + deps)
+
       discoveringClusters() = discoveringClusters() - system
       discoveredClusters() = discoveredClusters() + (system -> m.c)
       if (selectedCluster().isEmpty)

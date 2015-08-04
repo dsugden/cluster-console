@@ -132,22 +132,49 @@ object GraphNode {
 
 object GraphLink {
 
-  case class Props(link: ClusterGraphLink, key: Int)
+  case class Props(link: ClusterGraphLink, key: Int, mode: Mode)
 
   val component = ReactComponentB[Props]("GraphLink")
     .render { P =>
-      line(
-        Attrs.cls := "link",
-        x1 := P.link.source.x,
-        y1 := P.link.source.y,
-        x2 := P.link.target.x,
-        y2 := P.link.target.y,
-        stroke := "#999",
-        strokeOpacity := "1",
-        strokeWidth := "1")
+
+      P.mode match {
+        case Members =>
+          line(
+            Attrs.cls := "link",
+            x1 := P.link.source.x,
+            y1 := P.link.source.y,
+            x2 := P.link.target.x,
+            y2 := P.link.target.y,
+            stroke := "#999",
+            strokeOpacity := ".6",
+            strokeWidth := "1",
+            strokeDasharray := "5,5")
+        case Roles =>
+          line(
+            Attrs.cls := "link",
+            x1 := P.link.source.x,
+            y1 := P.link.source.y,
+            x2 := P.link.target.x,
+            y2 := P.link.target.y,
+            stroke := "#999",
+            strokeOpacity := "1",
+            strokeWidth := "3")
+        case Nodes =>
+          line(
+            Attrs.cls := "link",
+            x1 := P.link.source.x,
+            y1 := P.link.source.y,
+            x2 := P.link.target.x,
+            y2 := P.link.target.y,
+            stroke := "#999",
+            strokeOpacity := "1",
+            strokeWidth := "1")
+
+      }
+
     }.build
 
-  def apply(link: ClusterGraphLink, key: Int) = component(Props(link, key))
+  def apply(link: ClusterGraphLink, key: Int, mode: Mode) = component(Props(link, key, mode))
 }
 
 object Graph {
@@ -161,8 +188,8 @@ object Graph {
     links: Seq[ClusterGraphLink],
     force: ForceLayout)
 
-  def drawLinks(links: Seq[ClusterGraphLink]): ReactNode =
-    g(links.zipWithIndex.map { case (eachLink, i) => GraphLink(eachLink, i) })
+  def drawLinks(links: Seq[ClusterGraphLink], mode: Mode): ReactNode =
+    g(links.zipWithIndex.map { case (eachLink, i) => GraphLink(eachLink, i, mode) })
 
   def drawNodes(nodes: Seq[ClusterGraphNode], force: ForceLayout): Seq[ReactNode] =
     nodes.zipWithIndex.map {
@@ -178,7 +205,6 @@ object Graph {
   class Backend(t: BackendScope[Props, State]) extends RxObserver(t) {
 
     def mounted(): Unit = {
-      //      observe(t.props.store.getSelectedCluster)
       react(t.props.store.getSelectedCluster, updateGraph)
       react(t.props.store.getSelectedDeps, updateLinkDeps)
     }
@@ -194,17 +220,15 @@ object Graph {
     }
 
     def updateLinkDeps(c: Map[String, List[RoleDependency]]) = {
-      log.debug("$$$$$$$$$$$$$$$$$$$$$$ updateLinkDeps")
-
       t.props.store.getSelectedCluster().foreach(cluster =>
-
-        t.modState { s =>
-          val links: Seq[ClusterGraphLink] = getLinks(t.state.nodes, t.props.mode, cluster)
-          val nodeUpdateState = s.copy(nodes = t.state.nodes, force = s.force.nodes(t.state.nodes.toJsArray).start())
-          nodeUpdateState.copy(links = links)
-          s.copy(links = links)
-        }
-
+        c.get(cluster.system).foreach(deps =>
+          t.modState { s =>
+            val links: Seq[ClusterGraphLink] = getLinks(t.state.nodes, t.props.mode, cluster, deps)
+            val nodeUpdateState = s.copy(nodes = t.state.nodes, force = s.force.nodes(t.state.nodes.toJsArray).start())
+            nodeUpdateState.copy(links = links)
+            s.copy(links = links)
+          }
+        )
       )
 
     }
@@ -254,7 +278,6 @@ object Graph {
                   ).asInstanceOf[ClusterGraphNode]
 
                 )(fixedNode => {
-
                     log.debug("^^^^^^^^^^^^^  fixedNode  " + fixedNode.x)
 
                     js.Dynamic.literal(
@@ -270,22 +293,24 @@ object Graph {
                       "fixed" -> fixedNode.fixed,
                       "weight" -> cn.weight
                     ).asInstanceOf[ClusterGraphNode]
-
-                  }
-                  )
-              }
-              )
-
+                  })
+              })
           }
 
         t.modState { s =>
-          val indexes = incomingNodes.filter(_.status == "Up").map(_.index)
-          val links: Seq[ClusterGraphLink] = getLinks(incomingNodes, t.props.mode, cluster)
+          val links: Seq[ClusterGraphLink] = {
+
+            t.props.mode match {
+              case Roles =>
+                getLinks(incomingNodes, t.props.mode, cluster, t.props.store.getSelectedDeps().getOrElse(cluster.system, Nil))
+
+              case _ => getLinks(incomingNodes, t.props.mode, cluster)
+            }
+          }
           val nodesToForce = incomingNodes.filter(_.fixed == false)
           val nodeUpdateState = s.copy(nodes = incomingNodes, force = s.force.nodes(nodesToForce.toJsArray).start())
           nodeUpdateState.copy(links = links)
         }
-
       })
     }
 
@@ -389,7 +414,7 @@ object Graph {
 
       svgtag(SvgAttrs.width := P.width, SvgAttrs.height := P.height)(
         drawDeps(roles, B.selectDep),
-        drawLinks(S.links),
+        drawLinks(S.links, P.mode),
         drawNodes(S.nodes, S.force)
       )
     }).componentWillReceiveProps { (scope, P) =>
