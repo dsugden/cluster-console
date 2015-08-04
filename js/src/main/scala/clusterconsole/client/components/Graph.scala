@@ -28,9 +28,13 @@ trait ClusterGraphNode extends GraphNode {
   var port: Int = js.native
   var roles: String = js.native
   var status: String = js.native
+
 }
 
 object ClusterGraphNode {
+
+  def label(n: ClusterGraphNode): String = n.host + ":" + n.port
+
   def apply(m: ClusterMember,
     index: Double,
     x: Double,
@@ -341,7 +345,7 @@ object Graph {
 
         log.debug("updateGraph")
 
-        val currentNodesMap = t.state.nodes.map(e => (e.host, e)).toMap
+        val currentNodesMap = t.state.nodes.map(e => (e.host + ":" + e.port, e)).toMap
 
         val existingIndexes = t.state.nodes.map(_.index).toSet
 
@@ -578,12 +582,12 @@ object Graph {
 
           val sourcesIndexes = rd.roles.flatMap { eachRole =>
             cluster.getNodesByRole(eachRole).toSeq.flatMap(e =>
-              nodes.filter(_.host == e.address.label).map(_.index))
+              nodes.filter(n => ClusterGraphNode.label(n) == e.address.label).map(_.index))
           }
 
           val targetsIndexes = rd.dependsOn.flatMap { eachRole =>
             cluster.getNodesByRole(eachRole).toSeq.flatMap(e =>
-              nodes.filter(_.host == e.address.label).map(_.index))
+              nodes.filter(n => ClusterGraphNode.label(n) == e.address.label).map(_.index))
           }
 
           sourcesIndexes.flatMap(eachSource =>
