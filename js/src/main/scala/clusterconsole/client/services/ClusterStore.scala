@@ -15,6 +15,8 @@ case object RefreshClusterMembers
 
 case class UpdateClusterForm(clusterForm: ClusterForm)
 
+case class SelectRoleDependency(system: String, rd: RoleDependency, selected: Boolean)
+
 case class SelectedCluster(c: DiscoveredCluster)
 
 case class RefreshCluster(c: DiscoveredCluster)
@@ -29,6 +31,8 @@ trait ClusterStore extends Actor {
   private val discoveredClusters = Var(Map.empty[String, DiscoveredCluster])
 
   private val discoveredClusterNodes = Var(Map.empty[String, List[ClusterGraphNode]])
+
+  private val selectedDeps = Var(Map.empty[String, List[RoleDependency]])
 
   private val selectedCluster = Var(Option.empty[DiscoveredCluster])
 
@@ -45,6 +49,8 @@ trait ClusterStore extends Actor {
   def getDiscoveringClusters: Rx[Map[String, DiscoveryBegun]] = discoveringClusters
 
   def getSelectedCluster: Rx[Option[DiscoveredCluster]] = selectedCluster
+
+  def getSelectedDeps: Rx[Map[String, List[RoleDependency]]] = selectedDeps
 
   //  def clusterEvents: Rx[Seq[ClusterEvent]] = events
 
@@ -92,6 +98,18 @@ trait ClusterStore extends Actor {
           if (c.system == m.c.system)
             selectedCluster() = Some(m.c)
         )
+      }
+
+    case SelectRoleDependency(system, roleDependency, selected) =>
+      if (selected) {
+        //        log.debug("")
+        selectedDeps() =
+          selectedDeps() + (system -> selectedDeps().get(system).fold(List(roleDependency))(deps =>
+            (deps.toSet + roleDependency).toList))
+      } else {
+        selectedDeps() =
+          selectedDeps() + (system -> selectedDeps().get(system).fold(List.empty[RoleDependency])(deps =>
+            (deps.toSet - roleDependency).toList))
       }
 
     case m @ UpdatedCluster(DiscoveredCluster(system, seeds, status, members, _)) =>
@@ -173,7 +191,10 @@ object ClusterStoreActions {
       log.debug("updateClusterDependencies cluster " + cluster)
       MainDispatcher.dispatch(UpdatedCluster(updated))
     }
+  }
 
+  def selectRoleDependency(system: String, rd: RoleDependency, selected: Boolean) = {
+    MainDispatcher.dispatch(SelectRoleDependency(system, rd, selected))
   }
 
   def updateClusterForm(clusterForm: ClusterForm) = {

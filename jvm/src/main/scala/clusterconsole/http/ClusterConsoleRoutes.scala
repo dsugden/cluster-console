@@ -55,6 +55,11 @@ trait ClusterConsoleRoutes extends LogF { this: Actor =>
         extract(httpRequest2String) { dataExtractor =>
           complete {
             import Json._
+
+            val x = Await.result(dataExtractor, 2 seconds)
+
+            x.logDebug("------------------------   r " + _)
+
             for {
               data <- dataExtractor
               response <- AutowireServer.route[Api](clusterDiscoveryService)(autowire.Core.Request(

@@ -111,83 +111,93 @@ object RolesFormComponent {
 
       Modal(Modal.Props(
         header = be => span(button(tpe := "button", cls := "pull-right", onClick --> be.hide(), Icon.close), h4("Describe Dependencies")),
-        footer = be => span(Button(Button.Props(() => { B.submitForm(); be.hide() }), "OK")),
+        footer = be => span(Button(Button.Props(() => {
+          B.submitForm();
+          be.hide()
+        }), "OK")),
         closed = () => P.closeForm()),
 
-        div(cls := "row")(
-          div(cls := "col-md-12")(
-            if (!S.dependencies.isEmpty) {
-              div(
-                h4("Existing Dependencies"),
-                S.dependencies.map(d =>
-                  div(color := GlobalStyles.textColor)(span(d.roles.mkString(",")),
-                    span("-->"),
-                    span(d.dependsOn.mkString(",")), span(d.tpe.name), span(d.tpe.toString))
+        if (S.dependencies.nonEmpty) {
+          div(cls := "row")(
+            div(cls := "col-md-12")(
+              div(cls := "panel panel-primary", backgroundColor := GlobalStyles.leftNavBackgrounColor)(
+                div(cls := "panel-heading")("Existing Dependencies"),
+                div(cls := "panel-body")(
+                  S.dependencies.map(d =>
+                    div(color := GlobalStyles.textColor)(span(d.roles.mkString(",")),
+                      span("-->"),
+                      span(d.dependsOn.mkString(",")), span(d.tpe.name), span(d.tpe.toString))
+                  )
                 )
               )
-            } else {
-              h4("Currrently no dependencies are defined")
-            }
-          )),
+            )
+          )
+        } else {
+          span("")
+        },
         div(cls := "row")(
           div(cls := "col-md-12")(
-            h4("Add Dependencies"),
-            form(
-              div(cls := "row")(
-                div(cls := "form-group col-md-4")(
-                  label(color := GlobalStyles.textColor)("Roles(s)"),
-                  select(name := "selectRole", multiple := "multiple", cls := "form-control", height := "200px", onChange ==> B.selectRole)(
-                    S.roles.map(r => option(value := r)(r))
-                  )
-                ),
-                div(cls := "form-group col-md-3")(
-                  label(color := GlobalStyles.textColor)("Depend(s) On")
-                ),
+            div(cls := "panel panel-primary", backgroundColor := GlobalStyles.leftNavBackgrounColor)(
+              div(cls := "panel-heading")("Add Dependencies"),
+              div(cls := "panel-body")(
+                form(
+                  div(cls := "row")(
+                    div(cls := "form-group col-md-4")(
+                      label(color := GlobalStyles.textColor)("Roles(s)"),
+                      select(name := "selectRole", multiple := "multiple", cls := "form-control", height := { (S.roles.length * 20) + "px" }, onChange ==> B.selectRole)(
+                        S.roles.map(r => option(value := r)(r))
+                      )
+                    ),
+                    div(cls := "form-group col-md-3")(
+                      label(color := GlobalStyles.textColor)("Depend(s) On")
+                    ),
 
-                S.selectedRoles.headOption.map(selectedRole =>
-                  div(cls := "form-group col-md-4")(
-                    label(color := GlobalStyles.textColor)("Role(s)"),
-                    select(name := "dependsOnRole", multiple := "multiple", cls := "form-control", height := "200px", onChange ==> B.dependsOnRole)(
-                      S.roles.filter(e => !S.selectedRoles.contains(e)).map(r => option(value := r)(r))
+                    S.selectedRoles.headOption.map(selectedRole =>
+                      div(cls := "form-group col-md-4")(
+                        label(color := GlobalStyles.textColor)("Role(s)"),
+                        select(name := "dependsOnRole", multiple := "multiple", cls := "form-control", height := { (S.roles.length * 20) + "px" }, onChange ==> B.dependsOnRole)(
+                          S.roles.filter(e => !S.selectedRoles.contains(e)).map(r => option(value := r)(r))
+                        )
+                      )
+                    ).getOrElse(span(""))
+                  ),
+                  div(cls := "row", paddingTop := "20px")(
+                    div(cls := "col-md-12")(
+                      div(cls := "row")(
+                        S.selectedRoles.headOption.map(selectedRole =>
+                          div(cls := "col-md-7")(
+                            div(cls := "col-md-8")(color := GlobalStyles.textColor)(S.selectedRoles.mkString(",")),
+                            div(cls := "col-md-4")(color := GlobalStyles.textColor)("depends on")
+                          )
+                        ).getOrElse(EmptyTag),
+                        S.dependsOnRoles.headOption.map(dependsOnRole =>
+                          div(cls := "col-md-5")(
+                            span(color := GlobalStyles.textColor)(S.dependsOnRoles.mkString(",")))
+                        ).getOrElse(EmptyTag)
+                      )
+                    )
+                  ),
+                  div(cls := "row", paddingTop := "20px")(
+                    div(cls := "form-group col-md-9")(
+                      label(color := GlobalStyles.textColor)("Dependency Name"),
+                      input(tpe := "text", cls := "form-control", onChange ==> B.updateDepName)
+                    ),
+                    div(cls := "form-group col-md-4")(
+                      label(color := GlobalStyles.textColor)("Dependency Type"),
+                      select(onChange ==> B.selectType)(
+                        option("DistributedRouter"),
+                        option("ClusterSharded"),
+                        option("Manual")
+                      )
+                    )
+                  ),
+                  div(cls := "row")(
+                    div(cls := "col-md-12")(
+                      button(cls := "btn btn-submit", onClick ==> B.addDep, disabled := {
+                        !B.canSubmit
+                      })("Add dependency")
                     )
                   )
-                ).getOrElse(span(""))
-              ),
-              div(cls := "row", paddingTop := "20px")(
-                div(cls := "col-md-12")(
-                  div(cls := "row")(
-                    S.selectedRoles.headOption.map(selectedRole =>
-                      div(cls := "col-md-7")(
-                        div(cls := "col-md-8")(color := GlobalStyles.textColor)(S.selectedRoles.mkString(",")),
-                        div(cls := "col-md-4")(color := GlobalStyles.textColor)("depends on")
-                      )
-                    ).getOrElse(EmptyTag),
-                    S.dependsOnRoles.headOption.map(dependsOnRole =>
-                      div(cls := "col-md-5")(
-                        span(color := GlobalStyles.textColor)(S.dependsOnRoles.mkString(",")))
-                    ).getOrElse(EmptyTag)
-                  )
-                )
-              ),
-              div(cls := "row", paddingTop := "20px")(
-                div(cls := "form-group col-md-9")(
-                  label(color := GlobalStyles.textColor)("Dependency Name"),
-                  input(tpe := "text", cls := "form-control", onChange ==> B.updateDepName)
-                ),
-                div(cls := "form-group col-md-4")(
-                  label(color := GlobalStyles.textColor)("Dependency Type"),
-                  select(onChange ==> B.selectType)(
-                    option("DistributedRouter"),
-                    option("ClusterSharded"),
-                    option("Manual")
-                  )
-                )
-              ),
-              div(cls := "row")(
-                div(cls := "col-md-12")(
-                  button(cls := "btn btn-submit", onClick ==> B.addDep, disabled := {
-                    !B.canSubmit
-                  })("Add dependency")
                 )
               )
             )

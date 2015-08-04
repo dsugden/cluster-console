@@ -12,7 +12,7 @@ import spray.revolver.RevolverPlugin.Revolver
 
 name := "cluster-console"
 
-version := "1.0"
+version := "1.1"
 
 scalaVersion := "2.11.7"
 
@@ -23,7 +23,7 @@ scalaVersion := "2.11.7"
 lazy val root = project.in(file(".")).
   aggregate(js, jvm).
   settings(
-    name := "SPAtutorial",
+    name := "cluster-console",
     version := Settings.version,
     commands += ReleaseCmd,
     publish := {},
@@ -108,7 +108,6 @@ lazy val sharedProject = crossProject.in(file("."))
       val a = js.base.toURI.toString.replaceFirst("[^/]+/?$", "")
       s"-P:scalajs:mapSourceURI:$a->/srcmaps/"
     }),
-
 
     // yes, we want to package JS dependencies
     skip in packageJSDependencies := false,

@@ -5,12 +5,32 @@ import upickle._
 
 object Json {
 
-  implicit val clusterProtocolWriter = Writer[ClusterProtocol] {
 
-    case r: CurrentClusterStateInitial =>
+  implicit val nodeStateProtocolWrite = Writer[NodeState] {
+    case Up => Js.Arr(Js.Num(1))
+
+    case Unreachable => Js.Arr(Js.Num(2))
+
+    case Removed => Js.Arr(Js.Num(3))
+
+    case Exited => Js.Arr(Js.Num(4))
+  }
+
+  implicit val nodeStateProtocolRead = Reader[NodeState] {
+    case Js.Arr(Js.Num(1)) => Up
+    case Js.Arr(Js.Num(2)) => Unreachable
+    case Js.Arr(Js.Num(3)) => Removed
+    case Js.Arr(Js.Num(4)) => Exited
+  }
+
+
+
+  implicit val clusterProtocolWriter = upickle.default.Writer[ClusterProtocol] {
+
+    case a: CurrentClusterStateInitial =>
       Js.Arr(
         Js.Num(1),
-        Js.Str(write[CurrentClusterStateInitial](r))
+        Js.Str(write[CurrentClusterStateInitial](a))
       )
 
 
@@ -60,27 +80,6 @@ object Json {
       read[ClusterUnjoin](v)
   }
 
-
-  implicit val nodeStateProtocolWrite = Writer[NodeState] {
-    case Up =>
-      Js.Arr(Js.Num(1))
-
-    case Unreachable =>
-      Js.Arr(Js.Num(2))
-
-    case Removed =>
-      Js.Arr(Js.Num(3))
-
-    case Exited =>
-      Js.Arr(Js.Num(4))
-  }
-
-  implicit val nodeStateProtocolRead = Reader[NodeState] {
-    case Js.Arr(Js.Num(1)) => Up
-    case Js.Arr(Js.Num(2)) => Unreachable
-    case Js.Arr(Js.Num(3)) => Removed
-    case Js.Arr(Js.Num(4)) => Exited
-  }
 
 
   implicit val clusterDepWrite = Writer[ClusterDependency] {
