@@ -33,6 +33,7 @@ lazy val root = project.in(file(".")).
 // Command for building a release
 lazy val ReleaseCmd = Command.command("release") {
   state => "set productionBuild in js := true" ::
+    "set elideOptions in js := Seq(\"-Xelide-below\", \"WARNING\")" ::
     "sharedProjectJS/test" ::
     "sharedProjectJS/fullOptJS" ::
     "sharedProjectJS/packageJSDependencies" ::
@@ -100,7 +101,7 @@ lazy val sharedProject = crossProject.in(file("."))
     scalacOptions ++= elideOptions.value,
     // scalacOptions in (Compile, fullOptJS) ++= Seq("-Xelide-below", "WARNING"),
     // select JS dependencies according to build setting
-//    jsDependencies ++= {if (!productionBuild.value) Settings.jsDependencies.value else Settings.jsDependenciesProduction.value},
+    jsDependencies ++= {if (!productionBuild.value) Settings.jsDependencies.value else Settings.jsDependenciesProduction.value},
     jsDependencies ++= Settings.jsDependencies.value,
     // RuntimeDOM is needed for tests
     jsDependencies += RuntimeDOM % "test",

@@ -1,5 +1,7 @@
 package clusterconsole.http
 
+import com.typesafe.config.ConfigFactory
+
 import scalatags.Text.all.{ html => htmlFrag, _ }
 import scalatags.Text.tags2
 import scalatags.stylesheet.{ StyleSheet, Sheet }
@@ -15,11 +17,21 @@ object Page {
 
   def main(title: String, content: Frag*) =
     htmlFrag(
-      headTag(title),
-      body(onload := "ClusterConsoleApp().main()")(
-        script(src := "/js/cluster-console-jsdeps.js"),
-        script(src := "/js/cluster-console-fastopt.js")
-      )
+      headTag(title), {
+        val prod = ConfigFactory.load().getBoolean("clusterConsole.productionMode")
+        if (prod) {
+          body(onload := "ClusterConsoleApp().main()")(
+            script(src := "/js/cluster-console-jsdeps.min.js"),
+            script(src := "/js/cluster-console-opt.js")
+          )
+        } else {
+          body(onload := "ClusterConsoleApp().main()")(
+            script(src := "/js/cluster-console-jsdeps.js"),
+            script(src := "/js/cluster-console-fastopt.js")
+          )
+        }
+
+      }
     )
 }
 
