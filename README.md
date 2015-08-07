@@ -66,8 +66,6 @@ To start the sample cluster:
 
 To stop a particular actor by port:    
 
-    lsof -i tcp:2553 | grep -i LISTEN
-
 OSX:    
     
     kill -9 `lsof -i tcp:2551 | grep -i LISTEN`
@@ -91,8 +89,5 @@ OSX:
 Nix:
 
     fuser -k -n tcp 2551
-    fuser -k -n tcp 2552
-    fuser -k -n tcp 2553
-    fuser -k -n tcp 2554
-    fuser -k -n tcp 2555
-    fuser -k -n tcp 2556
+
+etc.
