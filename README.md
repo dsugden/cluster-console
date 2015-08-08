@@ -33,12 +33,9 @@ to run in dev:
 To start the sample cluster:
     
 
-    sbt
-    project sampleCluster
-    dist
-    exit
+    sbt 'project sampleCluster' 'dist'
     
-    cd sampleCluster/target/universal/
+    cd sampleCluster/target/universal
     unzip samplecluster-1.0.0.zip 
     sudo chmod +x samplecluster-1.0.0/bin/samplecluster
     
