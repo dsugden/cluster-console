@@ -129,11 +129,14 @@ trait ClusterStore extends Actor {
             log.debug("**************  added node")
             List(node)
           })(nodes =>
-            nodes.map(n =>
-              if (n.host == node.host) {
-                log.debug("**************  replaced node")
-                node
-              } else n)))
+            nodes.find(e => ClusterGraphNode.label(e) == ClusterGraphNode.label(node)).fold(node :: nodes)(found =>
+              nodes.map(n =>
+                if (ClusterGraphNode.label(n) == ClusterGraphNode.label(node)) {
+                  log.debug("**************  replaced node")
+                  node
+                } else n)
+            )
+          ))
 
     case clusterUnjoin: ClusterUnjoin =>
       //      log.debug("+++++++++++ receive ClusterUnjoin" + clusterUnjoin)

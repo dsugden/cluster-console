@@ -371,17 +371,39 @@ object Graph {
                 currentNodesMap.get(node.address.label).fold(
                   ClusterGraphNode(node, getNewIndex(existingIndexes, 1), 450, 450, 450, 450, false, 0)
                 )(cn => {
+
                     val fixedList = t.props.store.getDiscoveredClusterNodes().getOrElse(cluster.system, Nil)
-                    fixedList.find(_.host == node.address.label).fold(
+
+                    log.debug("fixedList " + fixedList.map(e => e.port + " " + e.index + " " + e.fixed))
+
+                    fixedList.find(e => ClusterGraphNode.label(e) == node.labelSimple).fold(
                       ClusterGraphNode(node, cn.index, cn.x, cn.y, cn.px, cn.py, cn.fixed, cn.weight)
                     )(fixedNode => {
                         log.debug("^^^^^^^^^^^^^  fixedNode  " + fixedNode.x)
-                        ClusterGraphNode(node, fixedNode.index, fixedNode.x, fixedNode.y, fixedNode.px, fixedNode.py, fixedNode.fixed, fixedNode.weight)
+
+                        js.Dynamic.literal(
+                          "virtualHost" -> cn.virtualHost,
+                          "host" -> cn.host,
+                          "port" -> cn.port,
+                          "roles" -> cn.roles,
+                          "status" -> cn.status,
+                          "name" -> cn.name,
+                          "index" -> cn.index,
+                          "x" -> cn.x,
+                          "y" -> cn.y,
+                          "px" -> cn.px,
+                          "py" -> cn.py,
+                          "fixed" -> true,
+                          "weight" -> cn.weight
+                        ).asInstanceOf[ClusterGraphNode]
                       })
-                  })
+                  }
+                  )
               }
 
           }
+
+        log.debug("********** incomingNodes = " + incomingNodes.map(e => e.port + " " + e.index))
 
         t.modState { s =>
           val links: Seq[ClusterGraphLink] = {
@@ -390,21 +412,20 @@ object Graph {
               case Roles =>
                 getLinks(incomingNodes, t.props.mode, cluster, t.props.store.getSelectedDeps().getOrElse(cluster.system, Nil))
 
-              case _ => getLinks(incomingNodes, t.props.mode, cluster, t.props.store.getSelectedDeps().get(cluster.system).getOrElse(Nil))
+              case _ => getLinks(incomingNodes, t.props.mode, cluster, t.props.store.getSelectedDeps().getOrElse(cluster.system, Nil))
             }
           }
-          val nodesToForce = incomingNodes.filter(_.fixed == false)
-          val nodeUpdateState = s.copy(nodes = incomingNodes, force = s.force.nodes(nodesToForce.toJsArray).start())
-          nodeUpdateState.copy(links = links)
+          s.copy(nodes = incomingNodes, links = links, force = s.force.nodes(incomingNodes.toJsArray).start())
         }
       })
+      initDrag()
     }
 
     def renderTick() = {
       val newNodes: List[ClusterGraphNode] = t.state.force.nodes().toList
-      val notFixed = newNodes.filter(_.fixed == false)
-      val fixed = t.state.nodes.filter(_.fixed == true)
-      t.modState(s => s.copy(nodes = notFixed ++ fixed))
+      //      val notFixed = newNodes.filter(_.fixed == false)
+      //      val fixed = t.state.nodes.filter(_.fixed == true)
+      t.modState(s => s.copy(nodes = newNodes))
     }
 
     def start() = {
@@ -417,8 +438,9 @@ object Graph {
 
     def startfixed() = {
       t.modState { s =>
-        val nodesToForce = t.state.nodes.filter(_.fixed == false)
-        val firstState = s.copy(force = s.force.nodes(nodesToForce.toJsArray).start())
+        log.debug("------  startfixed " + t.state.nodes.map(_.fixed))
+        //        val nodesToForce = t.state.nodes.filter(n => )
+        val firstState = s.copy(force = s.force.nodes(t.state.nodes.toJsArray).start())
         (1 until 150).foreach(i => t.state.force.tick())
         firstState.copy(force = s.force.on("tick", () => renderTick))
       }
@@ -433,45 +455,53 @@ object Graph {
 
     }
 
-    def dragEnd(a: js.Any, b: Double): js.Any = {
-      t.state.nodes.find(_.index == b).foreach(node =>
-        ClusterStoreActions.updateClusterNode(t.props.system, node)
-      )
+    def initDrag(): Unit = {
+      val drag = t.state.force.drag().on("dragend", (a: js.Any, b: Double) => dragEnd(a, b))
+      d3.select("svg").
+        selectAll(".node").
+        data(t.state.nodes.toJSArray).
+        call(drag)
+
     }
 
-    def dragMove(a: js.Any, b: Double): js.Any = {
+    def dragEnd(d: js.Any, x: Double) = {
 
-      t.props.store.getSelectedCluster().foreach(cluster => {
-        val mouse = d3.mouse(js.Dynamic.global.document.getElementById(b.toString))
+      val node = d.asInstanceOf[ClusterGraphNode]
 
-        val newNodes: Seq[ClusterGraphNode] = t.state.nodes.map(n =>
-          if (n.index == b) {
-            js.Dynamic.literal(
-              "host" -> n.host,
-              "roles" -> n.roles,
-              "status" -> n.status,
-              "name" -> n.name,
-              "index" -> b,
-              "x" -> mouse(0),
-              "y" -> mouse(1),
-              "px" -> n.px,
-              "py" -> n.py,
-              "fixed" -> true,
-              "weight" -> n.weight
-            ).asInstanceOf[ClusterGraphNode]
+      t.modState { s =>
 
-          } else {
-            n
+        val newNodes =
+          s.nodes.map { e =>
+
+            if (e.name == node.name) {
+              log.debug("*************** dragStart   " + e.name)
+              js.Dynamic.literal(
+                "virtualHost" -> e.name,
+                "host" -> e.host,
+                "port" -> e.port,
+                "roles" -> e.roles,
+                "status" -> e.status,
+                "name" -> e.name,
+                "index" -> e.index,
+                "x" -> e.x,
+                "y" -> e.y,
+                "px" -> e.px,
+                "py" -> e.py,
+                "fixed" -> true,
+                "weight" -> e.weight
+              ).asInstanceOf[ClusterGraphNode]
+            } else {
+              e
+            }
+
           }
-        )
 
-        val newLinks: Seq[ClusterGraphLink] = getLinks(newNodes, t.props.mode, cluster)
-
-        t.modState(s => s.copy(nodes = newNodes, links = newLinks))
+        s.copy(nodes = newNodes, force = s.force.nodes(newNodes.toJSArray).start())
       }
-      )
 
-      //      t.modState(s => s.copy(nodes = newNodes))
+      t.state.nodes.find(e => ClusterGraphNode.label(e) == ClusterGraphNode.label(node)).foreach(node =>
+        ClusterStoreActions.updateClusterNode(t.props.system, node)
+      )
 
     }
 
@@ -484,8 +514,6 @@ object Graph {
         .size(List[Double](P.width, P.height).toJsArray)
         .charge(-1500)
         .linkDistance(1000)
-        //        .chargeDistance(1000)
-        //        .linkDistance(500)
         .friction(0.9)
 
       val (nodes, links) = P.store.getSelectedCluster().map(cluster => {
@@ -537,11 +565,8 @@ object Graph {
 
     }.componentDidMount { scope =>
       scope.backend.mounted()
-      //
-      //      val drag1 = d3.behavior.drag()
-      //      drag1.origin(() => js.Array(0, 0)).on("drag", (a: js.Any, b: Double) => scope.backend.dragMove(a, b))
-      //        .on("dragend", (a: js.Any, b: Double) => scope.backend.dragEnd(a, b))
-      //      d3.select("svg").selectAll(".node").call(drag1)
+
+      scope.backend.initDrag()
 
     }.componentWillUnmount { scope =>
       scope.state.force.stop()
@@ -582,7 +607,7 @@ object Graph {
         case _ =>
           cluster.members.toSeq.zipWithIndex.map {
             case (node, i) =>
-              fixedList.find(_.host == node.address.label).fold(
+              fixedList.find(e => ClusterGraphNode.label(e) == node.labelSimple).fold(
                 ClusterGraphNode(node, i, 450, 450, 450, 450, false, 0)
               )(fixedNode => {
                   ClusterGraphNode(node,

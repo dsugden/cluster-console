@@ -372,6 +372,8 @@ package Time {
 
 package Layout {
 
+  import clusterconsole.client.d3.Behavior.Behavior
+
   trait Layout extends js.Object {
     def stack(): StackLayout = js.native
     def pie(): PieLayout = js.native
@@ -508,7 +510,7 @@ package Layout {
     def stop(): ForceLayout = js.native
     def tick(): ForceLayout = js.native
     def on(`type`: String, listener: js.Function0[Unit]): ForceLayout = js.native
-    def drag(): ForceLayout = js.native
+    def drag(): Behavior.Drag = js.native
   }
 
   trait BundleLayout extends js.Object {

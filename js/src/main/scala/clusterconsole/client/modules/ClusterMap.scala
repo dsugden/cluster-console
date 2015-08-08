@@ -123,10 +123,10 @@ object ClusterMap {
         )
 
       div(cls := "row")(
-        div(cls := "col-md-3", globalStyles.leftNav, height := "100%")(
+        div(cls := "col-md-2", globalStyles.leftNav, height := "100%")(
           leftNav
         ),
-        div(cls := "col-md-9")(
+        div(cls := "col-md-10")(
           clusterMapToolBar,
           div(cls := "row")(
             div(cls := "col-md-12")(
