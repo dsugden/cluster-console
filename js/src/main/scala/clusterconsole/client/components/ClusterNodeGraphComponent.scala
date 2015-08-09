@@ -1,14 +1,14 @@
 package clusterconsole.client.components
 
 import clusterconsole.client.modules.{ Mode, RxObserver }
-import clusterconsole.client.services.ClusterStore
+import clusterconsole.client.services.{ ClusterService, ClusterService$ }
 import clusterconsole.http.DiscoveredCluster
 import japgolly.scalajs.react.extra.OnUnmount
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.all._
 object ClusterNodeGraphComponent {
 
-  case class Props(store: ClusterStore, mode: Mode)
+  case class Props(store: ClusterService, mode: Mode)
 
   case class State(cluster: Option[DiscoveredCluster])
 
@@ -47,6 +47,6 @@ object ClusterNodeGraphComponent {
     .configure(OnUnmount.install)
     .build
 
-  def apply(store: ClusterStore, mode: Mode) = component(Props(store, mode))
+  def apply(store: ClusterService, mode: Mode) = component(Props(store, mode))
 
 }

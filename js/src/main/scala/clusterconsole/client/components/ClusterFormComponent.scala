@@ -1,6 +1,6 @@
 package clusterconsole.client.components
 
-import clusterconsole.client.services.{ ClusterStoreActions, ClusterStore }
+import clusterconsole.client.services.ClusterService
 import clusterconsole.client.style.Bootstrap.{ Button, Modal }
 import clusterconsole.client.style.{ Icon, GlobalStyles }
 import clusterconsole.http.{ ClusterForm, HostPort, DiscoveredCluster }
@@ -21,7 +21,7 @@ object ClusterFormComponent {
   class Backend(t: BackendScope[EditClusterProps, State]) {
 
     def updateClusterForm(newForm: ClusterForm) = {
-      ClusterStoreActions.updateClusterForm(newForm)
+      ClusterService.updateClusterForm(newForm)
     }
 
     def updateClusterName(e: ReactEventI): Unit = {
@@ -152,7 +152,7 @@ object ClusterFormComponent {
     }).componentDidMount(x => x.modState(s => s.copy(cluster = x.props.cluster)))
     .build
 
-  def apply(store: ClusterStore,
+  def apply(store: ClusterService,
     editHandler: ClusterForm => Unit,
     closeForm: () => Unit) = component(EditClusterProps(store.getClusterForm(), editHandler, closeForm))
 

@@ -3,15 +3,14 @@ package clusterconsole.client.modules
 import clusterconsole.client.ClusterConsoleApp.Loc
 import clusterconsole.client.components._
 import clusterconsole.client.services.Logger._
-import clusterconsole.client.services.{ ActivityLogService, ClusterStore, ClusterStoreActions }
-import clusterconsole.client.style.Bootstrap.Button
+import clusterconsole.client.services.{ ClusterService, ActivityLogService }
+
 import clusterconsole.client.style.{ GlobalStyles, Icon }
-import clusterconsole.http.{ HostPortUtil, HostPort, ClusterForm, DiscoveredCluster }
+import clusterconsole.http.{ HostPortUtil, ClusterForm }
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.extra.OnUnmount
 import japgolly.scalajs.react.extra.router2.RouterCtl
 import japgolly.scalajs.react.vdom.all._
-import rx._
 import scalacss.ScalaCssReact._
 
 sealed trait Mode {
@@ -42,22 +41,22 @@ object ClusterMap {
 
   @inline private def globalStyles = GlobalStyles
 
-  case class Props(store: ClusterStore, router: RouterCtl[Loc])
+  case class Props(store: ClusterService, router: RouterCtl[Loc])
 
   case class State(showClusterForm: Boolean, mode: Mode)
 
   class Backend(t: BackendScope[Props, State]) extends RxObserver(t) {
     def mounted(): Unit = {
-      ClusterStoreActions.getDiscoveredClusters()
+      ClusterService.getDiscoveredClusters()
     }
 
     def editCluster(item: ClusterForm): Unit = {
       log.debug("item " + item)
-      ClusterStoreActions.subscribeToCluster(item.name, item.seeds.map(HostPortUtil.apply))
+      ClusterService.subscribeToCluster(item.name, item.seeds.map(HostPortUtil.apply))
     }
 
     def selectCluster(name: String) = {
-      ClusterStoreActions.selectCluster(name)
+      ClusterService.selectCluster(name)
     }
 
     def showClusterForm(show: Boolean) = {
@@ -141,7 +140,7 @@ object ClusterMap {
     .build
 
   /** Returns a function with router location system while using our own props */
-  def apply(store: ClusterStore) = (router: RouterCtl[Loc]) => {
+  def apply(store: ClusterService) = (router: RouterCtl[Loc]) => {
     component(Props(store, router))
   }
 

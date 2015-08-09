@@ -1,9 +1,8 @@
 package clusterconsole.client.components
 
 import clusterconsole.client.modules.RxObserver
-import clusterconsole.client.services.ClusterStoreActions
 import clusterconsole.client.style.GlobalStyles
-import clusterconsole.http.{ DiscoveryBegun, DiscoveredCluster }
+import clusterconsole.http.DiscoveryBegun
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.extra.OnUnmount
 import japgolly.scalajs.react.vdom.all._

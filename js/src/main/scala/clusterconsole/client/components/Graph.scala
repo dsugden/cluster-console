@@ -1,14 +1,10 @@
 package clusterconsole.client.components
 
-import clusterconsole.client.components.GraphNode.State
-import clusterconsole.client.d3.D3.Selection
-import clusterconsole.client.services.{ ClusterStore, ClusterStoreActions }
+import clusterconsole.client.services.ClusterService
 import clusterconsole.client.style.GlobalStyles
-import clusterconsole.http.{ ClusterMember, ClusterDependency, RoleDependency, DiscoveredCluster }
+import clusterconsole.http.{ ClusterMember, RoleDependency, DiscoveredCluster }
 import japgolly.scalajs.react.extra.OnUnmount
 import japgolly.scalajs.react.vdom.{ Attrs, SvgAttrs }
-import org.scalajs.dom.raw.SVGCircleElement
-import rx._
 
 import clusterconsole.client.d3.Layout._
 import clusterconsole.client.modules._
@@ -293,7 +289,7 @@ object Graph {
   import clusterconsole.client.style.CustomTags._
 
   case class Props(system: String, mode: Mode, width: Double, height: Double,
-    store: ClusterStore, fixedMap: Boolean)
+    store: ClusterService, fixedMap: Boolean)
 
   case class State(nodes: Seq[ClusterGraphNode],
     links: Seq[ClusterGraphLink],
@@ -325,7 +321,7 @@ object Graph {
       log.debug("selectDep " + rd.tpe.name + " " + selected)
 
       t.props.store.getSelectedCluster().foreach(cluster =>
-        ClusterStoreActions.selectRoleDependency(cluster.system, rd, selected)
+        ClusterService.selectRoleDependency(cluster.system, rd, selected)
       )
 
     }
@@ -491,7 +487,7 @@ object Graph {
       }
 
       t.state.nodes.find(e => ClusterGraphNode.label(e) == ClusterGraphNode.label(node)).foreach(node =>
-        ClusterStoreActions.updateClusterNode(t.props.system, node)
+        ClusterService.updateClusterNode(t.props.system, node)
       )
 
     }
@@ -563,7 +559,7 @@ object Graph {
       scope.state.force.stop()
     }.configure(OnUnmount.install).build
 
-  def apply(system: String, mode: Mode, width: Double, height: Double, store: ClusterStore, fixedMap: Boolean) = {
+  def apply(system: String, mode: Mode, width: Double, height: Double, store: ClusterService, fixedMap: Boolean) = {
 
     component(Props(system, mode, width, height, store, fixedMap))
   }

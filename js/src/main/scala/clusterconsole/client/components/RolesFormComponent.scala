@@ -1,7 +1,6 @@
 package clusterconsole.client.components
 
-import clusterconsole.client.modules.RxObserver
-import clusterconsole.client.services.{ ClusterStoreActions, Logger }
+import clusterconsole.client.services.{ ClusterService, Logger }
 import clusterconsole.client.style.Bootstrap.{ Button, Modal }
 import clusterconsole.client.style.{ GlobalStyles, Icon }
 import clusterconsole.http._
@@ -95,8 +94,7 @@ object RolesFormComponent {
     }
 
     def submitForm() = {
-      log.debug("******** submitForm")
-      ClusterStoreActions.updateClusterDependencies(t.props.cluster.copy(dependencies = t.state.dependencies))
+      ClusterService.updateClusterDependencies(t.props.cluster.copy(dependencies = t.state.dependencies))
       t.props.closeForm
     }
 

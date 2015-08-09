@@ -14,8 +14,8 @@ object WebSocketClient {
   lazy val websocket = new WebSocket(getWebsocketUri(dom.document))
 
   websocket.onopen = { (event: Event) =>
-    ClusterStoreActions.getDiscoveringClusters()
-    ClusterStoreActions.getDiscoveredClusters()
+    ClusterService.findDiscoveringClusters()
+    ClusterService.findDiscoveredClusters()
     event
   }
   websocket.onerror = { (event: ErrorEvent) =>

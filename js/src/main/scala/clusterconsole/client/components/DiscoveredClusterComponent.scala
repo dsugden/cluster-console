@@ -5,7 +5,7 @@ import clusterconsole.client.components.Graph.State
 import clusterconsole.client.components.Graph.State
 import clusterconsole.client.d3._
 import clusterconsole.client.modules.{ Roles, Mode, RxObserver }
-import clusterconsole.client.services.{ ClusterStoreActions, ClusterStore }
+import clusterconsole.client.services.ClusterService
 import clusterconsole.client.style.GlobalStyles
 import clusterconsole.http.{ DiscoveryBegun, ClusterForm, HostPort, DiscoveredCluster }
 import japgolly.scalajs.react.extra.OnUnmount
@@ -33,7 +33,7 @@ object DiscoveredClusterComponent {
     }
 
     def selectCluster(e: ReactMouseEvent) = {
-      ClusterStoreActions.selectCluster(e.currentTarget.firstChild.nodeValue)
+      ClusterService.selectCluster(e.currentTarget.firstChild.nodeValue)
       e.preventDefault()
     }
 

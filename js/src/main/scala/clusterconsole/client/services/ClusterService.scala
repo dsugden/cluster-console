@@ -24,7 +24,7 @@ case class UpdatedCluster(c: DiscoveredCluster)
 
 case class UpdateClusterNodes(system: String, node: ClusterGraphNode)
 
-trait ClusterStore extends Actor {
+trait ClusterService extends Actor {
 
   // refine a reactive variable
   private val discoveredClusters = Var(Map.empty[String, DiscoveredCluster])
@@ -62,25 +62,20 @@ trait ClusterStore extends Actor {
    *
    * @return `PartialFunction` defining actor behavior
    */
-  def receive: ClusterStore.Receive = {
+  def receive: ClusterService.Receive = {
     case m @ ClusterMemberUp(system, clusterMember) =>
-      //      log.debug("+++++++++++ receive clusterMemberUp" + m + " system:" + system)
-      ClusterStoreActions.refreshCluster(system)
+      ClusterService.refreshCluster(system)
 
     case m @ ClusterMemberUnreachable(system, clusterMember) =>
-      //      log.debug("+++++++++++ receive clusterMemberUp" + m + " system:" + system)
-      ClusterStoreActions.refreshCluster(system)
+      ClusterService.refreshCluster(system)
 
     case m @ ClusterMemberRemoved(system, clusterMember) =>
-      //      log.debug("+++++++++++ receive clusterMemberUp" + m + " system:" + system)
-      ClusterStoreActions.refreshCluster(system)
+      ClusterService.refreshCluster(system)
 
     case m @ DiscoveryBegun(system, seedNodes) =>
-      log.debug("+++++++++++ receive DiscoveryBegun" + m)
       discoveringClusters() = discoveringClusters() + (system -> m)
 
     case m @ DiscoveredCluster(system, seeds, status, members, _) =>
-      //      log.debug("+++++++++++ receive DiscoveredCluster" + m)
       discoveringClusters() = discoveringClusters() - system
       discoveredClusters() = discoveredClusters() + (system -> m)
 
@@ -88,9 +83,6 @@ trait ClusterStore extends Actor {
       selectedCluster() = Some(m.c)
 
     case m @ RefreshCluster(DiscoveredCluster(system, seeds, status, members, deps)) =>
-
-      log.debug("************* RefreshCluster deps:  " + deps)
-
       discoveringClusters() = discoveringClusters() - system
       discoveredClusters() = discoveredClusters() + (system -> m.c)
       if (selectedCluster().isEmpty)
@@ -104,7 +96,6 @@ trait ClusterStore extends Actor {
 
     case SelectRoleDependency(system, roleDependency, selected) =>
       if (selected) {
-        //        log.debug("")
         selectedDeps() =
           selectedDeps() + (system -> selectedDeps().get(system).fold(List(roleDependency))(deps =>
             (deps.toSet + roleDependency).toList))
@@ -121,24 +112,18 @@ trait ClusterStore extends Actor {
       )
 
     case m @ UpdateClusterNodes(system, node) =>
-      log.debug("UpdateClusterNodes " + node.host)
       discoveredClusterNodes() =
         discoveredClusterNodes() + (system ->
-          discoveredClusterNodes().get(system).fold({
-            log.debug("**************  added node")
-            List(node)
-          })(nodes =>
+          discoveredClusterNodes().get(system).fold(List(node))(nodes =>
             nodes.find(e => ClusterGraphNode.label(e) == ClusterGraphNode.label(node)).fold(node :: nodes)(found =>
               nodes.map(n =>
                 if (ClusterGraphNode.label(n) == ClusterGraphNode.label(node)) {
-                  log.debug("**************  replaced node")
                   node
                 } else n)
             )
           ))
 
     case clusterUnjoin: ClusterUnjoin =>
-      //      log.debug("+++++++++++ receive ClusterUnjoin" + clusterUnjoin)
       events() = events() :+ clusterUnjoin
 
     case x: UpdateClusterForm =>
@@ -150,12 +135,8 @@ trait ClusterStore extends Actor {
 
 }
 
-object ClusterStore extends ClusterStore {
-  // register this actor with the dispatcher
+object ClusterService extends ClusterService {
   MainDispatcher.register(this)
-}
-
-object ClusterStoreActions {
 
   import Json._
 
@@ -163,51 +144,39 @@ object ClusterStoreActions {
     AjaxClient[Api].discover(name, seedNodes).call()
       .foreach(_.foreach(MainDispatcher.dispatch))
 
-  def getDiscoveringClusters() = {
-
-    log.debug("clalling getDiscoveringClusters")
-
+  def findDiscoveringClusters() =
     AjaxClient[Api].getDiscovering().call().foreach { discoveringSeq =>
       discoveringSeq.foreach(MainDispatcher.dispatch)
     }
-  }
 
-  def getDiscoveredClusters() = {
+  def findDiscoveredClusters() =
     AjaxClient[Api].getDiscovered().call().foreach { discoveredSet =>
       discoveredSet.foreach(MainDispatcher.dispatch)
     }
-  }
 
-  def selectCluster(system: String) = {
+  def selectCluster(system: String) =
     AjaxClient[Api].getCluster(system).call().foreach { discovered =>
       discovered.foreach(c => MainDispatcher.dispatch(SelectedCluster(c)))
     }
-  }
 
-  def refreshCluster(system: String) = {
+  def refreshCluster(system: String) =
     AjaxClient[Api].getCluster(system).call().foreach { discovered =>
       discovered.foreach(c => MainDispatcher.dispatch(RefreshCluster(c)))
     }
-  }
 
-  def updateClusterDependencies(cluster: DiscoveredCluster) = {
-
+  def updateClusterDependencies(cluster: DiscoveredCluster) =
     AjaxClient[Api].updateClusterDependencies(cluster).call().foreach { updated =>
-      log.debug("updateClusterDependencies cluster " + cluster)
       MainDispatcher.dispatch(UpdatedCluster(updated))
     }
-  }
 
-  def selectRoleDependency(system: String, rd: RoleDependency, selected: Boolean) = {
+  def selectRoleDependency(system: String, rd: RoleDependency, selected: Boolean) =
     MainDispatcher.dispatch(SelectRoleDependency(system, rd, selected))
-  }
 
-  def updateClusterForm(clusterForm: ClusterForm) = {
+  def updateClusterForm(clusterForm: ClusterForm) =
     MainDispatcher.dispatch(UpdateClusterForm(clusterForm))
-  }
 
-  def updateClusterNode(system: String, node: ClusterGraphNode) = {
-    log.debug("updateClusterNode cluster " + node.host)
+  def updateClusterNode(system: String, node: ClusterGraphNode) =
     MainDispatcher.dispatch(UpdateClusterNodes(system, node))
-  }
+
 }
+
