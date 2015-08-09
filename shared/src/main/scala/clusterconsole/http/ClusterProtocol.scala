@@ -43,8 +43,8 @@ case class DiscoveredCluster(
                               system: String,
                               seeds: List[HostPort],
                               status: String,
-                              members: Set[ClusterMember] = Set.empty[ClusterMember],
-                              dependencies: Seq[RoleDependency] = Seq.empty[RoleDependency]) extends ClusterProtocol {
+                              members: Set[ClusterMember],
+                              dependencies: Seq[RoleDependency]) extends ClusterProtocol {
 
   def getRoles:Seq[String] = members.foldLeft[Set[String]](Set.empty[String])((a,b) => b.roles ++ a ).toSeq
 

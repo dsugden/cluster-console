@@ -1,8 +1,9 @@
 package clusterconsole.client.components
 
 import clusterconsole.client.components.ClusterFormComponent.{ EditClusterProps, State }
-import clusterconsole.client.components.Graph.State
-import clusterconsole.client.components.Graph.State
+import clusterconsole.client.components.graph.Graph
+import Graph.State
+import Graph.State
 import clusterconsole.client.d3._
 import clusterconsole.client.modules.{ Roles, Mode, RxObserver }
 import clusterconsole.client.services.ClusterService

@@ -1,12 +1,12 @@
 package clusterconsole.client.services
 
 import autowire._
-import clusterconsole.client.components.ClusterGraphNode
+import clusterconsole.client.domain.{ NodeLike, MemberLike, ClusterGraphNode }
+import clusterconsole.client.modules.Mode
 import clusterconsole.client.services.Logger._
 import clusterconsole.client.ukko.Actor
 import clusterconsole.http._
 import rx._
-import upickle.default._
 
 import scala.scalajs.concurrent.JSExecutionContext.Implicits.runNow
 
@@ -22,14 +22,15 @@ case class RefreshCluster(c: DiscoveredCluster)
 
 case class UpdatedCluster(c: DiscoveredCluster)
 
-case class UpdateClusterNodes(system: String, node: ClusterGraphNode)
+case class UpdateNodePosition(system: String, mode: Mode, node: ClusterGraphNode)
 
 trait ClusterService extends Actor {
 
-  // refine a reactive variable
+  import clusterconsole.client.domain.NodeLike._
+
   private val discoveredClusters = Var(Map.empty[String, DiscoveredCluster])
 
-  private val discoveredClusterNodes = Var(Map.empty[String, List[ClusterGraphNode]])
+  private val fixedNodePositions = Var(Map.empty[String, Map[Mode, List[ClusterGraphNode]]])
 
   private val selectedDeps = Var(Map.empty[String, List[RoleDependency]])
 
@@ -43,7 +44,7 @@ trait ClusterService extends Actor {
 
   def getDiscoveredClusters: Rx[Map[String, DiscoveredCluster]] = discoveredClusters
 
-  def getDiscoveredClusterNodes: Rx[Map[String, List[ClusterGraphNode]]] = discoveredClusterNodes
+  def getFixedNodePositions: Rx[Map[String, Map[Mode, List[ClusterGraphNode]]]] = fixedNodePositions
 
   def getDiscoveringClusters: Rx[Map[String, DiscoveryBegun]] = discoveringClusters
 
@@ -51,17 +52,10 @@ trait ClusterService extends Actor {
 
   def getSelectedDeps: Rx[Map[String, List[RoleDependency]]] = selectedDeps
 
-  //  def clusterEvents: Rx[Seq[ClusterEvent]] = events
-
   def getClusterForm: Rx[ClusterForm] = clusterForm
 
-  def name: String = "ClusterStore"
+  def name: String = "ClusterService"
 
-  /**
-   * Actors need to override this function to define their behavior
-   *
-   * @return `PartialFunction` defining actor behavior
-   */
   def receive: ClusterService.Receive = {
     case m @ ClusterMemberUp(system, clusterMember) =>
       ClusterService.refreshCluster(system)
@@ -89,7 +83,7 @@ trait ClusterService extends Actor {
         selectedCluster() = Some(m.c)
       else {
         selectedCluster().foreach(c =>
-          if (c.system == m.c.system)
+          if (c.system == system)
             selectedCluster() = Some(m.c)
         )
       }
@@ -107,21 +101,12 @@ trait ClusterService extends Actor {
 
     case m @ UpdatedCluster(DiscoveredCluster(system, seeds, status, members, _)) =>
       selectedCluster().foreach(c =>
-        if (c.system == m.c.system)
+        if (c.system == system)
           selectedCluster() = Some(m.c)
       )
 
-    case m @ UpdateClusterNodes(system, node) =>
-      discoveredClusterNodes() =
-        discoveredClusterNodes() + (system ->
-          discoveredClusterNodes().get(system).fold(List(node))(nodes =>
-            nodes.find(e => ClusterGraphNode.label(e) == ClusterGraphNode.label(node)).fold(node :: nodes)(found =>
-              nodes.map(n =>
-                if (ClusterGraphNode.label(n) == ClusterGraphNode.label(node)) {
-                  node
-                } else n)
-            )
-          ))
+    case UpdateNodePosition(system, mode, node) =>
+      fixedNodePositions() = updateFixedNodePositions(fixedNodePositions(), system, mode, node)
 
     case clusterUnjoin: ClusterUnjoin =>
       events() = events() :+ clusterUnjoin
@@ -132,6 +117,21 @@ trait ClusterService extends Actor {
     case other => log.debug("other " + other)
 
   }
+
+  def updateFixedNodePositions(map: Map[String, Map[Mode, List[ClusterGraphNode]]],
+    system: String,
+    mode: Mode,
+    node: ClusterGraphNode)(implicit ev: NodeLike[ClusterGraphNode]): Map[String, Map[Mode, List[ClusterGraphNode]]] =
+    map + (system ->
+      map.get(system).fold(Map(mode -> List(node)))(modeMap => modeMap + (mode -> {
+        modeMap.get(mode).fold(List(node))(nodes =>
+          nodes.find(e => ev.nodeEq(e, node)).fold(node :: nodes)(found =>
+            nodes.map(n =>
+              if (ClusterGraphNode.label(n) == ClusterGraphNode.label(node)) {
+                node
+              } else n)
+          ))
+      })))
 
 }
 
@@ -175,8 +175,8 @@ object ClusterService extends ClusterService {
   def updateClusterForm(clusterForm: ClusterForm) =
     MainDispatcher.dispatch(UpdateClusterForm(clusterForm))
 
-  def updateClusterNode(system: String, node: ClusterGraphNode) =
-    MainDispatcher.dispatch(UpdateClusterNodes(system, node))
+  def updateNodePosition(system: String, mode: Mode, node: ClusterGraphNode) =
+    MainDispatcher.dispatch(UpdateNodePosition(system, mode, node))
 
 }
 

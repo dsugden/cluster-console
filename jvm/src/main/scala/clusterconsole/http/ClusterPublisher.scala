@@ -38,8 +38,6 @@ class ClusterPublisher(router: ActorRef) extends ActorPublisher[String] with Log
     // exit.
     case clusterEvent: String =>
 
-      clusterEvent.logDebug(s"---------- ClusterPublisher received $clusterEvent" + _)
-
       // remove the oldest one from the queue and add a new one
       if (queue.size == MaxBufferSize) queue.dequeue()
       queue += clusterEvent

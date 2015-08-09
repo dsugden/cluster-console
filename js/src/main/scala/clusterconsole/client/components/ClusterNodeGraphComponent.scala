@@ -1,5 +1,6 @@
 package clusterconsole.client.components
 
+import clusterconsole.client.components.graph.Graph
 import clusterconsole.client.modules.{ Mode, RxObserver }
 import clusterconsole.client.services.{ ClusterService, ClusterService$ }
 import clusterconsole.http.DiscoveredCluster

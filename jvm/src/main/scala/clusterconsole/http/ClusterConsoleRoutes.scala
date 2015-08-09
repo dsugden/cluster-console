@@ -55,15 +55,10 @@ trait ClusterConsoleRoutes extends LogF { this: Actor =>
         extract(httpRequest2String) { dataExtractor =>
           complete {
             import Json._
-
-            val x = Await.result(dataExtractor, 2 seconds)
-
-            x.logDebug("------------------------   r " + _)
-
             for {
               data <- dataExtractor
               response <- AutowireServer.route[Api](clusterDiscoveryService)(autowire.Core.Request(
-                segments, read[Map[String, String]](data.logDebug("***********  data: " + _)))
+                segments, read[Map[String, String]](data))
               )
             } yield HttpEntity(response)
           }
@@ -124,7 +119,6 @@ class ClusterDiscoveryService(context: ActorContext, socketPublisherRouter: Acto
       val value = DiscoveryBegun(systemName, seedNodes)
       discovering += newSystemActor -> value
       context.watch(newSystemActor)
-      systemName.logDebug("*********************************************************  discover  " + _)
       Some(value)
     } else None
 
@@ -146,9 +140,7 @@ class ClusterDiscoveryService(context: ActorContext, socketPublisherRouter: Acto
     Await.result(futureMaybeDiscovered, 2 seconds)
   }
 
-  def getDiscovered: Set[DiscoveredCluster] = {
-    getDiscoveredFromTracked.logDebug("getDiscovered [" + _.toList.size + "]")
-  }
+  def getDiscovered: Set[DiscoveredCluster] = getDiscoveredFromTracked
 
   def getCluster(system: String): Option[DiscoveredCluster] = getDiscoveredFromTracked(system)
 

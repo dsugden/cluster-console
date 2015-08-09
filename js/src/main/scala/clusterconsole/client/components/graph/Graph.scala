@@ -1,288 +1,21 @@
-package clusterconsole.client.components
-
-import clusterconsole.client.services.ClusterService
-import clusterconsole.client.style.GlobalStyles
-import clusterconsole.http.{ ClusterMember, RoleDependency, DiscoveredCluster }
-import japgolly.scalajs.react.extra.OnUnmount
-import japgolly.scalajs.react.vdom.{ Attrs, SvgAttrs }
+package clusterconsole.client.components.graph
 
 import clusterconsole.client.d3.Layout._
+import clusterconsole.client.d3._
+import clusterconsole.client.domain._
 import clusterconsole.client.modules._
-import japgolly.scalajs.react.{ ReactComponentB, ReactNode }
-import japgolly.scalajs.react._
+import clusterconsole.client.services.ClusterService
+import clusterconsole.client.services.Logger._
+import clusterconsole.client.style.GlobalStyles
+import clusterconsole.http.{ ClusterMember, DiscoveredCluster, RoleDependency }
+import japgolly.scalajs.react.extra.OnUnmount
+import japgolly.scalajs.react.vdom.SvgAttrs
 import japgolly.scalajs.react.vdom.all.svg._
 import japgolly.scalajs.react.vdom.prefix_<^._
-import scala.scalajs.js
-import clusterconsole.client.d3._
-import js.JSConverters._
-import clusterconsole.client.services.Logger._
+import japgolly.scalajs.react.{ ReactComponentB, ReactNode, _ }
 
 import scala.scalajs.js
-
-trait ClusterGraphNode extends GraphNode {
-  var virtualHost: String = js.native
-  var host: String = js.native
-  var port: Int = js.native
-  var roles: String = js.native
-  var status: String = js.native
-
-}
-
-object ClusterGraphNode {
-
-  def label(n: ClusterGraphNode): String = n.host + ":" + n.port
-
-  def apply(m: ClusterMember,
-    index: Double,
-    x: Double,
-    y: Double,
-    px: Double,
-    py: Double,
-    fixed: Boolean,
-    weight: Double): ClusterGraphNode =
-    js.Dynamic.literal(
-      "virtualHost" -> "",
-      "host" -> m.address.host,
-      "port" -> m.address.port,
-      "roles" -> m.roles.mkString(","),
-      "status" -> m.state.toString,
-      "name" -> m.label,
-      "index" -> index,
-      "x" -> x,
-      "y" -> y,
-      "px" -> px,
-      "py" -> py,
-      "fixed" -> fixed,
-      "weight" -> weight
-    ).asInstanceOf[ClusterGraphNode]
-
-  def host(m: ClusterMember,
-    index: Double,
-    x: Double,
-    y: Double,
-    px: Double,
-    py: Double,
-    fixed: Boolean,
-    weight: Double): ClusterGraphNode =
-    js.Dynamic.literal(
-      "virtualHost" -> "",
-      "host" -> m.address.host,
-      "port" -> 0,
-      "roles" -> "",
-      "status" -> "",
-      "name" -> "",
-      "index" -> index,
-      "x" -> x,
-      "y" -> y,
-      "px" -> px,
-      "py" -> py,
-      "fixed" -> fixed,
-      "weight" -> weight
-    ).asInstanceOf[ClusterGraphNode]
-
-  def port(m: ClusterMember,
-    index: Double,
-    x: Double,
-    y: Double,
-    px: Double,
-    py: Double,
-    fixed: Boolean,
-    weight: Double): ClusterGraphNode =
-    js.Dynamic.literal(
-      "virtualHost" -> m.address.host,
-      "host" -> "",
-      "port" -> m.address.port,
-      "roles" -> m.roles.mkString(","),
-      "status" -> m.state.toString,
-      "name" -> "",
-      "index" -> index,
-      "x" -> x,
-      "y" -> y,
-      "px" -> px,
-      "py" -> py,
-      "fixed" -> fixed,
-      "weight" -> weight
-    ).asInstanceOf[ClusterGraphNode]
-
-}
-
-trait ClusterGraphLink extends GraphLink {
-  var sourceHost: String = js.native
-  var targetHost: String = js.native
-}
-
-trait ClusterGraphRoleLink extends ClusterGraphLink {
-  var index: Int = js.native
-}
-
-object LegendColors {
-
-  lazy val colors: List[String] = List("#136C90", "#9D4CD2", "#116126", "#D2902A", "#EA4040", "#6746EC")
-}
-
-object ClusterDependencyLegend {
-
-  case class Props(dep: RoleDependency, index: Int, selected: Boolean, selectDep: (RoleDependency, Boolean) => Unit)
-
-  case class State(selected: Boolean)
-
-  class Backend(t: BackendScope[Props, State]) {
-    def select = {
-      t.modState(_.copy(selected = !t.state.selected))
-      t.props.selectDep(t.props.dep, !t.state.selected)
-    }
-  }
-
-  val component = ReactComponentB[Props]("ClusterDependencyLegend")
-    .initialStateP(P => State(P.selected))
-    .backend(new Backend(_))
-    .render { (P, S, B) =>
-
-      val label = P.dep.tpe.name + ": " + P.dep.roles.mkString(",") + " depends on " + P.dep.dependsOn.mkString(",")
-
-      val rectwidth = (label.length * 9) + 20
-
-      g({
-        import japgolly.scalajs.react.vdom.all._
-        onClick --> B.select
-      })(rect(width := rectwidth.toString, height := "40", fill := {
-        if (S.selected) {
-          LegendColors.colors(P.index % 5)
-        } else {
-          GlobalStyles.leftNavBackgrounColor
-        }
-      }, x := 0, y := (P.index * 45) + 5, stroke := GlobalStyles.textColor),
-
-        text(x := 10, y := (P.index * 45) + 30, fill := GlobalStyles.textColor, fontSize := "15px", fontFamily := "Courier")(label)
-      )
-    }.build
-
-  def apply(dep: RoleDependency, index: Int, selected: Boolean, selectDep: (RoleDependency, Boolean) => Unit) =
-    component(Props(dep, index, selected, selectDep))
-}
-
-object GraphNode {
-
-  case class Props(node: ClusterGraphNode, force: ForceLayout, mode: Mode)
-
-  case class State(selected: Boolean)
-
-  class Backend(t: BackendScope[Props, State]) {
-    def select = t.modState(_.copy(selected = !t.state.selected))
-  }
-
-  val component = ReactComponentB[Props]("GraphNode")
-    .initialStateP(P => State(false))
-    .backend(new Backend(_))
-    .render { (P, S, B) =>
-      g(
-        circle(Attrs.cls := "node", Attrs.id := P.node.index, r := getRadius(P.mode, P.node), cx := P.node.x, cy := P.node.y,
-          fill := {
-
-            if (S.selected) {
-              "#EEE"
-            } else {
-              P.node.status match {
-                case "Up" => GlobalStyles.nodeUpColor
-                case "Unreachable" => GlobalStyles.nodeUnreachableColor
-                case "Removed" => GlobalStyles.nodeRemovedColor
-                case "Exited" => GlobalStyles.nodeRemovedColor
-                case _ => GlobalStyles.nodeUpColor
-              }
-            }
-          }, stroke := "#fff", strokeWidth := "1.px5"
-        //        , {
-        //            import japgolly.scalajs.react.vdom.all._
-        //            onClick --> B.select
-        //
-        //          }
-        ),
-        getTextNodes(P.mode, P.node)
-      )
-
-    }.build
-
-  def getRadius(mode: Mode, n: ClusterGraphNode): String = mode match {
-    case Nodes =>
-      if (n.host.length > 0) {
-        "60"
-      } else {
-        "30"
-      }
-    case _ => "30"
-  }
-
-  def getTextNodes(mode: Mode, n: ClusterGraphNode): ReactNode = mode match {
-    case Nodes =>
-      if (n.host.length > 0) {
-        g(
-          text(x := n.x - 30, y := n.y - 55, fill := "white", fontSize := "18px")(n.host)
-        )
-
-      } else {
-        g(
-          text(x := n.x - 30, y := n.y - 55, fill := "white", fontSize := "18px")(n.port),
-          text(x := n.x - 30, y := n.y - 35, fill := "#D5EFD5", fontSize := "18px")(n.roles)
-        )
-      }
-    case _ => g(
-      text(x := n.x - 30, y := n.y - 55, fill := "white", fontSize := "18px")(n.host + ":" + n.port),
-      text(x := n.x - 30, y := n.y - 35, fill := "#D5EFD5", fontSize := "18px")(n.roles)
-    )
-  }
-
-  def apply(node: ClusterGraphNode, force: ForceLayout, mode: Mode) = component(Props(node, force, mode))
-}
-
-object GraphLink {
-
-  case class Props(link: ClusterGraphLink, key: Int, mode: Mode)
-
-  val component = ReactComponentB[Props]("GraphLink")
-    .render { P =>
-
-      P.mode match {
-        case Members =>
-          line(
-            Attrs.cls := "link",
-            x1 := P.link.source.x,
-            y1 := P.link.source.y,
-            x2 := P.link.target.x,
-            y2 := P.link.target.y,
-            stroke := "#999",
-            strokeOpacity := ".6",
-            strokeWidth := "1",
-            strokeDasharray := "5,5")
-        case Roles =>
-
-          val roleLink = P.link.asInstanceOf[ClusterGraphRoleLink]
-
-          line(
-            Attrs.cls := "link",
-            x1 := P.link.source.x,
-            y1 := P.link.source.y,
-            x2 := P.link.target.x,
-            y2 := P.link.target.y,
-            stroke := LegendColors.colors(roleLink.index % 5),
-            strokeOpacity := "1",
-            strokeWidth := "5")
-        case Nodes =>
-          line(
-            Attrs.cls := "link",
-            x1 := P.link.source.x,
-            y1 := P.link.source.y,
-            x2 := P.link.target.x,
-            y2 := P.link.target.y,
-            stroke := "#999",
-            strokeOpacity := "1",
-            strokeWidth := "1")
-
-      }
-
-    }.build
-
-  def apply(link: ClusterGraphLink, key: Int, mode: Mode) = component(Props(link, key, mode))
-}
+import scala.scalajs.js.JSConverters._
 
 object Graph {
 
@@ -337,6 +70,32 @@ object Graph {
           }
         )
       )
+    }
+
+    def fixNodePosition(system: String, member: ClusterMember, cn: ClusterGraphNode)(implicit ev: MemberLike[ClusterGraphNode, ClusterMember]) = {
+      val fixedList = t.props.store.getFixedNodePositions()
+        .getOrElse(system, Map.empty[Mode, List[ClusterGraphNode]])
+        .getOrElse(t.props.mode, Nil)
+
+      fixedList.find(e => ev.nodeEq(e, member)).fold(
+        ClusterGraphNode(member, cn.index, cn.x, cn.y, cn.px, cn.py, cn.fixed, cn.weight)
+      )(fixedNode => {
+          js.Dynamic.literal(
+            "virtualHost" -> cn.virtualHost,
+            "host" -> cn.host,
+            "port" -> cn.port,
+            "roles" -> cn.roles,
+            "status" -> member.state.toString,
+            "name" -> cn.name,
+            "index" -> cn.index,
+            "x" -> cn.x,
+            "y" -> cn.y,
+            "px" -> cn.px,
+            "py" -> cn.py,
+            "fixed" -> true,
+            "weight" -> cn.weight
+          ).asInstanceOf[ClusterGraphNode]
+        })
 
     }
 
@@ -353,44 +112,23 @@ object Graph {
             case Nodes => Nil
 
             case _ =>
+              // get a node map of what is currently on screen
               val currentNodesMap = t.state.nodes.map(e => (ClusterGraphNode.label(e), e)).toMap
+
+              // this is actual cluster state from server, nodes could have been added there,
+              // must be added here. check existence in current map, if not there, add one, else
+              // check fixed position
               cluster.members.toList.map { node =>
                 currentNodesMap.get(node.address.label).fold(
                   ClusterGraphNode(node, getNewIndex(existingIndexes, 1), 450, 450, 450, 450, false, 0)
-                )(cn => {
-
-                    val fixedList = t.props.store.getDiscoveredClusterNodes().getOrElse(cluster.system, Nil)
-
-                    log.debug("fixedList " + fixedList.map(e => e.port + " " + e.index + " " + e.fixed))
-
-                    fixedList.find(e => ClusterGraphNode.label(e) == node.labelSimple).fold(
-                      ClusterGraphNode(node, cn.index, cn.x, cn.y, cn.px, cn.py, cn.fixed, cn.weight)
-                    )(fixedNode => {
-                        log.debug("^^^^^^^^^^^^^  fixedNode  " + fixedNode.x)
-
-                        js.Dynamic.literal(
-                          "virtualHost" -> cn.virtualHost,
-                          "host" -> cn.host,
-                          "port" -> cn.port,
-                          "roles" -> cn.roles,
-                          "status" -> cn.status,
-                          "name" -> cn.name,
-                          "index" -> cn.index,
-                          "x" -> cn.x,
-                          "y" -> cn.y,
-                          "px" -> cn.px,
-                          "py" -> cn.py,
-                          "fixed" -> true,
-                          "weight" -> cn.weight
-                        ).asInstanceOf[ClusterGraphNode]
-                      })
-                  }
-                  )
+                )(cn => fixNodePosition(t.props.system, node, cn))
               }
 
           }
 
         log.debug("********** incomingNodes = " + incomingNodes.map(e => e.port + " " + e.index))
+
+        log.debug("********** cluster deps = " + cluster.dependencies)
 
         t.modState { s =>
           val links: Seq[ClusterGraphLink] = {
@@ -443,7 +181,7 @@ object Graph {
     }
 
     def initDrag(): Unit = {
-      val drag = t.state.force.drag().on("dragend", (a: js.Any, b: Double) => dragEnd(a, b))
+      val drag = t.state.force.drag().on("dragend", (a: js.Any, b: Double) => dragEnd[ClusterGraphNode](a, b))
       d3.select("svg").
         selectAll(".node").
         data(t.state.nodes.toJSArray).
@@ -451,17 +189,14 @@ object Graph {
 
     }
 
-    def dragEnd(d: js.Any, x: Double) = {
+    def dragEnd[T: NodeLike](d: js.Any, x: Double) = {
 
       val node = d.asInstanceOf[ClusterGraphNode]
 
       t.modState { s =>
-
         val newNodes =
           s.nodes.map { e =>
-
-            if (e.name == node.name) {
-              log.debug("*************** dragStart   " + e.name)
+            if (implicitly[NodeLike[ClusterGraphNode]].nodeEq(e, node)) {
               js.Dynamic.literal(
                 "virtualHost" -> e.name,
                 "host" -> e.host,
@@ -480,18 +215,14 @@ object Graph {
             } else {
               e
             }
-
           }
-
         s.copy(nodes = newNodes, force = s.force.nodes(newNodes.toJSArray).start())
       }
 
-      t.state.nodes.find(e => ClusterGraphNode.label(e) == ClusterGraphNode.label(node)).foreach(node =>
-        ClusterService.updateClusterNode(t.props.system, node)
+      t.state.nodes.find(e => implicitly[NodeLike[ClusterGraphNode]].nodeEq(e, node)).foreach(node =>
+        ClusterService.updateNodePosition(t.props.system, t.props.mode, node)
       )
-
     }
-
   }
 
   val component = ReactComponentB[Props]("Graph")
@@ -506,7 +237,7 @@ object Graph {
       val (nodes, links) = P.store.getSelectedCluster().map(cluster => {
         getNodesAndLink(cluster,
           P.mode,
-          P.store.getDiscoveredClusterNodes().getOrElse(cluster.system, Nil),
+          P.store.getFixedNodePositions().getOrElse(cluster.system, Map.empty[Mode, List[ClusterGraphNode]]).getOrElse(P.mode, Nil),
           P.store.getSelectedDeps().getOrElse(cluster.system, Nil))
       }).getOrElse((Nil, Nil))
 
@@ -534,7 +265,7 @@ object Graph {
     }).componentWillReceiveProps { (scope, P) =>
       val (nodes, links) = P.store.getSelectedCluster().map(cluster => {
         getNodesAndLink(cluster, P.mode,
-          P.store.getDiscoveredClusterNodes().getOrElse(cluster.system, Nil),
+          P.store.getFixedNodePositions().getOrElse(cluster.system, Map.empty[Mode, List[ClusterGraphNode]]).getOrElse(P.mode, Nil),
           P.store.getSelectedDeps().getOrElse(cluster.system, Nil))
       }).getOrElse((Nil, Nil))
 
@@ -566,7 +297,8 @@ object Graph {
 
   def getNodesAndLink(cluster: DiscoveredCluster,
     mode: Mode,
-    fixedList: List[ClusterGraphNode], selectedDeps: List[RoleDependency]): (Seq[ClusterGraphNode], Seq[ClusterGraphLink]) = {
+    fixedList: List[ClusterGraphNode],
+    selectedDeps: List[RoleDependency])(implicit ev: MemberLike[ClusterGraphNode, ClusterMember]): (Seq[ClusterGraphNode], Seq[ClusterGraphLink]) = {
     val nodes =
 
       mode match {
@@ -581,7 +313,7 @@ object Graph {
 
               val portNodes: Seq[ClusterGraphNode] = ports.zipWithIndex.map {
                 case (pNode, pIndex) =>
-                  ClusterGraphNode.port(pNode, (newKeyIndex + 1 + pIndex), 450, 450, 450, 450, false, 1)
+                  ClusterGraphNode.port(pNode, newKeyIndex + 1 + pIndex, 450, 450, 450, 450, false, 1)
               }
 
               val hostNode: Option[ClusterGraphNode] =
@@ -594,7 +326,7 @@ object Graph {
         case _ =>
           cluster.members.toSeq.zipWithIndex.map {
             case (node, i) =>
-              fixedList.find(e => ClusterGraphNode.label(e) == node.labelSimple).fold(
+              fixedList.find(e => ev.nodeEq(e, node)).fold(
                 ClusterGraphNode(node, i, 450, 450, 450, 450, false, 0)
               )(fixedNode => {
                   ClusterGraphNode(node,
@@ -612,7 +344,10 @@ object Graph {
       v
     }
 
-  def getLinks(nodes: Seq[ClusterGraphNode], mode: Mode, cluster: DiscoveredCluster, roleDependencies: List[RoleDependency] = Nil) = {
+  def getLinks(nodes: Seq[ClusterGraphNode],
+    mode: Mode,
+    cluster: DiscoveredCluster,
+    roleDependencies: List[RoleDependency] = Nil)(implicit ev: MemberLike[ClusterGraphNode, ClusterMember]) = {
 
     def makeLinks(conns: Seq[(Double, Double)]) =
       conns.flatMap {
@@ -633,10 +368,13 @@ object Graph {
       case Members =>
         val indexes = nodes.filter(_.status == "Up").map(_.index)
         makeLinks(indexes.flatMap(index => indexes.filter(_ > index).map((index, _))))
-      case Roles =>
 
+      case Roles =>
         log.debug("getLinks = " + roleDependencies)
         val allDeps = cluster.dependencies
+
+        log.debug("allDeps: " + allDeps)
+
         roleDependencies.zipWithIndex.flatMap {
           case (rd, index) =>
 
@@ -644,12 +382,12 @@ object Graph {
 
             val sourcesIndexes = rd.roles.flatMap { eachRole =>
               cluster.getNodesByRole(eachRole).toSeq.flatMap(e =>
-                nodes.filter(n => ClusterGraphNode.label(n) == e.address.label).map(_.index))
+                nodes.filter(n => ev.nodeEq(n, e)).map(_.index))
             }
 
             val targetsIndexes = rd.dependsOn.flatMap { eachRole =>
               cluster.getNodesByRole(eachRole).toSeq.flatMap(e =>
-                nodes.filter(n => ClusterGraphNode.label(n) == e.address.label).map(_.index))
+                nodes.filter(n => ev.nodeEq(n, e)).map(_.index))
             }
 
             val indexes = sourcesIndexes.flatMap(eachSource =>
@@ -664,6 +402,9 @@ object Graph {
                   source <- nodes.find(_.index == a)
                   target <- nodes.find(_.index == b)
                 } yield {
+
+                  log.debug("****************  rd " + rd + " " + allDeps.indexOf(rd))
+
                   js.Dynamic.literal(
                     "index" -> allDeps.indexOf(rd),
                     "source" -> source,

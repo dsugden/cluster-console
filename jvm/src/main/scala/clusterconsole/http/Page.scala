@@ -4,7 +4,6 @@ import com.typesafe.config.ConfigFactory
 
 import scalatags.Text.all.{ html => htmlFrag, _ }
 import scalatags.Text.tags2
-import scalatags.stylesheet.{ StyleSheet, Sheet }
 
 object Page {
 

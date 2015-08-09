@@ -13,7 +13,6 @@ class RouterActor extends Actor with LogF {
     case rr: RemoveRoutee => routees = routees - rr.routee
     case msg: ClusterProtocol =>
       routees.foreach { r =>
-        msg.logDebug("sending " + _)
         import Json._
         r.send(write(msg), sender)
       }
