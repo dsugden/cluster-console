@@ -193,9 +193,7 @@ object GraphNode {
                 case "Exited" => GlobalStyles.nodeRemovedColor
                 case _ => GlobalStyles.nodeUpColor
               }
-
             }
-
           }, stroke := "#fff", strokeWidth := "1.px5"
         //        , {
         //            import japgolly.scalajs.react.vdom.all._
@@ -205,13 +203,6 @@ object GraphNode {
         ),
         getTextNodes(P.mode, P.node)
       )
-
-    }.componentDidMount { scope =>
-
-      val drag1 = d3.behavior.drag()
-      //      drag1.origin(() => js.Array(0, 0))
-      //      d3.select(scope.getDOMNode().firstChild).call(scope.props.force.drag())
-      d3.select(scope.getDOMNode().firstChild).call(drag1)
 
     }.build
 

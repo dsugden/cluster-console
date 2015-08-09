@@ -2,7 +2,6 @@ package clusterconsole.client.services
 
 import autowire._
 import clusterconsole.client.components.ClusterGraphNode
-import clusterconsole.client.d3.Layout.GraphNode
 import clusterconsole.client.services.Logger._
 import clusterconsole.client.ukko.Actor
 import clusterconsole.http._

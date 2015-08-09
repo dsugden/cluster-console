@@ -17,6 +17,7 @@ version := "1.1"
 scalaVersion := "2.11.7"
 
 
+scalaJSStage in Global := FastOptStage
 
 // a special crossProject for configuring a JS/JVM/shared structure
 // root project aggregating the JS and JVM projects
