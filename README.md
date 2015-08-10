@@ -2,7 +2,7 @@
 
 front end to view akka cluster topography
 
-This code is heavily influenced and owed it's existence to: https://github.com/ochrons/scalajs-spa-tutorial
+This code is heavily influenced and owes it's existence to: https://github.com/ochrons/scalajs-spa-tutorial
 
 d3 facade from https://github.com/spaced/scala-js-d3
 
