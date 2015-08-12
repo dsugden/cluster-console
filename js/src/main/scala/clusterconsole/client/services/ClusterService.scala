@@ -127,7 +127,7 @@ trait ClusterService extends Actor {
         modeMap.get(mode).fold(List(node))(nodes =>
           nodes.find(e => ev.nodeEq(e, node)).fold(node :: nodes)(found =>
             nodes.map(n =>
-              if (ClusterGraphNode.label(n) == ClusterGraphNode.label(node)) {
+              if (ev.nodeEq(n, node)) {
                 node
               } else n)
           ))

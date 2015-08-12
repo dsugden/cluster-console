@@ -25,7 +25,7 @@ trait ActivityLogService extends Actor {
   def receive: Receive = {
     case ac: ClusterEvent =>
       log.debug(s"ActivityLogService: $ac")
-      logItems() = logItems() :+ ac
+      logItems() = ac +: logItems()
 
     case other =>
   }

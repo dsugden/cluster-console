@@ -81,7 +81,6 @@ object Graph {
         ClusterGraphNode(member, cn.index, cn.x, cn.y, cn.px, cn.py, cn.fixed, cn.weight)
       )(fixedNode => {
           js.Dynamic.literal(
-            "virtualHost" -> cn.virtualHost,
             "host" -> cn.host,
             "port" -> cn.port,
             "roles" -> cn.roles,
@@ -109,20 +108,38 @@ object Graph {
 
         val incomingNodes: List[ClusterGraphNode] =
           t.props.mode match {
-            case Nodes => Nil
+            case Nodes =>
+
+              // get a node map of what is currently on screen
+              val currentNodesMap = t.state.nodes.map(e => (ClusterGraphNode.label(e), e)).toMap
+
+              log.debug("currentNodesMap " + currentNodesMap.toList.map(e => (e._1, e._2.host + ":" + e._2.port)))
+
+              // this is actual cluster state from server, nodes could have been added there,
+              // must be added here. check existence in current map, if not there, add one, else
+              // check fixed position
+              val res = cluster.members.toList.map { node =>
+                currentNodesMap.get(node.address.label).fold(
+                  ClusterGraphNode(node, getNewIndex(existingIndexes, 1), 450, 450, 450, 450, false, 0)
+                )(cn => fixNodePosition(t.props.system, node, cn))
+              }
+
+              res
 
             case _ =>
+
               // get a node map of what is currently on screen
               val currentNodesMap = t.state.nodes.map(e => (ClusterGraphNode.label(e), e)).toMap
 
               // this is actual cluster state from server, nodes could have been added there,
               // must be added here. check existence in current map, if not there, add one, else
               // check fixed position
-              cluster.members.toList.map { node =>
+              val res = cluster.members.toList.map { node =>
                 currentNodesMap.get(node.address.label).fold(
                   ClusterGraphNode(node, getNewIndex(existingIndexes, 1), 450, 450, 450, 450, false, 0)
                 )(cn => fixNodePosition(t.props.system, node, cn))
               }
+              res
 
           }
 
@@ -131,15 +148,7 @@ object Graph {
         log.debug("********** cluster deps = " + cluster.dependencies)
 
         t.modState { s =>
-          val links: Seq[ClusterGraphLink] = {
-
-            t.props.mode match {
-              case Roles =>
-                getLinks(incomingNodes, t.props.mode, cluster, t.props.store.getSelectedDeps().getOrElse(cluster.system, Nil))
-
-              case _ => getLinks(incomingNodes, t.props.mode, cluster, t.props.store.getSelectedDeps().getOrElse(cluster.system, Nil))
-            }
-          }
+          val links: Seq[ClusterGraphLink] = getLinks(incomingNodes, t.props.mode, cluster, t.props.store.getSelectedDeps().getOrElse(cluster.system, Nil))
           s.copy(nodes = incomingNodes, links = links, force = s.force.nodes(incomingNodes.toJsArray).start())
         }
       })
@@ -219,9 +228,12 @@ object Graph {
         s.copy(nodes = newNodes, force = s.force.nodes(newNodes.toJSArray).start())
       }
 
-      t.state.nodes.find(e => implicitly[NodeLike[ClusterGraphNode]].nodeEq(e, node)).foreach(node =>
+      t.state.nodes.find(e => implicitly[NodeLike[ClusterGraphNode]].nodeEq(e, node)).foreach { node =>
+
+        log.debug("ClusterService.updateNodePosition node: " + node.host + ":" + node.port)
+
         ClusterService.updateNodePosition(t.props.system, t.props.mode, node)
-      )
+      }
     }
   }
 
@@ -304,23 +316,27 @@ object Graph {
       mode match {
         case Nodes =>
           val map = cluster.members.toSeq.groupBy(m => m.address.host)
+
+          var newKeyIndex = 1000
           map.keys.zipWithIndex.flatMap {
             case (key, keyIndex) =>
-
-              val newKeyIndex = 1000
 
               val ports: Seq[ClusterMember] = map.getOrElse[Seq[ClusterMember]](key, Seq.empty[ClusterMember])
 
               val portNodes: Seq[ClusterGraphNode] = ports.zipWithIndex.map {
                 case (pNode, pIndex) =>
-                  ClusterGraphNode.port(pNode, newKeyIndex + 1 + pIndex, 450, 450, 450, 450, false, 1)
+                  ClusterGraphNode.port(pNode, newKeyIndex + keyIndex + 1 + pIndex, 450, 450, 450, 450, false, 1)
               }
 
               val hostNode: Option[ClusterGraphNode] =
                 ports.headOption.map(port =>
-                  ClusterGraphNode.host(port, newKeyIndex, 450, 450, 450, 450, false, ports.length))
+                  ClusterGraphNode.host(port, newKeyIndex + keyIndex, 450, 450, 450, 450, false, ports.length))
 
-              hostNode.fold(Seq.empty[ClusterGraphNode])(hn => hn +: portNodes)
+              val res = hostNode.fold(Seq.empty[ClusterGraphNode])(hn => hn +: portNodes)
+
+              newKeyIndex = newKeyIndex + ports.length + 1
+
+              res
           }
 
         case _ =>
@@ -419,26 +435,23 @@ object Graph {
       case Nodes =>
 
         //join ports to hosts
-        val hostPortMap = nodes.groupBy(n => n.virtualHost)
+        val hostPortMap: Map[String, Seq[ClusterGraphNode]] = nodes.groupBy(n => n.host)
 
         log.debug("hostPortMap " + hostPortMap)
         log.debug("hostPortMap " + hostPortMap.size)
 
-        val indexes = hostPortMap.foldLeft[Seq[(Double, Double)]](Seq.empty[(Double, Double)])((a, b) => a ++ {
+        val hostToPortIndexes = hostPortMap.foldLeft[Seq[(Double, Double)]](Seq.empty[(Double, Double)])((a, b) => a ++ {
 
           log.debug("-- b._1 " + b._1)
           log.debug("-- b._2 " + b._2.map(p => p.port + " " + p.index))
 
-          if (b._1.length > 0) {
-            nodes.find(_.host == b._1).map(h =>
-              b._2.map(e => (h.index, e.index))
-            ).getOrElse(Nil)
-          } else {
-            Nil
-          }
+          nodes.find(e => e.host == b._1 && e.port == 0).map(host =>
+            b._2.flatMap(e => if (e.port != 0) {
+              Some((host.index, e.index))
+            } else None)).getOrElse(Nil)
         }
         )
-        makeLinks(indexes)
+        makeLinks(hostToPortIndexes)
     }
 
   }

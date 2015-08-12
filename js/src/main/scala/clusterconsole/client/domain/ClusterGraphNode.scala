@@ -6,7 +6,6 @@ import clusterconsole.http.ClusterMember
 import scala.scalajs.js
 
 trait ClusterGraphNode extends GraphNode {
-  var virtualHost: String = js.native
   var host: String = js.native
   var port: Int = js.native
   var roles: String = js.native
@@ -27,7 +26,6 @@ object ClusterGraphNode {
     fixed: Boolean,
     weight: Double): ClusterGraphNode =
     js.Dynamic.literal(
-      "virtualHost" -> "",
       "host" -> m.address.host,
       "port" -> m.address.port,
       "roles" -> m.roles.mkString(","),
@@ -51,7 +49,6 @@ object ClusterGraphNode {
     fixed: Boolean,
     weight: Double): ClusterGraphNode =
     js.Dynamic.literal(
-      "virtualHost" -> "",
       "host" -> m.address.host,
       "port" -> 0,
       "roles" -> "",
@@ -75,8 +72,7 @@ object ClusterGraphNode {
     fixed: Boolean,
     weight: Double): ClusterGraphNode =
     js.Dynamic.literal(
-      "virtualHost" -> m.address.host,
-      "host" -> "",
+      "host" -> m.address.host,
       "port" -> m.address.port,
       "roles" -> m.roles.mkString(","),
       "status" -> m.state.toString,

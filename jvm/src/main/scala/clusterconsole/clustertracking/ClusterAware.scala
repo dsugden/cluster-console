@@ -29,7 +29,7 @@ object ClusterAware {
 
 class ClusterAware(systemName: String, seedNodes: List[HostPort], parent: ActorRef) extends Actor with LogF {
 
-  val selfHost = "127.0.0.1"
+  val selfHost = "10.75.154.26"
   val selfPort = 0
 
   val akkaConf =

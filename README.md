@@ -87,3 +87,40 @@ Nix:
     fuser -k -n tcp 2551
 
 etc.
+
+
+if using the Vagrantfile
+
+
+for each:
+
+    sudo apt-get install unzip
+    cp /vagrant/sampleCluster/target/universal/samplecluster-1.0.0.zip .
+    unzip samplecluster-1.0.0.zip
+    sudo chmod +x samplecluster-1.0.0/bin/samplecluster
+    
+then, vagrant ssh to seed, member_2, member_3 etc.    
+
+
+seed
+
+    samplecluster-1.0.0/bin/samplecluster 192.168.11.20 2551 FooCluster 192.168.11.20:2551 Stable-Seed &
+
+    
+member_2
+    
+    samplecluster-1.0.0/bin/samplecluster 192.168.11.22 2552 FooCluster 192.168.11.20:2551 Baz-Security &
+    samplecluster-1.0.0/bin/samplecluster 192.168.11.22 2553 FooCluster 192.168.11.20:2551 Baz-Security &
+    samplecluster-1.0.0/bin/samplecluster 192.168.11.22 2554 FooCluster 192.168.11.20:2551 Foo-Worker &
+    
+    
+member_3
+    
+    samplecluster-1.0.0/bin/samplecluster 192.168.11.23 2555 FooCluster 192.168.11.20:2551 Foo-Worker &
+    samplecluster-1.0.0/bin/samplecluster 192.168.11.23 2556 FooCluster 192.168.11.20:2551 Bar-Worker &
+    samplecluster-1.0.0/bin/samplecluster 192.168.11.23 2557 FooCluster 192.168.11.20:2551 Bar-Worker &
+    
+member_4    
+
+    samplecluster-1.0.0/bin/samplecluster 192.168.11.24 2558 FooCluster 192.168.11.20:2551 Foo-Http &
+    samplecluster-1.0.0/bin/samplecluster 192.168.11.24 2559 FooCluster 192.168.11.20:2551 Bar-Http &

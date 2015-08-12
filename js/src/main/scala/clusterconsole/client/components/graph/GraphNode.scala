@@ -52,19 +52,19 @@ object GraphNode {
 
   def getRadius(mode: Mode, n: ClusterGraphNode): String = mode match {
     case Nodes =>
-      if (n.host.length > 0) {
-        "60"
+      if (n.port == 0) {
+        "50"
       } else {
-        "30"
+        "20"
       }
     case _ => "30"
   }
 
   def getTextNodes(mode: Mode, n: ClusterGraphNode): ReactNode = mode match {
     case Nodes =>
-      if (n.host.length > 0) {
+      if (n.port == 0) {
         g(
-          text(x := n.x - 30, y := n.y - 55, fill := "white", fontSize := "18px")(n.host)
+          text(x := n.x - 40, y := n.y - 55, fill := "white", fontSize := "18px")(n.host)
         )
 
       } else {
