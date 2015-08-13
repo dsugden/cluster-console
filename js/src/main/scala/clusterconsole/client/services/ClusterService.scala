@@ -107,6 +107,7 @@ trait ClusterService extends Actor {
 
     case UpdateNodePosition(system, mode, node) =>
       fixedNodePositions() = updateFixedNodePositions(fixedNodePositions(), system, mode, node)
+    //      ClusterService.refreshCluster(system)
 
     case clusterUnjoin: ClusterUnjoin =>
       events() = events() :+ clusterUnjoin
@@ -122,16 +123,27 @@ trait ClusterService extends Actor {
     system: String,
     mode: Mode,
     node: ClusterGraphNode)(implicit ev: NodeLike[ClusterGraphNode]): Map[String, Map[Mode, List[ClusterGraphNode]]] =
-    map + (system ->
-      map.get(system).fold(Map(mode -> List(node)))(modeMap => modeMap + (mode -> {
-        modeMap.get(mode).fold(List(node))(nodes =>
-          nodes.find(e => ev.nodeEq(e, node)).fold(node :: nodes)(found =>
-            nodes.map(n =>
-              if (ev.nodeEq(n, node)) {
-                node
-              } else n)
-          ))
-      })))
+    {
+      log.debug("updateFixedNodePositions" + node.host + ":" + node.port)
+      map + (system ->
+        map.get(system).fold(Map(mode -> List(node)))(modeMap => modeMap + (mode -> {
+          modeMap.get(mode).fold(List(node))(nodes =>
+            nodes.find(e => ev.nodeEq(e, node)).fold({
+              log.debug("updateFixedNodePositions adding " + node.host + ":" + node.port)
+              node :: nodes
+            })(found => {
+              // this node is already fixed
+              nodes.map(n =>
+                if (ev.nodeEq(n, node)) {
+                  log.debug("updateFixedNodePositions found " + node.host + ":" + node.port)
+                  node
+                } else n)
+
+            }
+            ))
+        })))
+
+    }
 
 }
 

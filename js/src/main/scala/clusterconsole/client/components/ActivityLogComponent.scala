@@ -40,7 +40,7 @@ object ActivityLogComponent {
 
       div(paddingTop := "30px")(
         div(cls := "row", height := "200px")(
-          div(cls := "col-md-12")(
+          div(cls := "col-md-12", maxHeight := "600px", overflowY := "auto")(
             div(cls := "row", borderBottom := "1px solid white")(
               div(cls := "col-md-12")(
                 span(fontSize := "20px", color := globalStyles.textColor)("Events"))
@@ -55,13 +55,14 @@ object ActivityLogComponent {
                   case ev: ClusterMemberExited => (globalStyles.nodeRemovedColor, "white")
                 }
                 div(cls := "row", borderTop := "1px solid white", borderBottom := "1px solid white")(
-                  div(cls := "col-md-12", paddingTop := "10px", paddingBottom := "10px", backgroundColor := bg, color := tcolor)(
-                    span(color := tcolor, fontSize := "15px")(
-                      b(
-                        ClusterEventUtil.label(e)
+                  div(cls := "col-md-12", paddingTop := "10px", paddingBottom := "10px",
+                    backgroundColor := bg, color := tcolor)(
+                      span(color := tcolor, fontSize := "15px")(
+                        b(
+                          ClusterEventUtil.label(e)
+                        )
                       )
                     )
-                  )
                 )
               }
             )

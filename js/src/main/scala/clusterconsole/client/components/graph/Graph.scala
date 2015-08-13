@@ -72,12 +72,37 @@ object Graph {
       )
     }
 
-    def fixNodePosition(system: String, member: ClusterMember, cn: ClusterGraphNode)(implicit ev: MemberLike[ClusterGraphNode, ClusterMember]) = {
-      val fixedList = t.props.store.getFixedNodePositions()
+    def getFixedList(system: String): List[ClusterGraphNode] =
+      t.props.store.getFixedNodePositions()
         .getOrElse(system, Map.empty[Mode, List[ClusterGraphNode]])
         .getOrElse(t.props.mode, Nil)
 
-      fixedList.find(e => ev.nodeEq(e, member)).fold(
+    def fixedHostPosition(system: String, host: String, cn: ClusterGraphNode) =
+      getFixedList(system).find(e => e.host == host && e.port == 0).fold(
+        ClusterGraphNode.host(host, cn.index, cn.x, cn.y, cn.px, cn.py, cn.fixed, cn.weight)
+      )(fixedNode => {
+          js.Dynamic.literal(
+            "host" -> cn.host,
+            "port" -> cn.port,
+            "roles" -> cn.roles,
+            "status" -> "Up",
+            "name" -> cn.name,
+            "index" -> cn.index,
+            "x" -> cn.x,
+            "y" -> cn.y,
+            "px" -> cn.px,
+            "py" -> cn.py,
+            "fixed" -> true,
+            "weight" -> cn.weight
+          ).asInstanceOf[ClusterGraphNode]
+        })
+
+    /**
+     * ClusterMember => ClusterGraphNode, checking if this has a fixed position from dragging
+     */
+    def fixNodePosition(system: String, member: ClusterMember, cn: ClusterGraphNode)(implicit ev: MemberLike[ClusterGraphNode, ClusterMember]) =
+
+      getFixedList(system).find(e => ev.nodeEq(e, member)).fold(
         ClusterGraphNode(member, cn.index, cn.x, cn.y, cn.px, cn.py, cn.fixed, cn.weight)
       )(fixedNode => {
           js.Dynamic.literal(
@@ -96,8 +121,6 @@ object Graph {
           ).asInstanceOf[ClusterGraphNode]
         })
 
-    }
-
     def updateGraph(c: Option[DiscoveredCluster]) = {
 
       c.fold[Unit]({})(cluster => {
@@ -106,7 +129,7 @@ object Graph {
 
         val existingIndexes = t.state.nodes.map(_.index).toSet
 
-        val incomingNodes: List[ClusterGraphNode] =
+        val incomingNodes: Seq[ClusterGraphNode] =
           t.props.mode match {
             case Nodes =>
 
@@ -115,16 +138,26 @@ object Graph {
 
               log.debug("currentNodesMap " + currentNodesMap.toList.map(e => (e._1, e._2.host + ":" + e._2.port)))
 
+              // add host nodes in
+              val hostMap = cluster.members.toSeq.groupBy(m => m.address.host)
+
               // this is actual cluster state from server, nodes could have been added there,
               // must be added here. check existence in current map, if not there, add one, else
               // check fixed position
-              val res = cluster.members.toList.map { node =>
+              val ports = cluster.members.toSeq.map { node =>
                 currentNodesMap.get(node.address.label).fold(
                   ClusterGraphNode(node, getNewIndex(existingIndexes, 1), 450, 450, 450, 450, false, 0)
                 )(cn => fixNodePosition(t.props.system, node, cn))
               }
 
-              res
+              val hosts = hostMap.keys.toSeq.map(hostName =>
+                currentNodesMap.get(hostName + ":0").fold(
+                  ClusterGraphNode.host(hostName, getNewIndex(existingIndexes, 1), 450, 450, 450, 450, false, 0)
+                )(cn => fixedHostPosition(t.props.system, hostName, cn))
+
+              )
+
+              hosts ++: ports
 
             case _ =>
 
@@ -134,7 +167,7 @@ object Graph {
               // this is actual cluster state from server, nodes could have been added there,
               // must be added here. check existence in current map, if not there, add one, else
               // check fixed position
-              val res = cluster.members.toList.map { node =>
+              val res = cluster.members.toSeq.map { node =>
                 currentNodesMap.get(node.address.label).fold(
                   ClusterGraphNode(node, getNewIndex(existingIndexes, 1), 450, 450, 450, 450, false, 0)
                 )(cn => fixNodePosition(t.props.system, node, cn))
@@ -162,31 +195,12 @@ object Graph {
       t.modState(s => s.copy(nodes = newNodes))
     }
 
-    def start() = {
-      t.modState { s =>
-        val nodesToForce = t.state.nodes.filter(_.fixed == false)
-        val firstState = s.copy(force = s.force.nodes(nodesToForce.toJsArray).start())
-        firstState.copy(force = s.force.on("tick", () => renderTick))
-      }
-    }
-
     def startfixed() = {
       t.modState { s =>
-        log.debug("------  startfixed " + t.state.nodes.map(_.fixed))
-        //        val nodesToForce = t.state.nodes.filter(n => )
         val firstState = s.copy(force = s.force.nodes(t.state.nodes.toJsArray).start())
         (1 until 150).foreach(i => t.state.force.tick())
         firstState.copy(force = s.force.on("tick", () => renderTick))
       }
-    }
-
-    def resume() = {
-
-      t.modState { s =>
-        val firstState = s.copy(force = s.force.nodes(t.state.nodes.toJsArray).resume())
-        firstState.copy(force = s.force.on("tick", () => renderTick))
-      }
-
     }
 
     def initDrag(): Unit = {
@@ -234,6 +248,10 @@ object Graph {
 
         ClusterService.updateNodePosition(t.props.system, t.props.mode, node)
       }
+
+      updateGraph(t.props.store.getSelectedCluster())
+
+      //      initDrag()
     }
   }
 
@@ -262,9 +280,8 @@ object Graph {
 
       val roles: Seq[(RoleDependency, Boolean)] =
         if (P.mode == Roles) {
-          val alldeps = P.store.getSelectedCluster().map(_.dependencies).getOrElse(Nil)
-
-          alldeps.map(eachDep => (eachDep, selectedDeps.exists(_.tpe.name == eachDep.tpe.name)))
+          P.store.getSelectedCluster().map(_.dependencies).getOrElse(Nil)
+            .map(eachDep => (eachDep, selectedDeps.exists(_.tpe.name == eachDep.tpe.name)))
         } else {
           Nil
         }
@@ -311,26 +328,38 @@ object Graph {
     mode: Mode,
     fixedList: List[ClusterGraphNode],
     selectedDeps: List[RoleDependency])(implicit ev: MemberLike[ClusterGraphNode, ClusterMember]): (Seq[ClusterGraphNode], Seq[ClusterGraphLink]) = {
-    val nodes =
+    val nodes: Seq[ClusterGraphNode] =
 
       mode match {
         case Nodes =>
+
+          // group by host
           val map = cluster.members.toSeq.groupBy(m => m.address.host)
 
           var newKeyIndex = 1000
-          map.keys.zipWithIndex.flatMap {
+
+          map.keys.toSeq.zipWithIndex.flatMap {
             case (key, keyIndex) =>
 
               val ports: Seq[ClusterMember] = map.getOrElse[Seq[ClusterMember]](key, Seq.empty[ClusterMember])
 
               val portNodes: Seq[ClusterGraphNode] = ports.zipWithIndex.map {
                 case (pNode, pIndex) =>
-                  ClusterGraphNode.port(pNode, newKeyIndex + keyIndex + 1 + pIndex, 450, 450, 450, 450, false, 1)
+                  fixedList.find(e => ev.nodeEq(e, pNode)).fold(
+                    ClusterGraphNode.port(pNode, newKeyIndex + keyIndex + 1 + pIndex, 450, 450, 450, 450, false, 1)
+                  )(found =>
+                      ClusterGraphNode.port(pNode, newKeyIndex + keyIndex + 1 + pIndex, found.x, found.y, found.px, found.py, true, 1)
+                    )
+
               }
 
               val hostNode: Option[ClusterGraphNode] =
-                ports.headOption.map(port =>
-                  ClusterGraphNode.host(port, newKeyIndex + keyIndex, 450, 450, 450, 450, false, ports.length))
+                ports.headOption.map(firstPort =>
+                  fixedList.find(e => e.host == firstPort.address.host && e.port == 0).fold(
+                    ClusterGraphNode.host(firstPort.address.host, newKeyIndex + keyIndex, 450, 450, 450, 450, false, ports.length)
+                  )(found =>
+                      ClusterGraphNode.host(firstPort.address.host, newKeyIndex + keyIndex, found.x, found.y, found.px, found.py, true, ports.length)
+                    ))
 
               val res = hostNode.fold(Seq.empty[ClusterGraphNode])(hn => hn +: portNodes)
 

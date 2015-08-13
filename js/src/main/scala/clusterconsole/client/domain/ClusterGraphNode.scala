@@ -40,7 +40,7 @@ object ClusterGraphNode {
       "weight" -> weight
     ).asInstanceOf[ClusterGraphNode]
 
-  def host(m: ClusterMember,
+  def host(host: String,
     index: Double,
     x: Double,
     y: Double,
@@ -49,7 +49,7 @@ object ClusterGraphNode {
     fixed: Boolean,
     weight: Double): ClusterGraphNode =
     js.Dynamic.literal(
-      "host" -> m.address.host,
+      "host" -> host,
       "port" -> 0,
       "roles" -> "",
       "status" -> "",
