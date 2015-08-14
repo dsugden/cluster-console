@@ -52,11 +52,11 @@ object Json {
         Js.Str(write[ClusterMemberRemoved](r))
       )
 
-    case r: ClusterUnjoin =>
-      Js.Arr(
-        Js.Num(5),
-        Js.Str(write[ClusterUnjoin](r))
-      )
+//    case r: ClusterUnjoin =>
+//      Js.Arr(
+//        Js.Num(5),
+//        Js.Str(write[ClusterUnjoin](r))
+//      )
 
     case other =>  Js.Str("Json error " + other)
   }
@@ -76,8 +76,8 @@ object Json {
     case Js.Arr(Js.Num(4), Js.Str(v)) =>
       read[ClusterMemberRemoved](v)
 
-    case Js.Arr(Js.Num(5), Js.Str(v)) =>
-      read[ClusterUnjoin](v)
+//    case Js.Arr(Js.Num(5), Js.Str(v)) =>
+//      read[ClusterUnjoin](v)
   }
 
 

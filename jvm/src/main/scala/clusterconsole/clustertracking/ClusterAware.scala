@@ -15,9 +15,10 @@ object ClusterAware {
 
   def props(
     systemName: String,
+    selfHost: String,
     seedNodes: List[HostPort],
     parent: ActorRef): Props =
-    Props(new ClusterAware(systemName, seedNodes, parent))
+    Props(new ClusterAware(systemName, selfHost, seedNodes, parent))
 
   def toCusterMember(m: Member, nodeState: NodeState): ClusterMember =
     ClusterMember(
@@ -27,9 +28,8 @@ object ClusterAware {
 
 }
 
-class ClusterAware(systemName: String, seedNodes: List[HostPort], parent: ActorRef) extends Actor with LogF {
+class ClusterAware(systemName: String, selfHost: String, seedNodes: List[HostPort], parent: ActorRef) extends Actor with LogF {
 
-  val selfHost = "10.75.154.26"
   val selfPort = 0
 
   val akkaConf =

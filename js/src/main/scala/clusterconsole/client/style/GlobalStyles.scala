@@ -8,6 +8,8 @@ object GlobalStyles extends StyleSheet.Inline {
 
   val textColor = "#EAD0D0"
 
+  val modalBackground = "#E8E3E3"
+
   val navUnselectedTextColor = "#8ED5EA"
 
   val mainHeaderColor = "#2C3138"

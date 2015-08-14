@@ -6,7 +6,6 @@ import clusterconsole.client.domain._
 import clusterconsole.client.modules._
 import clusterconsole.client.services.ClusterService
 import clusterconsole.client.services.Logger._
-import clusterconsole.client.style.GlobalStyles
 import clusterconsole.http.{ ClusterMember, DiscoveredCluster, RoleDependency }
 import japgolly.scalajs.react.extra.OnUnmount
 import japgolly.scalajs.react.vdom.SvgAttrs
@@ -292,6 +291,9 @@ object Graph {
         drawNodes(S.nodes, S.force, P.mode)
       )
     }).componentWillReceiveProps { (scope, P) =>
+
+      log.debug("componentWillReceiveProps")
+
       val (nodes, links) = P.store.getSelectedCluster().map(cluster => {
         getNodesAndLink(cluster, P.mode,
           P.store.getFixedNodePositions().getOrElse(cluster.system, Map.empty[Mode, List[ClusterGraphNode]]).getOrElse(P.mode, Nil),
@@ -302,15 +304,17 @@ object Graph {
 
       scope.modState { s =>
         val firstState = s.copy(nodes = nodes, links = links, force = s.force.nodes(nodes.toJsArray).start())
+        (1 until 150).foreach(i => scope.state.force.tick())
         firstState.copy(force = s.force.on("tick", () => scope.backend.renderTick))
       }
 
     }.componentWillMount { scope =>
-      if (!scope.props.fixedMap) {
-        scope.backend.startfixed()
-      }
 
+      log.debug("componentWillMount")
+      scope.backend.startfixed()
     }.componentDidMount { scope =>
+
+      log.debug("componentDidMount")
       scope.backend.mounted()
 
       scope.backend.initDrag()
@@ -412,19 +416,21 @@ object Graph {
     mode match {
       case Members =>
         val indexes = nodes.filter(_.status == "Up").map(_.index)
-        makeLinks(indexes.flatMap(index => indexes.filter(_ > index).map((index, _))))
+        val res: Seq[(Double, Double)] =
+          indexes.flatMap(index => indexes.filter(_ > index).map((index, _)))
+
+        val res2: Seq[(Double, Double)] = for {
+          index <- indexes
+          eachOther <- indexes.filter(_ > index)
+          tuple <- Some(index, eachOther)
+        } yield tuple
+
+        makeLinks(res)
 
       case Roles =>
-        log.debug("getLinks = " + roleDependencies)
         val allDeps = cluster.dependencies
-
-        log.debug("allDeps: " + allDeps)
-
         roleDependencies.zipWithIndex.flatMap {
           case (rd, index) =>
-
-            log.debug("--------- roleDependencies " + (rd, index))
-
             val sourcesIndexes = rd.roles.flatMap { eachRole =>
               cluster.getNodesByRole(eachRole).toSeq.flatMap(e =>
                 nodes.filter(n => ev.nodeEq(n, e)).map(_.index))
@@ -447,9 +453,6 @@ object Graph {
                   source <- nodes.find(_.index == a)
                   target <- nodes.find(_.index == b)
                 } yield {
-
-                  log.debug("****************  rd " + rd + " " + allDeps.indexOf(rd))
-
                   js.Dynamic.literal(
                     "index" -> allDeps.indexOf(rd),
                     "source" -> source,
@@ -466,14 +469,7 @@ object Graph {
         //join ports to hosts
         val hostPortMap: Map[String, Seq[ClusterGraphNode]] = nodes.groupBy(n => n.host)
 
-        log.debug("hostPortMap " + hostPortMap)
-        log.debug("hostPortMap " + hostPortMap.size)
-
         val hostToPortIndexes = hostPortMap.foldLeft[Seq[(Double, Double)]](Seq.empty[(Double, Double)])((a, b) => a ++ {
-
-          log.debug("-- b._1 " + b._1)
-          log.debug("-- b._2 " + b._2.map(p => p.port + " " + p.index))
-
           nodes.find(e => e.host == b._1 && e.port == 0).map(host =>
             b._2.flatMap(e => if (e.port != 0) {
               Some((host.index, e.index))

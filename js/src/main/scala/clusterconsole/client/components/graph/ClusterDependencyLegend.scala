@@ -24,7 +24,7 @@ object ClusterDependencyLegend {
     .backend(new Backend(_))
     .render { (P, S, B) =>
 
-      val label = P.dep.tpe.name + ": " + P.dep.roles.mkString(",") + " depends on " + P.dep.dependsOn.mkString(",")
+      val label = P.dep.tpe.name + ": " + P.dep.tpe.typeName + ". " + P.dep.roles.mkString(",") + "-->" + P.dep.dependsOn.mkString(",")
 
       val rectwidth = (label.length * 9) + 20
 

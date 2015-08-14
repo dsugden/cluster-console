@@ -1,7 +1,7 @@
 package clusterconsole.client.services
 
 import autowire._
-import clusterconsole.client.domain.{ NodeLike, MemberLike, ClusterGraphNode }
+import clusterconsole.client.domain.{ NodeLike, ClusterGraphNode }
 import clusterconsole.client.modules.Mode
 import clusterconsole.client.services.Logger._
 import clusterconsole.client.ukko.Actor
@@ -67,6 +67,7 @@ trait ClusterService extends Actor {
       ClusterService.refreshCluster(system)
 
     case m @ DiscoveryBegun(system, seedNodes) =>
+      clusterForm() = ClusterForm.initial
       discoveringClusters() = discoveringClusters() + (system -> m)
 
     case m @ DiscoveredCluster(system, seeds, status, members, _) =>
@@ -109,8 +110,8 @@ trait ClusterService extends Actor {
       fixedNodePositions() = updateFixedNodePositions(fixedNodePositions(), system, mode, node)
     //      ClusterService.refreshCluster(system)
 
-    case clusterUnjoin: ClusterUnjoin =>
-      events() = events() :+ clusterUnjoin
+    //    case clusterUnjoin: ClusterUnjoin =>
+    //      events() = events() :+ clusterUnjoin
 
     case x: UpdateClusterForm =>
       clusterForm() = x.clusterForm
@@ -152,9 +153,9 @@ object ClusterService extends ClusterService {
 
   import Json._
 
-  def subscribeToCluster(name: String, seedNodes: List[HostPort]) =
-    AjaxClient[Api].discover(name, seedNodes).call()
-      .foreach(_.foreach(MainDispatcher.dispatch))
+  def subscribeToCluster(name: String, selfHost: String, seedNodes: List[HostPort]) =
+    AjaxClient[Api].discover(name, selfHost, seedNodes).call()
+      .foreach(_.foreach(MainDispatcher.dispatch)) // DiscoveryBegun
 
   def findDiscoveringClusters() =
     AjaxClient[Api].getDiscovering().call().foreach { discoveringSeq =>

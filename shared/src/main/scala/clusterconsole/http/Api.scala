@@ -3,7 +3,7 @@ package clusterconsole.http
 
 trait Api {
 
-  def discover(system:String, seedNodes:List[HostPort]): Option[DiscoveryBegun]
+  def discover(system:String, selfHost:String, seedNodes:List[HostPort]): Option[DiscoveryBegun]
 
   def getDiscovering(): Seq[DiscoveryBegun]
 

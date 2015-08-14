@@ -12,7 +12,7 @@ trait ClusterEvent extends ClusterProtocol{
 
 case class CurrentClusterStateInitial(system: String, members: Set[ClusterMember]) extends ClusterEvent
 
-case class ClusterUnjoin(system: String, seedNodes: List[HostPort]) extends ClusterEvent
+//case class ClusterUnjoin(system: String, seedNodes: List[HostPort]) extends ClusterEvent
 
 case class ClusterMemberUp(system: String,member: ClusterMember) extends ClusterEvent
 
@@ -27,7 +27,7 @@ object ClusterEventUtil{
   def label(e:ClusterEvent) = {
     e match {
       case ev:CurrentClusterStateInitial => s"CurrentClusterStateInitial[ ${ev.system}, ${ev.members}} ]"
-      case ev:ClusterUnjoin => s"ClusterUnjoin[ ${ev.system}]"
+//      case ev:ClusterUnjoin => s"ClusterUnjoin[ ${ev.system}]"
       case ev:ClusterMemberUp => s"MemberUp ${ev.system} ${ev.member.labelSimple}"
       case ev:ClusterMemberUnreachable => s"MemberUnreachable ${ev.system} ${ev.member.labelSimple}"
       case ev:ClusterMemberRemoved => s"MemberRemoved ${ev.system} ${ev.member.labelSimple}"
@@ -76,10 +76,10 @@ case class RoleDependency(roles:Seq[String], dependsOn:Seq[String], tpe:ClusterD
 
 case class HostPortForm(host: String, port: String)
 
-case class ClusterForm(name: String, seeds: List[HostPortForm])
+case class ClusterForm(name: String, selfHost:String, seeds: List[HostPortForm])
 
 object ClusterForm {
-  def initial: ClusterForm = ClusterForm("", List(HostPortForm("", "")))
+  def initial: ClusterForm = ClusterForm("", "127.0.0.1", List(HostPortForm("", "")))
 }
 
 

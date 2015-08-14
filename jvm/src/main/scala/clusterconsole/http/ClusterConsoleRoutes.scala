@@ -96,9 +96,9 @@ trait ClusterConsoleRoutes extends LogF { this: Actor =>
   override def receive: Receive = {
     case Terminated(ref) =>
       logger.logDebug(s"Died: $ref" + _)
-      //TODO: refactor
-      clusterDiscoveryService.discovering.get(ref).foreach(d => socketPublisherRouter ! ClusterUnjoin(d.system, d.seedNodes))
-      clusterDiscoveryService.discovering -= ref
+    //TODO: refactor
+    //      clusterDiscoveryService.discovering.get(ref).foreach(d => socketPublisherRouter ! ClusterUnjoin(d.system, d.seedNodes))
+    //      clusterDiscoveryService.discovering -= ref
   }
 
 }
@@ -111,11 +111,11 @@ class ClusterDiscoveryService(context: ActorContext, socketPublisherRouter: Acto
 
   val trackDiscovered: ActorRef = context.system.actorOf(TrackDiscovered.props(socketPublisherRouter))
 
-  def discover(systemName: String, seedNodes: List[HostPort]): Option[DiscoveryBegun] = {
+  def discover(systemName: String, selfHost: String, seedNodes: List[HostPort]): Option[DiscoveryBegun] = {
 
     val discovered = getDiscoveredFromTracked
     if (!discovered.exists(_.system == systemName)) {
-      val newSystemActor = context.system.actorOf(ClusterAware.props(systemName, seedNodes, trackDiscovered))
+      val newSystemActor = context.system.actorOf(ClusterAware.props(systemName, selfHost, seedNodes, trackDiscovered))
       val value = DiscoveryBegun(systemName, seedNodes)
       discovering += newSystemActor -> value
       context.watch(newSystemActor)

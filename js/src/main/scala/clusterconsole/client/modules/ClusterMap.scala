@@ -50,9 +50,8 @@ object ClusterMap {
       ClusterService.getDiscoveredClusters()
     }
 
-    def editCluster(item: ClusterForm): Unit = {
-      log.debug("item " + item)
-      ClusterService.subscribeToCluster(item.name, item.seeds.map(HostPortUtil.apply))
+    def editCluster(cForm: ClusterForm): Unit = {
+      ClusterService.subscribeToCluster(cForm.name, cForm.selfHost, cForm.seeds.map(HostPortUtil.apply))
     }
 
     def selectCluster(name: String) = {
