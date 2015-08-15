@@ -1,6 +1,6 @@
 # cluster-console
 
-Example project for using [scalajs-react}(https://github.com/japgolly/scalajs-react)  
+Example project for using [scalajs-react](https://github.com/japgolly/scalajs-react)  
 
 front end to view akka cluster topography
 
