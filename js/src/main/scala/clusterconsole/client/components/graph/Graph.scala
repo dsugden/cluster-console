@@ -418,13 +418,6 @@ object Graph {
         val indexes = nodes.filter(_.status == "Up").map(_.index)
         val res: Seq[(Double, Double)] =
           indexes.flatMap(index => indexes.filter(_ > index).map((index, _)))
-
-        val res2: Seq[(Double, Double)] = for {
-          index <- indexes
-          eachOther <- indexes.filter(_ > index)
-          tuple <- Some(index, eachOther)
-        } yield tuple
-
         makeLinks(res)
 
       case Roles =>

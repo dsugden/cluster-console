@@ -1,5 +1,7 @@
 # cluster-console
 
+Example project for using [scalajs-react}(https://github.com/japgolly/scalajs-react)  
+
 front end to view akka cluster topography
 
 This code is heavily influenced and owes it's existence to: https://github.com/ochrons/scalajs-spa-tutorial
@@ -90,6 +92,11 @@ etc.
 
 
 if using the Vagrantfile
+
+you'll need this box: https://github.com/dsugden/vagrant-ansible-ubuntu-oracle-java8, install it then
+
+    vagrant up
+
 
 
 for each:

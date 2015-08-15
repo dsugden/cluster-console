@@ -22,7 +22,6 @@ abstract class RxObserver[BS <: BackendScope[_, _]](scope: BS) extends OnUnmount
     val obs = rx.foreach(v => {
       update(v)
     }, true)
-    // stop observing when unmounted
     onUnmount(obs.kill())
   }
 
