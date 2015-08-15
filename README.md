@@ -1,19 +1,13 @@
 # cluster-console
 
-Example project for using [scalajs-react](https://github.com/japgolly/scalajs-react)  
+Smaple project illustrating combining D3 with [scalajs-react](https://github.com/japgolly/scalajs-react)  
 
-front end to view akka cluster topography
+This project provides simple views for akka cluster topography
 
 This code is heavily influenced and owes it's existence to: https://github.com/ochrons/scalajs-spa-tutorial
 
-d3 facade from https://github.com/spaced/scala-js-d3
 
-
-
-
-
-to run in dev:
-
+###Getting started
 
 1) open 2 terminals.
 2) in first terminal:
@@ -91,7 +85,7 @@ Nix:
 etc.
 
 
-if using the Vagrantfile
+#### multiple vm cluster: using the Vagrantfile
 
 you'll need this box: https://github.com/dsugden/vagrant-ansible-ubuntu-oracle-java8, install it then
 
@@ -99,15 +93,20 @@ you'll need this box: https://github.com/dsugden/vagrant-ansible-ubuntu-oracle-j
 
 
 
-for each:
+Log in to each vm:
+
+    vagrant ssh seed
+    vagrant ssh member_2
+    vagrant ssh member_3
+    vagrant ssh member_4
+
+then, on each
 
     sudo apt-get install unzip
     cp /vagrant/sampleCluster/target/universal/samplecluster-1.0.0.zip .
     unzip samplecluster-1.0.0.zip
     sudo chmod +x samplecluster-1.0.0/bin/samplecluster
     
-then, vagrant ssh to seed, member_2, member_3 etc.    
-
 
 seed
 
