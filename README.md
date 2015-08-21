@@ -7,6 +7,14 @@ This project provides simple views for akka cluster topography
 This code is heavily influenced and owes it's existence to: https://github.com/ochrons/scalajs-spa-tutorial
 
 
+
+![members](/members.png?raw=true "Members")
+
+![roles](/members.png?raw=true "Roles")
+
+![nodes](/members.png?raw=true "Nodes")
+
+
 ###Getting started
 
 1) open 2 terminals.

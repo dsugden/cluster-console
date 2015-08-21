@@ -14,7 +14,7 @@ object ClusterConsoleApp extends App with LogF {
 
   val akkaConf =
     """akka.remote.netty.tcp.hostname="127.0.0.1"
-      |akka.remote.netty.tcp.port=2771
+      |akka.remote.netty.tcp.port=3001
       |akka.cluster.roles = [clusterconsole]
       |""".stripMargin
 
