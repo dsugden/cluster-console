@@ -4,7 +4,7 @@ Sample project illustrating combining D3 with [scalajs-react](https://github.com
 
 This project provides simple views for akka cluster topography.
 
-This code is heavily influenced and owes its existence to: https://github.com/ochrons/scalajs-spa-tutorial.
+This code is heavily influenced by and owes its existence to: https://github.com/ochrons/scalajs-spa-tutorial.
 
 
 
