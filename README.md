@@ -10,9 +10,9 @@ This code is heavily influenced and owes its existence to: https://github.com/oc
 
 ![members](/members.png?raw=true "Members")
 
-![roles](/members.png?raw=true "Roles")
+![roles](/roles.png?raw=true "Roles")
 
-![nodes](/members.png?raw=true "Nodes")
+![nodes](/nodes.png?raw=true "Nodes")
 
 
 ###Getting started
