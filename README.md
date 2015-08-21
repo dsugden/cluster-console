@@ -1,10 +1,10 @@
 # cluster-console
 
-Smaple project illustrating combining D3 with [scalajs-react](https://github.com/japgolly/scalajs-react)  
+Sample project illustrating combining D3 with [scalajs-react](https://github.com/japgolly/scalajs-react)  .
 
-This project provides simple views for akka cluster topography
+This project provides simple views for akka cluster topography.
 
-This code is heavily influenced and owes it's existence to: https://github.com/ochrons/scalajs-spa-tutorial
+This code is heavily influenced and owes its existence to: https://github.com/ochrons/scalajs-spa-tutorial.
 
 
 
@@ -93,7 +93,7 @@ Nix:
 etc.
 
 
-#### multiple vm cluster: using the Vagrantfile
+#### multiple VM cluster: using the Vagrantfile
 
 you'll need this box: https://github.com/dsugden/vagrant-ansible-ubuntu-oracle-java8, install it then
 
@@ -101,7 +101,7 @@ you'll need this box: https://github.com/dsugden/vagrant-ansible-ubuntu-oracle-j
 
 
 
-Log in to each vm:
+Log in to each VM:
 
     vagrant ssh seed
     vagrant ssh member_2
