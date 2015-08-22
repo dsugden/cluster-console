@@ -95,7 +95,7 @@ etc.
 
 #### multiple VM cluster: using the Vagrantfile
 
-you'll need this box: https://github.com/dsugden/vagrant-ansible-ubuntu-oracle-java8, install it then
+you'll need this box: https://github.com/dsugden/vagrant-ansible-ubuntu-oracle-java8, install (NOTE: the project Vagrantfile assumes the box is named `ubuntu/trusty64_oraclejava8`) it, then:
 
     vagrant up
 
