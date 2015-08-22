@@ -179,5 +179,5 @@ member_4
 
 ```bash
 samplecluster-1.0.0/bin/samplecluster 192.168.11.24 2558 FooCluster 192.168.11.20:2551 Foo-Http &
-    samplecluster-1.0.0/bin/samplecluster 192.168.11.24 2559 FooCluster 192.168.11.20:2551 Bar-Http &
+samplecluster-1.0.0/bin/samplecluster 192.168.11.24 2559 FooCluster 192.168.11.20:2551 Bar-Http &
 ````
