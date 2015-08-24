@@ -153,6 +153,12 @@ Then, [continue on to start up your test nodes](#booting-the-vm-test-nodes)
 
 Since we're working with an Ubuntu VM for this style of testing, we have the option of using a Debian package.
 
+Just tell SBT to create the Debian package, and we'll install it when we need it in a bit:
+
+```
+sbt 'project sampleCluster' 'debian:packageBin'
+```
+
 Then, [continue on to start up your test nodes](#booting-the-vm-test-nodes)
 
 ##### Booting the VM Test Nodes
