@@ -5,14 +5,16 @@ A burgeoning web-based console<super>1</super> for realtime visualization of Akk
 <small>1</small><sub>This code is heavily influenced by–and owes its existence to–[ochron's ScalaJS Single Page Application Tutorial](https://github.com/ochrons/scalajs-spa-tutorial)</sub>.
 
 **Creator**:
-  +[Dave Sugden](http://boldradius.com/team/Uv51hAEAAIFyKXWR/dave-sugden), [<img src="http://bytes.codes/images/br-circle.png" width="40"> BoldRadius Solutions](http://boldradius.com)
-    - [<img src="http://bytes.codes/images/black_circle-twitter_icon.png" width=40">](http://twitter.com/fritzsss)
-    - [<img src="http://bytes.codes/images/black_circle-github_icon.png" width=40">](http://github.com/dsugden) 
+
+  +[Dave Sugden](http://boldradius.com/team/Uv51hAEAAIFyKXWR/dave-sugden), [<img src="http://bytes.codes/images/br-circle.png" width="20"> BoldRadius Solutions](http://boldradius.com)
+    - [<img src="http://bytes.codes/images/black_circle-twitter_icon.png" width=20">](http://twitter.com/fritzsss)
+    - [<img src="http://bytes.codes/images/black_circle-github_icon.png" width=20">](http://github.com/dsugden) 
 
 **Contributors**:
-  + [Brendan McAdams](http://boldradius.com/team/VSvjIykAACkAyy8C/brendan-mcadams), [<img src="http://bytes.codes/images/br-circle.png" width="40"> BoldRadius Solutions](http://boldradius.com)
-    - [<img src="http://bytes.codes/images/black_circle-twitter_icon.png" width=40">](http://twitter.com/rit) 
-    - [<img src="http://bytes.codes/images/black_circle-github_icon.png" width=40">](http://github.com/bwmcadams) 
+
+  + [Brendan McAdams](http://boldradius.com/team/VSvjIykAACkAyy8C/brendan-mcadams), [<img src="http://bytes.codes/images/br-circle.png" width="20"> BoldRadius Solutions](http://boldradius.com)
+    - [<img src="http://bytes.codes/images/black_circle-twitter_icon.png" width=20">](http://twitter.com/rit) 
+    - [<img src="http://bytes.codes/images/black_circle-github_icon.png" width=20">](http://github.com/bwmcadams) 
 
 ## Features
 
