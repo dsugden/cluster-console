@@ -1,21 +1,53 @@
-# cluster-console
+# astrolabe: An Akka Cluster Console
 
-Sample project illustrating combining D3 with [scalajs-react](https://github.com/japgolly/scalajs-react)  .
+A burgeoning web-based console<super>1</super> for realtime visualization of Akka Clusters.
 
-This project provides simple views for akka cluster topography.
+<small>1</small><sub>This code is heavily influenced by–and owes its existence to–[ochron's ScalaJS Single Page Application Tutorial](https://github.com/ochrons/scalajs-spa-tutorial)</sub>.
 
-This code is heavily influenced by and owes its existence to: https://github.com/ochrons/scalajs-spa-tutorial.
+**Creator**:
+  +[Dave Sugden](http://boldradius.com/team/Uv51hAEAAIFyKXWR/dave-sugden), [<img src="http://bytes.codes/images/br-circle.png" width="40"> BoldRadius Solutions](http://boldradius.com)
+    - [<img src="http://bytes.codes/images/black_circle-twitter_icon.png" width=40">](http://twitter.com/fritzsss)
+    - [<img src="http://bytes.codes/images/black_circle-github_icon.png" width=40">](http://github.com/dsugden) 
 
+**Contributors**:
+  + [Brendan McAdams](http://boldradius.com/team/VSvjIykAACkAyy8C/brendan-mcadams), [<img src="http://bytes.codes/images/br-circle.png" width="40"> BoldRadius Solutions](http://boldradius.com)
+    - [<img src="http://bytes.codes/images/black_circle-twitter_icon.png" width=40">](http://twitter.com/rit) 
+    - [<img src="http://bytes.codes/images/black_circle-github_icon.png" width=40">](http://github.com/bwmcadams) 
 
+## Features
 
+'Astrolabe' is a realtime, reactive, browser-based console intended to provide visualization of any Akka Cluster, with live updating of changes in the cluster state, including member adds & removes. It currently visualizes several properties in diagrams ([outlined below](#visualization-sample-output)), utilizing [D3](http://d3js.org/) & [React.JS](http://facebook.github.io/react/).
+
+It can also serve as an effective Demo/Sample project illustrating combining [Scala.JS](http://www.scala-js.org/) with [D3](http://d3js.org/) & [scalajs-react](https://github.com/japgolly/scalajs-react), for simple Akka Cluster topography overview.
+
+### Current Features:
+
+Currently the following features are supported:
+
+  + Join any Akka Cluster (that isn't encrypted with SSL, as it would require you specially configure for the keys, ssl certs, etc) on the fly – configured via browser.
+  + Visualize the topography of each Cluster
+    - [Members View](#members-view): Shows each individual ActorSystem which is joined to the cluster, with information on their hostname/IP address, port, and configured roles.
+    - [Roles View](#roles-view): Similar to Members View, shows each individual ActorSystem which is joined to the cluster, with information on their hostname/IP address, port, and configured roles. Additionally shows information on configured routers.
+    - [Nodes View](#nodes-view): Shows each individual host (hostname/IP address), with each ActorSystem hanging off of that host by Port & Roles.
+
+A number of future features are planned:
+  
+  + Cluster Metrics awareness: This will collect information about cluster metrics for each node in the system, and display an overview.
+  + Actor Hierarchy overview: This will let you visualize the actor tree on each node in the system, displaying a diagram to understand the node.
+
+## Visualization Sample Output
+
+### Members View 
 ![members](/members.png?raw=true "Members")
 
+### Roles View
 ![roles](/roles.png?raw=true "Roles")
 
+### Nodes View
 ![nodes](/nodes.png?raw=true "Nodes")
 
 
-###Getting started
+##Getting started
 
 To get started, we'll first need to boot the Spray HTTP Server (for running the console) and setup Scala.JS to recompile any changes.
 
@@ -33,7 +65,7 @@ To get started, we'll first need to boot the Spray HTTP Server (for running the 
 > ~fastOptJS
 ```
     
-### Running the Sample Cluster
+## Running the Sample Cluster
   A console alone isn't enough: we'll need some Akka nodes to visualize. To do this, we need a running Akka Cluster. 
 
   To boot up the sample Akka cluster, and test the behavior of the console, you have two options:
