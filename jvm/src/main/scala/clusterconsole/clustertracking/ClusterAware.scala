@@ -13,22 +13,22 @@ case class IsDiscovered(system: DiscoveredCluster)
 
 object ClusterAware {
 
-  def props(
-    systemName: String,
-    selfHost: String,
-    seedNodes: List[HostPort],
-    parent: ActorRef): Props =
+  def props(systemName: String, selfHost: String, seedNodes: List[HostPort], parent: ActorRef): Props =
     Props(new ClusterAware(systemName, selfHost, seedNodes, parent))
 
-  def toCusterMember(m: Member, nodeState: NodeState): ClusterMember =
+  def toClusterMember(m: Member, nodeState: NodeState): ClusterMember =
     ClusterMember(
       HostPort(m.uniqueAddress.address.host.getOrElse("Unknown"), m.uniqueAddress.address.port.getOrElse(0)),
       m.roles,
-      nodeState)
+      nodeState
+    )
 
 }
 
-class ClusterAware(systemName: String, selfHost: String, seedNodes: List[HostPort], parent: ActorRef) extends Actor with LogF {
+class ClusterAware(systemName: String,
+    selfHost: String,
+    seedNodes: List[HostPort],
+    parent: ActorRef) extends Actor with ActorLogging {
 
   val selfPort = 0
 
@@ -45,16 +45,20 @@ class ClusterAware(systemName: String, selfHost: String, seedNodes: List[HostPor
 
   lazy val cluster = Cluster(newSystem)
 
-  //val ca = newSystem.actorOf(Props(classOf[ClusterAwareManager]))
-
-  /** subscribe to cluster event in order to track workers */
+  /** subscribe to cluster events in order to track workers */
   override def preStart() = {
-    val addresses: immutable.Seq[Address] = seedNodes.map(e => Address("akka.tcp", systemName, e.host, e.port))
+    val addresses: immutable.Seq[Address] =
+      seedNodes.map(e => Address("akka.tcp", systemName, e.host, e.port))
 
+    // todo - track cluster metrics
     cluster.subscribe(self,
       initialStateMode = InitialStateAsEvents,
-      classOf[MemberUp], classOf[UnreachableMember],
-      classOf[MemberRemoved], classOf[MemberExited], classOf[LeaderChanged])
+      classOf[MemberUp],
+      classOf[UnreachableMember],
+      classOf[MemberRemoved],
+      classOf[MemberExited],
+      classOf[LeaderChanged]
+    )
 
     cluster.joinSeedNodes(addresses)
 
@@ -62,36 +66,48 @@ class ClusterAware(systemName: String, selfHost: String, seedNodes: List[HostPor
 
   override def postStop() = {
     cluster.unsubscribe(self)
-    cluster.leave(Address("akka.tcp", systemName, selfHost, selfPort))
+    cluster.leave(
+      Address("akka.tcp", systemName, selfHost, selfPort)
+    )
   }
 
   def receive: Receive = trackingMembers(Set.empty[Member])
 
   def trackingMembers(members: Set[Member]): Receive = {
 
-    case m @ CurrentClusterState(members, _, _, _, _) =>
-      context.become(trackingMembers(members))
+    case m @ CurrentClusterState(clusterMembers, _, _, _, _) =>
+      context.become(
+        trackingMembers(clusterMembers)
+      )
 
     case MemberUp(m) =>
+      // ignore ourself for console view
       if (m.roles != Set("clusterconsole")) {
-        context.become(trackingMembers(members + m))
-        def clusterMember(m: Member) = ClusterAware.toCusterMember(m, Up)
+        context.become(
+          trackingMembers(members + m)
+        )
+        def clusterMember(m: Member) =
+          ClusterAware.toClusterMember(m, Up)
+
         parent ! ClusterMemberUp(systemName, clusterMember(m))
-        parent ! IsDiscovered(DiscoveredCluster(systemName, seedNodes, "", (members + m).map(clusterMember), Seq.empty[RoleDependency]))
+
+        parent ! IsDiscovered(
+          DiscoveredCluster(systemName, seedNodes, "", (members + m).map(clusterMember), Seq.empty[RoleDependency])
+        )
       }
 
     case UnreachableMember(m) =>
       if (m.roles != Set("clusterconsole"))
-        parent ! ClusterMemberUnreachable(systemName, ClusterAware.toCusterMember(m, Unreachable))
+        parent ! ClusterMemberUnreachable(systemName, ClusterAware.toClusterMember(m, Unreachable))
 
     case MemberRemoved(m, previousStatus) =>
       if (m.roles != Set("clusterconsole")) {
-        parent ! ClusterMemberRemoved(systemName, ClusterAware.toCusterMember(m, Removed))
+        parent ! ClusterMemberRemoved(systemName, ClusterAware.toClusterMember(m, Removed))
       }
 
     case MemberExited(m) =>
       if (m.roles != Set("clusterconsole")) {
-        parent ! ClusterMemberExited(systemName, ClusterAware.toCusterMember(m, Exited))
+        parent ! ClusterMemberExited(systemName, ClusterAware.toClusterMember(m, Exited))
       }
 
   }

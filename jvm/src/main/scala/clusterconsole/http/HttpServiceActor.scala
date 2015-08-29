@@ -1,6 +1,6 @@
 package clusterconsole.http
 
-import akka.actor.{ Actor, ActorRef, Props }
+import akka.actor.{ ActorLogging, Actor, ActorRef, Props }
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.Http.ServerBinding
 import akka.http.scaladsl.server.RoutingSetup._
@@ -12,12 +12,11 @@ import clusterconsole.core.LogF
 import scala.concurrent.Future
 import scala.util.{ Failure, Success }
 
-class HttpServiceActor(
-  host: String,
-  port: Int,
-  selfTimeout: Timeout,
-  val socketPublisherRouter: ActorRef)
-    extends Actor with ClusterConsoleRoutes with ImplicitMaterializer with LogF {
+class HttpServiceActor(host: String, port: Int, selfTimeout: Timeout, val socketPublisherRouter: ActorRef)
+    extends Actor
+    with ClusterConsoleRoutes
+    with ImplicitMaterializer
+    with ActorLogging {
 
   import context.dispatcher
 
@@ -28,7 +27,7 @@ class HttpServiceActor(
 
   startHttpServer.onComplete {
     case Success(binding) =>
-      binding.localAddress.toString.logInfo("\r\n\r\nHttpService started, ready to service requests on " + _)
+      log.info("\r\n\r\nHttpService started, ready to service requests on {}", binding.localAddress)
     case Failure(ex) =>
       ex.printStackTrace()
       sys.exit(1)
@@ -37,11 +36,7 @@ class HttpServiceActor(
 }
 
 object HttpServiceActor {
-  def props(host: String,
-    port: Int,
-    selfTimeout: Timeout,
-    socketPublisherRouter: ActorRef): Props =
+  def props(host: String, port: Int, selfTimeout: Timeout, socketPublisherRouter: ActorRef): Props =
     Props(new HttpServiceActor(host, port, selfTimeout, socketPublisherRouter))
-
 }
 

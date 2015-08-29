@@ -8,7 +8,7 @@ import akka.stream.actor.ActorPublisher
 import scala.annotation.tailrec
 import scala.concurrent.duration._
 
-class WSClientRouter(router: ActorRef) extends ActorPublisher[String] {
+class WSClientRouter(router: ActorRef) extends ActorPublisher[String] with ActorLogging {
 
   case class QueueUpdated()
 
@@ -68,14 +68,14 @@ class WSClientRouter(router: ActorRef) extends ActorPublisher[String] {
    */
   @tailrec final def deliver(): Unit = {
     if (totalDemand == 0) {
-      println(s"No more demand for: $this")
+      log.debug(s"No more demand for {}", this)
     }
 
-    if (queue.size == 0 && totalDemand != 0) {
+    if (queue.isEmpty && totalDemand != 0) {
       // we can response to queueupdated msgs again, since
       // we can't do anything until our queue contains stuff again.
       queueUpdated = false
-    } else if (totalDemand > 0 && queue.size > 0) {
+    } else if (totalDemand > 0 && queue.nonEmpty) {
       onNext(queue.dequeue())
       deliver()
     }

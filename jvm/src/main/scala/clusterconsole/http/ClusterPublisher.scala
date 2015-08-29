@@ -7,7 +7,7 @@ import clusterconsole.core.LogF
 
 import scala.annotation.tailrec
 
-class ClusterPublisher(router: ActorRef) extends ActorPublisher[String] with LogF {
+class ClusterPublisher(router: ActorRef) extends ActorPublisher[String] with ActorLogging {
 
   case class QueueUpdated()
 
@@ -18,7 +18,7 @@ class ClusterPublisher(router: ActorRef) extends ActorPublisher[String] with Log
   val MaxBufferSize = 50
   val queue = mutable.Queue[String]()
 
-  var queueUpdated = false;
+  var queueUpdated = false
 
   // on startup, register with routee
   override def preStart() {
@@ -68,14 +68,14 @@ class ClusterPublisher(router: ActorRef) extends ActorPublisher[String] with Log
    */
   @tailrec final def deliver(): Unit = {
     if (totalDemand == 0) {
-      println(s"No more demand for: $this")
+      log.debug(s"No more demand for {}", this)
     }
 
-    if (queue.size == 0 && totalDemand != 0) {
+    if (queue.isEmpty && totalDemand != 0) {
       // we can response to queueupdated msgs again, since
       // we can't do anything until our queue contains stuff again.
       queueUpdated = false
-    } else if (totalDemand > 0 && queue.size > 0) {
+    } else if (totalDemand > 0 && queue.nonEmpty) {
       onNext(queue.dequeue())
       deliver()
     }

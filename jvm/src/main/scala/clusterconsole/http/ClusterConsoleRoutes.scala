@@ -19,7 +19,7 @@ import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration._
 import upickle.default._
 
-trait ClusterConsoleRoutes extends LogF { this: Actor =>
+trait ClusterConsoleRoutes extends ActorLogging { this: Actor =>
 
   def socketPublisherRouter: ActorRef
 
@@ -70,8 +70,6 @@ trait ClusterConsoleRoutes extends LogF { this: Actor =>
     Flow() { implicit builder =>
       import FlowGraph.Implicits._
 
-      "clusterSocketFlow".logDebug("here in " + _)
-
       // create an actor source
       val source = Source.actorPublisher[String](Props(classOf[ClusterPublisher], router))
       val filter = builder.add(Flow[String].filter(_ => false))
@@ -95,7 +93,7 @@ trait ClusterConsoleRoutes extends LogF { this: Actor =>
 
   override def receive: Receive = {
     case Terminated(ref) =>
-      logger.logDebug(s"Died: $ref" + _)
+      log.debug("[DeathWatch] Terminated Actor: {}", ref)
     //TODO: refactor
     //      clusterDiscoveryService.discovering.get(ref).foreach(d => socketPublisherRouter ! ClusterUnjoin(d.system, d.seedNodes))
     //      clusterDiscoveryService.discovering -= ref
@@ -103,19 +101,22 @@ trait ClusterConsoleRoutes extends LogF { this: Actor =>
 
 }
 
-class ClusterDiscoveryService(context: ActorContext, socketPublisherRouter: ActorRef) extends Api with LogF {
+class ClusterDiscoveryService(context: ActorContext, socketPublisherRouter: ActorRef) extends Api {
 
   implicit val timeout = Timeout(3 seconds)
 
   val discovering: MutableMap[ActorRef, DiscoveryBegun] = MutableMap.empty
 
-  val trackDiscovered: ActorRef = context.system.actorOf(TrackDiscovered.props(socketPublisherRouter))
+  val discoveryTracker: ActorRef =
+    context.system.actorOf(DiscoveryTracker.props(socketPublisherRouter))
 
   def discover(systemName: String, selfHost: String, seedNodes: List[HostPort]): Option[DiscoveryBegun] = {
 
     val discovered = getDiscoveredFromTracked
     if (!discovered.exists(_.system == systemName)) {
-      val newSystemActor = context.system.actorOf(ClusterAware.props(systemName, selfHost, seedNodes, trackDiscovered))
+      val newSystemActor = context.system.actorOf(
+        ClusterAware.props(systemName, selfHost, seedNodes, discoveryTracker)
+      )
       val value = DiscoveryBegun(systemName, seedNodes)
       discovering += newSystemActor -> value
       context.watch(newSystemActor)
@@ -130,13 +131,19 @@ class ClusterDiscoveryService(context: ActorContext, socketPublisherRouter: Acto
 
   private def getDiscoveredFromTracked: Set[DiscoveredCluster] = {
 
-    val futureDiscovered: Future[Set[DiscoveredCluster]] = (trackDiscovered ? GetDiscovered).mapTo[Set[DiscoveredCluster]]
+    val futureDiscovered: Future[Set[DiscoveredCluster]] =
+      (discoveryTracker ? DiscoveryTracker.GetDiscovered).mapTo[Set[DiscoveredCluster]]
+
+    // todo - pipeTo
     Await.result(futureDiscovered, 2 seconds)
   }
 
   private def getDiscoveredFromTracked(system: String): Option[DiscoveredCluster] = {
     implicit val timeout = Timeout(3 seconds)
-    val futureMaybeDiscovered: Future[Option[DiscoveredCluster]] = (trackDiscovered ? GetDiscovered(system)).mapTo[Option[DiscoveredCluster]]
+    val futureMaybeDiscovered: Future[Option[DiscoveredCluster]] =
+      (discoveryTracker ? DiscoveryTracker.GetDiscovered(system)).mapTo[Option[DiscoveredCluster]]
+
+    // todo - pipeTo
     Await.result(futureMaybeDiscovered, 2 seconds)
   }
 
@@ -145,8 +152,11 @@ class ClusterDiscoveryService(context: ActorContext, socketPublisherRouter: Acto
   def getCluster(system: String): Option[DiscoveredCluster] = getDiscoveredFromTracked(system)
 
   def updateClusterDependencies(cluster: DiscoveredCluster): DiscoveredCluster = {
-    val updated = (trackDiscovered ? UpdateDiscoveredDependencies(cluster)).mapTo[Boolean]
+    val updated = (discoveryTracker ? DiscoveryTracker.UpdateDiscoveredDependencies(cluster)).mapTo[Boolean]
+
+    // todo - pipeTo
     Await.result(updated, 2 seconds)
+
     cluster
 
   }
