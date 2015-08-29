@@ -75,7 +75,7 @@ To get started, we'll first need to boot the Spray HTTP Server (for running the 
 This approach will run multiple instances of the JVM, each with an Akka node in it, to facilitate testing. First, we'll need to create a zip file of the compiled project that we can run with.
 
 ```bash
-sbt 'project sampleCluster' 'dist'
+sbt sampleCluster/dist
 
 cd sampleCluster/target/universal
 unzip samplecluster-1.0.0.zip
@@ -91,7 +91,9 @@ To get started with the `FooCluster`, we will need a stable seed node. We can bo
 ```bash
 samplecluster-1.0.0/bin/samplecluster 127.0.0.1 2551 FooCluster 127.0.0.1:2551 Stable-Seed &
 ```
+
 Next, we'll boot up a bunch of sample actors:
+
 
 ```bash
 samplecluster-1.0.0/bin/samplecluster 127.0.0.1 2552 FooCluster 127.0.0.1:2551 Baz-Security &
@@ -170,7 +172,7 @@ You'll then need to create a runnable distribution of the `SampleCluster` code t
 You'll need to generate a distribution zip file, and then unzip it so we can access it from our Vagrant VMs:
 
 ```bash
-sbt 'project sampleCluster' 'dist'
+sbt sampleCluster/dist'
 
 cd sampleCluster/target/universal
 unzip samplecluster-1.0.0.zip
@@ -186,7 +188,7 @@ Since we're working with an Ubuntu VM for this style of testing, we have the opt
 Just tell SBT to create the Debian package, and we'll install it when we need it in a bit:
 
 ```
-sbt 'project sampleCluster' 'debian:packageBin'
+sbt sampleCluster/debian:packageBin
 ```
 
 Then, [continue on to start up your test nodes](#booting-the-vm-test-nodes)
