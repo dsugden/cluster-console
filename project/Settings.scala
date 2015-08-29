@@ -9,8 +9,9 @@ import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport._
 object Settings {
 
   object versions {
-    val akka = "2.3.12"
-    val akkaHttp = "1.0-RC4"
+    val akka = "2.4.0-RC1"
+    val akkaHttp = "1.0"
+    val sigarLoader = "1.6.6-rev002"
     val akkaLog4j = "0.2.0"
     val bootstrap = "3.3.2"
     val d3 = "3.5.5-1"
@@ -73,7 +74,8 @@ object Settings {
     "com.typesafe.scala-logging" %% "scala-logging" % versions.scalaLogging,
     "com.typesafe" % "config" % versions.config,
     "org.scalaz" %% "scalaz-core" % versions.scalaz,
-    "com.lihaoyi" %% "scalatags" % versions.scalaTags
+    "com.lihaoyi" %% "scalatags" % versions.scalaTags,
+    "io.kamon" % "sigar-loader" % versions.sigarLoader
   ))
 
   //  /** Dependencies only used by the JS project (note the use of %%% instead of %%) */
