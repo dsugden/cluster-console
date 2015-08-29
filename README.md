@@ -1,6 +1,6 @@
 # astrolabe: An Akka Cluster Console
 
-A burgeoning web-based console<super>1</super> for realtime visualization of Akka Clusters.
+A burgeoning web-based console<sup>1</sup> for realtime visualization of Akka Clusters.
 
 <small>1</small><sub>This code is heavily influenced by–and owes its existence to–[ochron's ScalaJS Single Page Application Tutorial](https://github.com/ochrons/scalajs-spa-tutorial)</sub>.
 
