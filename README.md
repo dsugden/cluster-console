@@ -6,15 +6,11 @@ A burgeoning web-based console<sup>1</sup> for realtime visualization of Akka Cl
 
 **Creator**:
 
-  + [Dave Sugden](http://boldradius.com/team/Uv51hAEAAIFyKXWR/dave-sugden), [<img src="http://bytes.codes/images/br-circle.png" width="20"> BoldRadius Solutions](http://boldradius.com)
-    - [<img src="http://bytes.codes/images/black_circle-twitter_icon.png" width=20">](http://twitter.com/fritzsss)
-    - [<img src="http://bytes.codes/images/black_circle-github_icon.png" width=20">](http://github.com/dsugden) 
+  + [Dave Sugden](http://boldradius.com/team/Uv51hAEAAIFyKXWR/dave-sugden), [<img src="http://bytes.codes/images/br-circle.png" width="20"> BoldRadius Solutions](http://boldradius.com) | [<img src="http://bytes.codes/images/black_circle-twitter_icon.png" width=20">](http://twitter.com/fritzsss) | [<img src="http://bytes.codes/images/black_circle-github_icon.png" width=20">](http://github.com/dsugden) 
 
 **Contributors**:
 
-  + [Brendan McAdams](http://boldradius.com/team/VSvjIykAACkAyy8C/brendan-mcadams), [<img src="http://bytes.codes/images/br-circle.png" width="20"> BoldRadius Solutions](http://boldradius.com)
-    - [<img src="http://bytes.codes/images/black_circle-twitter_icon.png" width=20">](http://twitter.com/rit) 
-    - [<img src="http://bytes.codes/images/black_circle-github_icon.png" width=20">](http://github.com/bwmcadams) 
+  + [Brendan McAdams](http://boldradius.com/team/VSvjIykAACkAyy8C/brendan-mcadams), [<img src="http://bytes.codes/images/br-circle.png" width="20"> BoldRadius Solutions](http://boldradius.com) | [<img src="http://bytes.codes/images/black_circle-twitter_icon.png" width=20">](http://twitter.com/rit) | [<img src="http://bytes.codes/images/black_circle-github_icon.png" width=20">](http://github.com/bwmcadams) 
 
 ## Features
 
