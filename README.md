@@ -254,4 +254,4 @@ samplecluster 192.168.11.24 2558 FooCluster 192.168.11.20:2551 Foo-Http &
 samplecluster 192.168.11.24 2559 FooCluster 192.168.11.20:2551 Bar-Http &
 ```
 
-![Have fun storming the castle!](https://caragaleblog.files.wordpress.com/2014/06/princess-bride-8.gif)
+![Have fun storming the castle!](http://bytes.codes/images/have-fun-storming-the-castle.gif)
