@@ -62,6 +62,7 @@ object Settings {
     "com.typesafe.akka" %% "akka-actor" % versions.akka,
     "com.typesafe.akka" %% "akka-cluster" % versions.akka,
     "com.typesafe.akka" %% "akka-contrib" % versions.akka,
+    "com.typesafe.akka" %% "akka-cluster-metrics" % versions.akka,
     "com.typesafe.akka" %% "akka-http-experimental" % versions.akkaHttp,
     "com.typesafe.akka" %% "akka-http-testkit-experimental" % versions.akkaHttp,
     "com.typesafe.akka" % "akka-stream-experimental_2.11" % versions.akkaHttp,

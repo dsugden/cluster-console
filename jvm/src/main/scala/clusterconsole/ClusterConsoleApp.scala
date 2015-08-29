@@ -20,6 +20,9 @@ object ClusterConsoleApp extends App with LogF {
 
   val config = ConfigFactory.parseString(akkaConf).withFallback(ConfigFactory.load())
 
+  println("[Starting up with Serializers]: " +
+    config.getObject("akka.actor.serializers"))
+
   val clusterConsoleSystem = ActorSystem("ClusterConsoleSystem", config)
 
   val router: ActorRef = clusterConsoleSystem.actorOf(Props[RouterActor], "router")
