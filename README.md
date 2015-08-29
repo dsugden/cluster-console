@@ -6,7 +6,7 @@ A burgeoning web-based console<super>1</super> for realtime visualization of Akk
 
 **Creator**:
 
-  +[Dave Sugden](http://boldradius.com/team/Uv51hAEAAIFyKXWR/dave-sugden), [<img src="http://bytes.codes/images/br-circle.png" width="20"> BoldRadius Solutions](http://boldradius.com)
+  + [Dave Sugden](http://boldradius.com/team/Uv51hAEAAIFyKXWR/dave-sugden), [<img src="http://bytes.codes/images/br-circle.png" width="20"> BoldRadius Solutions](http://boldradius.com)
     - [<img src="http://bytes.codes/images/black_circle-twitter_icon.png" width=20">](http://twitter.com/fritzsss)
     - [<img src="http://bytes.codes/images/black_circle-github_icon.png" width=20">](http://github.com/dsugden) 
 
