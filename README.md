@@ -1,6 +1,6 @@
 # astrolabe: An Akka Cluster Console
 
-A more current version of this project is [here](https://github.com/boldradius/cluster-console)
+## A more current version of this project is [here](https://github.com/boldradius/cluster-console)
 
 
 
